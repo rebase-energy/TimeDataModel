@@ -1,19 +1,37 @@
 from __future__ import annotations
 
 import csv
+import dataclasses
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from html import escape
 from pathlib import Path
-from typing import Iterator, NamedTuple, overload
+from typing import Callable, Iterator, NamedTuple, overload
 
 import numpy as np
 import pandas as pd
 
+from .enums import Frequency
 from .location import GeoArea, GeoLocation
 from .metadata import Metadata
 from .resolution import Resolution
+
+_PANDAS_FREQ_MAP: dict[str, Frequency] = {
+    # Modern pandas (>=2.0) aliases
+    "YE": Frequency.P1Y, "YE-DEC": Frequency.P1Y, "A": Frequency.P1Y,
+    "QE": Frequency.P3M, "QE-DEC": Frequency.P3M, "Q": Frequency.P3M,
+    "ME": Frequency.P1M, "M": Frequency.P1M,
+    "W": Frequency.P1W, "W-SUN": Frequency.P1W,
+    "D": Frequency.P1D,
+    "h": Frequency.PT1H, "H": Frequency.PT1H,
+    "30min": Frequency.PT30M, "30T": Frequency.PT30M,
+    "15min": Frequency.PT15M, "15T": Frequency.PT15M,
+    "10min": Frequency.PT10M, "10T": Frequency.PT10M,
+    "5min": Frequency.PT5M, "5T": Frequency.PT5M,
+    "min": Frequency.PT1M, "T": Frequency.PT1M,
+    "s": Frequency.PT1S, "S": Frequency.PT1S,
+}
 
 _MAX_PREVIEW = 3  # rows shown at head/tail in repr
 
@@ -520,3 +538,45 @@ class TimeSeries:
                     break
 
         return warnings
+
+    # ---- Tier 7 — pandas bridge --------------------------------------
+
+    def _infer_resolution_from_df(self, result: pd.DataFrame) -> Resolution:
+        # Timezone
+        new_tz = str(result.index.tz) if result.index.tz is not None else self.resolution.timezone
+
+        # Frequency
+        freq_str: str | None = None
+        if result.index.freq is not None:
+            freq_str = result.index.freqstr
+        elif len(result.index) >= 3:
+            try:
+                freq_str = pd.infer_freq(result.index)
+            except Exception:
+                pass
+
+        new_freq = _PANDAS_FREQ_MAP.get(freq_str, self.resolution.frequency) if freq_str else self.resolution.frequency
+
+        if new_freq == self.resolution.frequency and new_tz == self.resolution.timezone:
+            return self.resolution
+        return Resolution(new_freq, new_tz)
+
+    def _infer_metadata_from_df(self, result: pd.DataFrame) -> Metadata:
+        original_col = self.metadata.name or "value"
+        new_col = result.columns[0] if len(result.columns) > 0 else original_col
+        return (
+            dataclasses.replace(self.metadata, name=new_col)
+            if new_col != original_col
+            else self.metadata
+        )
+
+    def apply_pandas(
+        self,
+        func: Callable[[pd.DataFrame], pd.DataFrame],
+    ) -> TimeSeries:
+        """Apply a pandas transformation, preserving metadata and auto-detecting resolution."""
+        df = self.to_pandas_dataframe()
+        result = func(df)
+        new_resolution = self._infer_resolution_from_df(result)
+        new_metadata = self._infer_metadata_from_df(result)
+        return TimeSeries.from_pandas(result, new_resolution, new_metadata)

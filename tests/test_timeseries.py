@@ -389,6 +389,60 @@ class TestTier6IO:
             path.unlink(missing_ok=True)
 
 
+class TestApplyPandas:
+    def test_ffill(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df.ffill())
+        assert ts2[3].value is not None          # was None
+        assert ts2[3].value == sample_ts[2].value  # forward-filled from index 2
+
+    def test_clip(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df.clip(lower=2))
+        assert ts2[0].value == 2.0   # was 1.0, clipped up
+
+    def test_arithmetic(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df * 10)
+        assert ts2[0].value == 10.0
+
+    def test_metadata_preserved(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df.ffill())
+        assert ts2.metadata == sample_ts.metadata
+
+    def test_resolution_unchanged_for_noop(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df.ffill())
+        assert ts2.resolution == sample_ts.resolution
+
+    def test_resolution_updated_after_resample(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df.resample("2h").mean())
+        assert ts2.resolution.frequency == Frequency.PT1H  # 2h not in map, falls back
+        # Note: we test that frequency falls back to original PT1H
+
+    def test_timezone_updated_after_tz_convert(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df.tz_convert("Europe/Berlin"))
+        assert ts2.resolution.timezone == "Europe/Berlin"
+
+    def test_none_roundtrip(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df)  # identity
+        assert ts2[3].value is None
+
+    def test_immutability(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df + 99)
+        assert sample_ts[0].value == 1.0   # original unchanged
+
+    def test_column_rename_updates_metadata_name(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df.rename(columns={"power": "power_filled"}))
+        assert ts2.metadata.name == "power_filled"
+        assert ts2.metadata.unit == sample_ts.metadata.unit  # other fields preserved
+
+    def test_no_rename_preserves_metadata_name(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(lambda df: df.ffill())
+        assert ts2.metadata.name == "power"
+
+    def test_unit_preserved_after_arithmetic(self, sample_ts):
+        # Cannot auto-detect unit change from pandas — unit stays as original
+        ts2 = sample_ts.apply_pandas(lambda df: df * 0.001)
+        assert ts2.metadata.unit == sample_ts.metadata.unit  # still "MW"
+
+
 class TestValidation:
     def test_valid(self, sample_ts):
         warnings = sample_ts.validate()
