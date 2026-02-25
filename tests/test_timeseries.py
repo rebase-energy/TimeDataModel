@@ -89,6 +89,18 @@ class TestSequenceProtocol:
         assert bool(TimeSeries(hourly_resolution)) is False
 
 
+class TestBeginEnd:
+    def test_begin_end_non_empty(self, sample_ts):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        assert sample_ts.begin == base
+        assert sample_ts.end == base + timedelta(hours=4)
+
+    def test_begin_end_empty(self, hourly_resolution):
+        ts = TimeSeries(hourly_resolution)
+        assert ts.begin is None
+        assert ts.end is None
+
+
 class TestNumpy:
     def test_to_numpy(self, sample_ts):
         arr = sample_ts.to_numpy()
@@ -97,6 +109,20 @@ class TestNumpy:
         assert len(arr) == 5
         assert arr[0] == 1.0
         assert np.isnan(arr[3])
+
+
+class TestDataFrameAliases:
+    def test_to_pd_df(self, sample_ts):
+        import pandas as pd
+        df = sample_ts.to_pd_df()
+        assert isinstance(df, pd.DataFrame)
+        pd.testing.assert_frame_equal(df, sample_ts.to_pandas_dataframe())
+
+    def test_to_pl_df(self, sample_ts):
+        import polars as pl
+        df = sample_ts.to_pl_df()
+        assert isinstance(df, pl.DataFrame)
+        assert df.equals(sample_ts.to_polars_dataframe())
 
 
 class TestPandas:

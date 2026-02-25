@@ -78,6 +78,14 @@ class TimeSeries:
     def __bool__(self) -> bool:
         return len(self._timestamps) > 0
 
+    @property
+    def begin(self) -> datetime | None:
+        return self._timestamps[0] if self._timestamps else None
+
+    @property
+    def end(self) -> datetime | None:
+        return self._timestamps[-1] if self._timestamps else None
+
     # ---- repr helpers ------------------------------------------------
 
     @staticmethod
@@ -256,6 +264,14 @@ class TimeSeries:
         col_name = self.metadata.name or "value"
         index = pd.DatetimeIndex(self._timestamps, name="timestamp")
         return pd.DataFrame({col_name: self.to_numpy()}, index=index)
+
+    def to_pd_df(self) -> pd.DataFrame:
+        """Alias for to_pandas_dataframe()."""
+        return self.to_pandas_dataframe()
+
+    def to_pl_df(self):
+        """Alias for to_polars_dataframe()."""
+        return self.to_polars_dataframe()
 
     def to_polars_dataframe(self):
         """Return a polars DataFrame with 'timestamp' and value columns."""
