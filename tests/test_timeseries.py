@@ -443,6 +443,57 @@ class TestApplyPandas:
         assert ts2.metadata.unit == sample_ts.metadata.unit  # still "MW"
 
 
+class TestApplyNumpy:
+    def test_clip(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(lambda arr: np.clip(arr, 2, None))
+        assert ts2[0].value == 2.0  # was 1.0, clipped up
+
+    def test_arithmetic(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(lambda arr: arr * 10)
+        assert ts2[0].value == 10.0
+
+    def test_sqrt(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(np.sqrt)
+        assert ts2[0].value == pytest.approx(1.0)
+        assert ts2[1].value == pytest.approx(np.sqrt(2.0))
+
+    def test_nan_passthrough(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(lambda arr: arr)  # identity
+        assert ts2[3].value is None  # NaN stays None
+
+    def test_nan_fill(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(lambda arr: np.nan_to_num(arr, nan=0.0))
+        assert ts2[3].value == 0.0  # None filled with 0
+
+    def test_timestamps_unchanged(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(lambda arr: arr + 1)
+        assert ts2.timestamps == sample_ts.timestamps
+
+    def test_resolution_unchanged(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(lambda arr: arr + 1)
+        assert ts2.resolution == sample_ts.resolution
+
+    def test_metadata_preserved(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(lambda arr: arr + 1)
+        assert ts2.metadata == sample_ts.metadata
+
+    def test_immutability(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(lambda arr: arr + 99)
+        assert sample_ts[0].value == 1.0  # original unchanged
+
+    def test_wrong_length_raises(self, sample_ts):
+        with pytest.raises(ValueError, match="result length"):
+            sample_ts.apply_numpy(lambda arr: arr[:-1])  # shorter array
+
+    def test_nancumsum(self, sample_ts):
+        ts2 = sample_ts.apply_numpy(np.nancumsum)
+        assert ts2[0].value == pytest.approx(1.0)
+        assert ts2[1].value == pytest.approx(3.0)   # 1 + 2
+        assert ts2[2].value == pytest.approx(6.0)   # 1 + 2 + 3
+        assert ts2[3].value == pytest.approx(6.0)   # NaN treated as 0
+        assert ts2[4].value == pytest.approx(11.0)  # 6 + 5
+
+
 class TestValidation:
     def test_valid(self, sample_ts):
         warnings = sample_ts.validate()

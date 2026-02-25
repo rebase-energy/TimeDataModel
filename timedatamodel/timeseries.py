@@ -580,3 +580,25 @@ class TimeSeries:
         new_resolution = self._infer_resolution_from_df(result)
         new_metadata = self._infer_metadata_from_df(result)
         return TimeSeries.from_pandas(result, new_resolution, new_metadata)
+
+    def apply_numpy(
+        self,
+        func: Callable[[np.ndarray], np.ndarray],
+    ) -> TimeSeries:
+        """Apply a numpy transformation to values, keeping timestamps and resolution unchanged."""
+        arr = self.to_numpy()
+        result = np.asarray(func(arr), dtype=np.float64)
+        if result.shape[0] != len(self._timestamps):
+            raise ValueError(
+                f"apply_numpy: result length ({result.shape[0]}) must match "
+                f"series length ({len(self._timestamps)})"
+            )
+        values: list[float | None] = [
+            None if np.isnan(v) else float(v) for v in result
+        ]
+        return TimeSeries(
+            self.resolution,
+            self.metadata,
+            timestamps=list(self._timestamps),
+            values=values,
+        )
