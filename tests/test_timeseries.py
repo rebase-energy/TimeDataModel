@@ -1,4 +1,7 @@
+import json
+import tempfile
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -167,6 +170,223 @@ class TestPolars:
         assert len(ts2) == len(sample_ts)
         assert ts2[0].value == sample_ts[0].value
         assert ts2[3].value is None
+
+
+class TestTier1:
+    def test_duration_non_empty(self, sample_ts):
+        assert sample_ts.duration == timedelta(hours=4)
+
+    def test_duration_empty(self, hourly_resolution):
+        ts = TimeSeries(hourly_resolution)
+        assert ts.duration is None
+
+    def test_duration_single_point(self, hourly_resolution):
+        ts = TimeSeries(
+            hourly_resolution,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+        )
+        assert ts.duration == timedelta(0)
+
+    def test_head_default(self, sample_ts):
+        h = sample_ts.head()
+        assert len(h) == 5  # series has exactly 5 points
+
+    def test_head_n(self, sample_ts):
+        h = sample_ts.head(2)
+        assert len(h) == 2
+        assert h[0].value == 1.0
+        assert h[1].value == 2.0
+
+    def test_head_n_gt_len(self, sample_ts):
+        h = sample_ts.head(100)
+        assert len(h) == len(sample_ts)
+
+    def test_head_zero(self, sample_ts):
+        h = sample_ts.head(0)
+        assert len(h) == 0
+
+    def test_tail_default(self, sample_ts):
+        t = sample_ts.tail()
+        assert len(t) == 5  # series has exactly 5 points
+
+    def test_tail_n(self, sample_ts):
+        t = sample_ts.tail(2)
+        assert len(t) == 2
+        assert t[0].value == sample_ts[-2].value
+        assert t[1].value == sample_ts[-1].value
+
+    def test_tail_n_gt_len(self, sample_ts):
+        t = sample_ts.tail(100)
+        assert len(t) == len(sample_ts)
+
+    def test_tail_zero(self, sample_ts):
+        t = sample_ts.tail(0)
+        assert len(t) == 0
+
+    def test_copy_independence(self, sample_ts):
+        c = sample_ts.copy()
+        assert len(c) == len(sample_ts)
+        assert c[0].value == sample_ts[0].value
+        c._values[0] = 999.0
+        assert sample_ts[0].value == 1.0  # original unchanged
+
+    def test_has_missing_true(self, sample_ts):
+        assert sample_ts.has_missing is True
+
+    def test_has_missing_false(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = TimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=[1.0, 2.0],
+        )
+        assert ts.has_missing is False
+
+    def test_has_missing_empty(self, hourly_resolution):
+        ts = TimeSeries(hourly_resolution)
+        assert ts.has_missing is False
+
+    def test_contains_hit(self, sample_ts):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        assert base in sample_ts
+
+    def test_contains_miss(self, sample_ts):
+        assert datetime(2025, 6, 1, tzinfo=timezone.utc) not in sample_ts
+
+
+class TestTier5Arithmetic:
+    def test_add_scalar(self, sample_ts):
+        ts2 = sample_ts + 10
+        assert ts2[0].value == 11.0
+        assert ts2[3].value is None  # None passthrough
+
+    def test_radd_scalar(self, sample_ts):
+        ts2 = 10 + sample_ts
+        assert ts2[0].value == 11.0
+
+    def test_sub_scalar(self, sample_ts):
+        ts2 = sample_ts - 1
+        assert ts2[0].value == 0.0
+
+    def test_rsub_scalar(self, sample_ts):
+        ts2 = 10 - sample_ts
+        assert ts2[0].value == 9.0
+        assert ts2[3].value is None
+
+    def test_mul_scalar(self, sample_ts):
+        ts2 = sample_ts * 2
+        assert ts2[0].value == 2.0
+        assert ts2[3].value is None
+
+    def test_rmul_scalar(self, sample_ts):
+        ts2 = 2 * sample_ts
+        assert ts2[0].value == 2.0
+
+    def test_mul_zero(self, sample_ts):
+        ts2 = sample_ts * 0
+        assert ts2[0].value == 0.0
+
+    def test_truediv_scalar(self, sample_ts):
+        ts2 = sample_ts / 2
+        assert ts2[0].value == 0.5
+        assert ts2[3].value is None
+
+    def test_neg(self, sample_ts):
+        ts2 = -sample_ts
+        assert ts2[0].value == -1.0
+        assert ts2[3].value is None
+
+    def test_abs(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = TimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=[-3.0, 4.0],
+        )
+        ts2 = abs(ts)
+        assert ts2[0].value == 3.0
+        assert ts2[1].value == 4.0
+
+    def test_round(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = TimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=[1.567, 2.345],
+        )
+        ts2 = round(ts, 1)
+        assert ts2[0].value == 1.6
+        assert ts2[1].value == 2.3
+
+    def test_unsupported_operand_returns_not_implemented(self, sample_ts):
+        result = sample_ts.__add__("not_a_number")
+        assert result is NotImplemented
+
+    def test_immutability(self, sample_ts):
+        ts2 = sample_ts + 1
+        assert sample_ts[0].value == 1.0  # original unchanged
+
+
+class TestTier6IO:
+    def test_json_round_trip(self, sample_ts):
+        s = sample_ts.to_json()
+        ts2 = TimeSeries.from_json(s, sample_ts.resolution)
+        assert len(ts2) == len(sample_ts)
+        for i, (orig, restored) in enumerate(zip(sample_ts, ts2)):
+            assert orig.timestamp == restored.timestamp, f"timestamp mismatch at {i}"
+            assert orig.value == restored.value, f"value mismatch at {i}"
+
+    def test_json_is_valid(self, sample_ts):
+        s = sample_ts.to_json()
+        parsed = json.loads(s)
+        assert "timestamps" in parsed
+        assert "values" in parsed
+        assert len(parsed["timestamps"]) == len(sample_ts)
+
+    def test_json_preserves_none(self, sample_ts):
+        s = sample_ts.to_json()
+        ts2 = TimeSeries.from_json(s, sample_ts.resolution)
+        assert ts2[3].value is None
+
+    def test_json_empty(self, hourly_resolution):
+        ts = TimeSeries(hourly_resolution)
+        s = ts.to_json()
+        ts2 = TimeSeries.from_json(s, hourly_resolution)
+        assert len(ts2) == 0
+
+    def test_csv_round_trip(self, sample_ts):
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
+            path = Path(f.name)
+        try:
+            sample_ts.to_csv(path)
+            ts2 = TimeSeries.from_csv(path, sample_ts.resolution)
+            assert len(ts2) == len(sample_ts)
+            for orig, restored in zip(sample_ts, ts2):
+                assert orig.timestamp == restored.timestamp
+                assert orig.value == restored.value
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_csv_preserves_none(self, sample_ts):
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
+            path = Path(f.name)
+        try:
+            sample_ts.to_csv(path)
+            ts2 = TimeSeries.from_csv(path, sample_ts.resolution)
+            assert ts2[3].value is None
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_csv_column_name(self, sample_ts):
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
+            path = Path(f.name)
+        try:
+            sample_ts.to_csv(path)
+            ts2 = TimeSeries.from_csv(path, sample_ts.resolution)
+            assert ts2.metadata.name == "power"
+        finally:
+            path.unlink(missing_ok=True)
 
 
 class TestValidation:

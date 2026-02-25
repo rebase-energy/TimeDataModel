@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import csv
+import json
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from html import escape
+from pathlib import Path
 from typing import Iterator, NamedTuple, overload
 
 import numpy as np
@@ -85,6 +88,107 @@ class TimeSeries:
     @property
     def end(self) -> datetime | None:
         return self._timestamps[-1] if self._timestamps else None
+
+    # ---- Tier 1 — trivial properties/methods -------------------------
+
+    @property
+    def duration(self) -> timedelta | None:
+        """Time span from begin to end; None if empty."""
+        if not self._timestamps:
+            return None
+        return self._timestamps[-1] - self._timestamps[0]
+
+    @property
+    def has_missing(self) -> bool:
+        """True if any value is None."""
+        return any(v is None for v in self._values)
+
+    def __contains__(self, dt: datetime) -> bool:
+        """Return True if *dt* appears in the timestamps."""
+        return dt in self._timestamps
+
+    def head(self, n: int = 5) -> TimeSeries:
+        """Return a new TimeSeries with the first *n* points."""
+        return TimeSeries(
+            self.resolution,
+            self.metadata,
+            timestamps=self._timestamps[:n],
+            values=self._values[:n],
+        )
+
+    def tail(self, n: int = 5) -> TimeSeries:
+        """Return a new TimeSeries with the last *n* points."""
+        if n == 0:
+            return TimeSeries(self.resolution, self.metadata, timestamps=[], values=[])
+        return TimeSeries(
+            self.resolution,
+            self.metadata,
+            timestamps=self._timestamps[-n:],
+            values=self._values[-n:],
+        )
+
+    def copy(self) -> TimeSeries:
+        """Return a shallow copy (timestamps and values lists are new)."""
+        return TimeSeries(
+            self.resolution,
+            self.metadata,
+            timestamps=list(self._timestamps),
+            values=list(self._values),
+        )
+
+    # ---- Tier 5 — scalar arithmetic operators ------------------------
+
+    def _apply_scalar(self, func) -> TimeSeries:
+        return TimeSeries(
+            self.resolution,
+            self.metadata,
+            timestamps=list(self._timestamps),
+            values=[None if v is None else func(v) for v in self._values],
+        )
+
+    def __add__(self, scalar: float) -> TimeSeries:
+        if not isinstance(scalar, (int, float)):
+            return NotImplemented
+        return self._apply_scalar(lambda v: v + scalar)
+
+    def __radd__(self, scalar: float) -> TimeSeries:
+        if not isinstance(scalar, (int, float)):
+            return NotImplemented
+        return self._apply_scalar(lambda v: scalar + v)
+
+    def __sub__(self, scalar: float) -> TimeSeries:
+        if not isinstance(scalar, (int, float)):
+            return NotImplemented
+        return self._apply_scalar(lambda v: v - scalar)
+
+    def __rsub__(self, scalar: float) -> TimeSeries:
+        if not isinstance(scalar, (int, float)):
+            return NotImplemented
+        return self._apply_scalar(lambda v: scalar - v)
+
+    def __mul__(self, scalar: float) -> TimeSeries:
+        if not isinstance(scalar, (int, float)):
+            return NotImplemented
+        return self._apply_scalar(lambda v: v * scalar)
+
+    def __rmul__(self, scalar: float) -> TimeSeries:
+        if not isinstance(scalar, (int, float)):
+            return NotImplemented
+        return self._apply_scalar(lambda v: scalar * v)
+
+    def __truediv__(self, scalar: float) -> TimeSeries:
+        if not isinstance(scalar, (int, float)):
+            return NotImplemented
+        return self._apply_scalar(lambda v: v / scalar)
+
+    def __neg__(self) -> TimeSeries:
+        return self._apply_scalar(lambda v: -v)
+
+    def __abs__(self) -> TimeSeries:
+        return self._apply_scalar(abs)
+
+    def __round__(self, n: int = 0) -> TimeSeries:
+        return self._apply_scalar(lambda v: round(v, n))
 
     # ---- repr helpers ------------------------------------------------
 
@@ -327,6 +431,61 @@ class TimeSeries:
             None if v != v else float(v) for v in raw_values  # NaN != NaN
         ]
         meta = metadata or Metadata(name=val_col)
+        return cls(resolution, meta, timestamps=timestamps, values=values)
+
+    # ---- Tier 6 — serialization I/O ----------------------------------
+
+    def to_json(self) -> str:
+        """Serialize to a JSON string (timestamps as ISO-8601 strings)."""
+        return json.dumps(
+            {
+                "timestamps": [t.isoformat() for t in self._timestamps],
+                "values": self._values,
+            }
+        )
+
+    @classmethod
+    def from_json(
+        cls,
+        s: str,
+        resolution: Resolution,
+        metadata: Metadata | None = None,
+    ) -> TimeSeries:
+        """Reconstruct a TimeSeries from a JSON string produced by to_json()."""
+        data = json.loads(s)
+        timestamps = [datetime.fromisoformat(t) for t in data["timestamps"]]
+        values: list[float | None] = data["values"]
+        return cls(resolution, metadata, timestamps=timestamps, values=values)
+
+    def to_csv(self, path: str | Path) -> None:
+        """Write timestamps and values to a CSV file."""
+        col_name = self.metadata.name or "value"
+        with open(path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["timestamp", col_name])
+            for t, v in zip(self._timestamps, self._values):
+                writer.writerow([t.isoformat(), "" if v is None else v])
+
+    @classmethod
+    def from_csv(
+        cls,
+        path: str | Path,
+        resolution: Resolution,
+        metadata: Metadata | None = None,
+    ) -> TimeSeries:
+        """Read a TimeSeries from a CSV file produced by to_csv()."""
+        timestamps: list[datetime] = []
+        values: list[float | None] = []
+        val_col_name = "value"
+        with open(path, "r", newline="") as f:
+            reader = csv.reader(f)
+            header = next(reader)
+            val_col_name = header[1] if len(header) > 1 else "value"
+            for row in reader:
+                timestamps.append(datetime.fromisoformat(row[0]))
+                raw = row[1] if len(row) > 1 else ""
+                values.append(None if raw == "" else float(raw))
+        meta = metadata or Metadata(name=val_col_name)
         return cls(resolution, meta, timestamps=timestamps, values=values)
 
     def validate(self) -> list[str]:
