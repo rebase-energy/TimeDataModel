@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import bisect
 import csv
 import dataclasses
 import json
@@ -123,7 +124,8 @@ class TimeSeries:
 
     def __contains__(self, dt: datetime) -> bool:
         """Return True if *dt* appears in the timestamps."""
-        return dt in self._timestamps
+        i = bisect.bisect_left(self._timestamps, dt)
+        return i < len(self._timestamps) and self._timestamps[i] == dt
 
     def head(self, n: int = 5) -> TimeSeries:
         """Return a new TimeSeries with the first *n* points."""
@@ -157,11 +159,12 @@ class TimeSeries:
     # ---- Tier 5 — scalar arithmetic operators ------------------------
 
     def _apply_scalar(self, func) -> TimeSeries:
+        arr = self._to_float_array()
         return TimeSeries(
             self.resolution,
             self.metadata,
             timestamps=list(self._timestamps),
-            values=[None if v is None else func(v) for v in self._values],
+            values=self._from_float_array(func(arr)),
         )
 
     def __add__(self, scalar: float) -> TimeSeries:
@@ -206,7 +209,13 @@ class TimeSeries:
         return self._apply_scalar(abs)
 
     def __round__(self, n: int = 0) -> TimeSeries:
-        return self._apply_scalar(lambda v: round(v, n))
+        arr = self._to_float_array()
+        return TimeSeries(
+            self.resolution,
+            self.metadata,
+            timestamps=list(self._timestamps),
+            values=self._from_float_array(np.round(arr, n)),
+        )
 
     # ---- repr helpers ------------------------------------------------
 
@@ -376,10 +385,7 @@ class TimeSeries:
 
     def to_numpy(self) -> np.ndarray:
         """Return values as a numpy float64 array (None -> nan)."""
-        return np.array(
-            [v if v is not None else float("nan") for v in self._values],
-            dtype=np.float64,
-        )
+        return self._to_float_array()
 
     def to_pandas_dataframe(self) -> pd.DataFrame:
         """Return a pandas DataFrame with DatetimeIndex."""
@@ -409,7 +415,7 @@ class TimeSeries:
         return pl.DataFrame(
             {
                 "timestamp": self._timestamps,
-                col_name: [v if v is not None else float("nan") for v in self._values],
+                col_name: self._to_float_array(),
             }
         )
 
@@ -426,9 +432,8 @@ class TimeSeries:
             raise ValueError("DataFrame must have a DatetimeIndex")
         col = value_column or df.columns[0]
         timestamps = df.index.to_pydatetime().tolist()
-        values: list[float | None] = [
-            None if pd.isna(v) else float(v) for v in df[col]
-        ]
+        arr = df[col].to_numpy(dtype=np.float64, na_value=np.nan)
+        values = cls._from_float_array(arr)
         meta = metadata or Metadata(name=col)
         return cls(resolution, meta, timestamps=timestamps, values=values)
 
@@ -444,10 +449,8 @@ class TimeSeries:
         """Create a TimeSeries from a polars DataFrame."""
         val_col = value_column or [c for c in df.columns if c != timestamp_column][0]
         timestamps = df[timestamp_column].to_list()
-        raw_values = df[val_col].to_list()
-        values: list[float | None] = [
-            None if v != v else float(v) for v in raw_values  # NaN != NaN
-        ]
+        arr = df[val_col].to_numpy(allow_copy=True)
+        values = cls._from_float_array(arr)
         meta = metadata or Metadata(name=val_col)
         return cls(resolution, meta, timestamps=timestamps, values=values)
 
@@ -516,26 +519,24 @@ class TimeSeries:
                 f"vs {len(self._values)} values"
             )
 
-        # Check ordering
+        td = self.resolution.to_timedelta()
+        check_order = True
+        check_freq = td is not None
         for i in range(1, len(self._timestamps)):
-            if self._timestamps[i] <= self._timestamps[i - 1]:
+            if check_order and self._timestamps[i] <= self._timestamps[i - 1]:
                 warnings.append(
                     f"timestamps not strictly increasing at index {i}: "
                     f"{self._timestamps[i-1]} >= {self._timestamps[i]}"
                 )
+                check_order = False
+            if check_freq and self._timestamps[i] - self._timestamps[i - 1] != td:
+                warnings.append(
+                    f"inconsistent frequency at index {i}: "
+                    f"expected {td}, got {self._timestamps[i] - self._timestamps[i - 1]}"
+                )
+                check_freq = False
+            if not check_order and not check_freq:
                 break
-
-        # Check frequency consistency for fixed-duration frequencies
-        td = self.resolution.to_timedelta()
-        if td is not None and len(self._timestamps) > 1:
-            for i in range(1, len(self._timestamps)):
-                actual = self._timestamps[i] - self._timestamps[i - 1]
-                if actual != td:
-                    warnings.append(
-                        f"inconsistent frequency at index {i}: "
-                        f"expected {td}, got {actual}"
-                    )
-                    break
 
         return warnings
 
@@ -593,12 +594,23 @@ class TimeSeries:
                 f"apply_numpy: result length ({result.shape[0]}) must match "
                 f"series length ({len(self._timestamps)})"
             )
-        values: list[float | None] = [
-            None if np.isnan(v) else float(v) for v in result
-        ]
         return TimeSeries(
             self.resolution,
             self.metadata,
             timestamps=list(self._timestamps),
-            values=values,
+            values=TimeSeries._from_float_array(result),
         )
+
+    # ---- Private array helpers ---------------------------------------
+
+    def _to_float_array(self) -> np.ndarray:
+        """Convert _values to float64 ndarray — None → NaN. Vectorised via pandas nullable array."""
+        return pd.array(self._values, dtype="Float64").to_numpy(dtype=np.float64, na_value=np.nan)
+
+    @staticmethod
+    def _from_float_array(arr: np.ndarray) -> list[float | None]:
+        """Convert float64 ndarray to list[float|None] — NaN → None."""
+        values: list[float | None] = arr.tolist()  # C-level, fast
+        for i in np.where(np.isnan(arr))[0]:       # iterate only NaN positions
+            values[i] = None
+        return values
