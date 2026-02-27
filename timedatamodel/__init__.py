@@ -1,16 +1,14 @@
+from importlib.metadata import version
+
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
-from .timeseries import (
-    CoverageBar,
-    DataPoint,
-    MultiTimeSeries,
-    MultivariateTimeSeries,
-    TimeSeriesCollection,
-    TimeSeriesTable,
-    TimeSeries,
-)
+from .coverage import CoverageBar
+from .datapoint import DataPoint
+from .timeseries import TimeSeries
+from .table import TimeSeriesTable, MultivariateTimeSeries, MultiTimeSeries
+from .collection import TimeSeriesCollection
 
-__version__ = "0.1.0"
+__version__ = version("timedatamodel")
 __all__ = [
     "CoverageBar",
     "DataPoint",

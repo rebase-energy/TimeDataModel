@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from shapely.geometry import Polygon
+if TYPE_CHECKING:
+    from shapely.geometry import Polygon
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,6 +38,13 @@ class GeoArea:
     @classmethod
     def from_coordinates(cls, coords: list[tuple[float, float]], name: str | None = None) -> GeoArea:
         """Create a GeoArea from a list of (lat, lon) coordinate pairs."""
+        try:
+            from shapely.geometry import Polygon
+        except ImportError:
+            raise ImportError(
+                "shapely is required for GeoArea. "
+                "Install it with: pip install timedatamodel[geo]"
+            ) from None
         # Shapely uses (x, y) = (lon, lat), so we swap
         xy_coords = [(lon, lat) for lat, lon in coords]
         return cls(polygon=Polygon(xy_coords), name=name)

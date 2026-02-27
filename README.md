@@ -31,12 +31,11 @@ pip install timedatamodel[polars]
 
 ```python
 from datetime import datetime, timezone
-from timedatamodel import TimeSeries, Resolution
-from timedatamodel.enums import Frequency
+from timedatamodel import TimeSeries, Frequency
 
-res = Resolution(Frequency.PT1H, "UTC")
 ts = TimeSeries(
-    resolution=res,
+    Frequency.PT1H,
+    timezone="UTC",
     timestamps=[datetime(2024, 1, 1, i, tzinfo=timezone.utc) for i in range(3)],
     values=[100.0, 110.0, 95.0],
     name="power",

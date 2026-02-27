@@ -1383,3 +1383,219 @@ class TestTimeSeriesCollection:
         assert "TimeSeriesCollection" in html
         assert "power" in html
         assert "temperature" in html
+
+
+class TestToFloatArray:
+    def test_none_to_nan(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = TimeSeries(
+            hourly_frequency,
+            timestamps=[base + timedelta(hours=i) for i in range(3)],
+            values=[1.0, None, 3.0],
+        )
+        arr = ts._to_float_array()
+        assert arr[0] == 1.0
+        assert np.isnan(arr[1])
+        assert arr[2] == 3.0
+        assert arr.dtype == np.float64
+
+
+class TestJsonFullMetadata:
+    def test_timeseries_full_round_trip(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = TimeSeries(
+            hourly_frequency,
+            timezone="Europe/Berlin",
+            timestamps=[base + timedelta(hours=i) for i in range(3)],
+            values=[1.0, None, 3.0],
+            name="power",
+            unit="MW",
+            description="Test series",
+            data_type=DataType.ACTUAL,
+            timeseries_type=TimeSeriesType.OVERLAPPING,
+            attributes={"source": "test"},
+        )
+        s = ts.to_json()
+        ts2 = TimeSeries.from_json(s)  # no extra args needed
+        assert ts2.frequency == hourly_frequency
+        assert ts2.timezone == "Europe/Berlin"
+        assert ts2.name == "power"
+        assert ts2.unit == "MW"
+        assert ts2.description == "Test series"
+        assert ts2.data_type == DataType.ACTUAL
+        assert ts2.timeseries_type == TimeSeriesType.OVERLAPPING
+        assert ts2.attributes == {"source": "test"}
+        assert len(ts2) == 3
+        assert ts2[0].value == 1.0
+        assert ts2[1].value is None
+        assert ts2[2].value == 3.0
+
+    def test_timeseries_backward_compat(self, hourly_frequency):
+        """Old-format JSON (just timestamps+values) still works with explicit freq."""
+        old_json = json.dumps({
+            "timestamps": ["2024-01-01T00:00:00+00:00"],
+            "values": [42.0],
+        })
+        ts = TimeSeries.from_json(old_json, hourly_frequency, name="x")
+        assert ts.frequency == hourly_frequency
+        assert ts.name == "x"
+        assert ts[0].value == 42.0
+
+    def test_timeseries_kwargs_override(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = TimeSeries(
+            hourly_frequency,
+            timestamps=[base],
+            values=[1.0],
+            name="original",
+            unit="MW",
+        )
+        s = ts.to_json()
+        # Override name and unit via kwargs
+        ts2 = TimeSeries.from_json(s, name="overridden", unit="kW")
+        assert ts2.name == "overridden"
+        assert ts2.unit == "kW"
+        assert ts2.frequency == hourly_frequency  # from JSON
+
+    def test_timeseries_no_freq_raises(self):
+        old_json = json.dumps({
+            "timestamps": ["2024-01-01T00:00:00+00:00"],
+            "values": [42.0],
+        })
+        with pytest.raises(ValueError, match="frequency must be provided"):
+            TimeSeries.from_json(old_json)
+
+    def test_table_full_round_trip(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(3)]
+        values = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
+        tbl = TimeSeriesTable(
+            hourly_frequency,
+            timezone="Europe/Berlin",
+            timestamps=timestamps,
+            values=values,
+            names=["power", "temperature"],
+            units=["MW", "°C"],
+            descriptions=["Power output", "Ambient temp"],
+            data_types=[DataType.ACTUAL, DataType.MEASUREMENT],
+            attributes=[{"source": "a"}, {"source": "b"}],
+        )
+        s = tbl.to_json()
+        tbl2 = TimeSeriesTable.from_json(s)  # no extra args needed
+        assert tbl2.frequency == hourly_frequency
+        assert tbl2.timezone == "Europe/Berlin"
+        assert tbl2.names == ["power", "temperature"]
+        assert tbl2.units == ["MW", "°C"]
+        assert tbl2.descriptions == ["Power output", "Ambient temp"]
+        assert tbl2.data_types == [DataType.ACTUAL, DataType.MEASUREMENT]
+        assert tbl2.attributes == [{"source": "a"}, {"source": "b"}]
+        np.testing.assert_array_equal(tbl2.to_numpy(), values)
+
+    def test_table_backward_compat(self, hourly_frequency):
+        old_json = json.dumps({
+            "timestamps": ["2024-01-01T00:00:00+00:00"],
+            "values": [[1.0, 2.0]],
+            "column_names": ["a", "b"],
+        })
+        tbl = TimeSeriesTable.from_json(old_json, hourly_frequency)
+        assert tbl.frequency == hourly_frequency
+        assert tbl.column_names == ("a", "b")
+
+    def test_table_kwargs_override(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        tbl = TimeSeriesTable(
+            hourly_frequency,
+            timestamps=[base],
+            values=np.array([[1.0, 2.0]]),
+            names=["a", "b"],
+            units=["MW", "°C"],
+        )
+        s = tbl.to_json()
+        tbl2 = TimeSeriesTable.from_json(s, units=["kW", "K"])
+        assert tbl2.units == ["kW", "K"]
+        assert tbl2.names == ["a", "b"]  # from JSON
+
+
+class TestTimeSeriesEquality:
+    def test_equal(self, sample_ts):
+        copy = sample_ts.copy()
+        assert copy == sample_ts
+
+    def test_different_values(self, sample_ts):
+        other = sample_ts + 1
+        assert other != sample_ts
+
+    def test_different_metadata(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts1 = TimeSeries(hourly_frequency, timestamps=[base], values=[1.0], name="a")
+        ts2 = TimeSeries(hourly_frequency, timestamps=[base], values=[1.0], name="b")
+        assert ts1 != ts2
+
+    def test_nan_equality(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts1 = TimeSeries(hourly_frequency, timestamps=[base], values=[None])
+        ts2 = TimeSeries(hourly_frequency, timestamps=[base], values=[None])
+        assert ts1 == ts2
+
+    def test_empty_equal(self, hourly_frequency):
+        ts1 = TimeSeries(hourly_frequency)
+        ts2 = TimeSeries(hourly_frequency)
+        assert ts1 == ts2
+
+    def test_not_hashable(self, sample_ts):
+        with pytest.raises(TypeError):
+            hash(sample_ts)
+
+    def test_different_type_returns_not_implemented(self, sample_ts):
+        assert sample_ts.__eq__("not a ts") is NotImplemented
+
+
+class TestTimeSeriesTableEquality:
+    @pytest.fixture
+    def sample_table(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(3)]
+        values = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
+        return TimeSeriesTable(
+            hourly_frequency,
+            timestamps=timestamps,
+            values=values,
+            names=["a", "b"],
+        )
+
+    def test_equal(self, sample_table):
+        copy = sample_table.copy()
+        assert copy == sample_table
+
+    def test_different_values(self, sample_table):
+        other = sample_table + 1
+        assert other != sample_table
+
+    def test_different_metadata(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.0]])
+        tbl1 = TimeSeriesTable(
+            hourly_frequency, timestamps=[base], values=values, names=["a"]
+        )
+        tbl2 = TimeSeriesTable(
+            hourly_frequency, timestamps=[base], values=values, names=["b"]
+        )
+        assert tbl1 != tbl2
+
+    def test_nan_equality(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[np.nan]])
+        tbl1 = TimeSeriesTable(
+            hourly_frequency, timestamps=[base], values=values, names=["x"]
+        )
+        tbl2 = TimeSeriesTable(
+            hourly_frequency, timestamps=[base], values=values, names=["x"]
+        )
+        assert tbl1 == tbl2
+
+    def test_not_hashable(self, sample_table):
+        with pytest.raises(TypeError):
+            hash(sample_table)
+
+    def test_different_type_returns_not_implemented(self, sample_table):
+        assert sample_table.__eq__("not a table") is NotImplemented
