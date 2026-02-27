@@ -1,404 +1,29 @@
 from __future__ import annotations
 
-import bisect
 import csv
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from html import escape
 from pathlib import Path
-from typing import Callable, Iterator, NamedTuple, overload
+from typing import Callable, Iterator, overload
 
 import numpy as np
-import pandas as pd
 
+from ._base import (
+    _MAX_PREVIEW,
+    _TimeSeriesBase,
+    _build_repr_html,
+    _get_pint_registry,
+    _import_pandas,
+)
+from .coverage import CoverageBar
+from .datapoint import DataPoint
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 
-_PANDAS_FREQ_MAP: dict[str, Frequency] = {
-    # Modern pandas (>=2.0) aliases
-    "YE": Frequency.P1Y, "YE-DEC": Frequency.P1Y, "A": Frequency.P1Y,
-    "QE": Frequency.P3M, "QE-DEC": Frequency.P3M, "Q": Frequency.P3M,
-    "ME": Frequency.P1M, "M": Frequency.P1M,
-    "W": Frequency.P1W, "W-SUN": Frequency.P1W,
-    "D": Frequency.P1D,
-    "h": Frequency.PT1H, "H": Frequency.PT1H,
-    "30min": Frequency.PT30M, "30T": Frequency.PT30M,
-    "15min": Frequency.PT15M, "15T": Frequency.PT15M,
-    "10min": Frequency.PT10M, "10T": Frequency.PT10M,
-    "5min": Frequency.PT5M, "5T": Frequency.PT5M,
-    "min": Frequency.PT1M, "T": Frequency.PT1M,
-    "s": Frequency.PT1S, "S": Frequency.PT1S,
-}
 
-_MAX_PREVIEW = 3  # rows shown at head/tail in repr
-
-
-# ---------------------------------------------------------------------------
-# CoverageBar — visual coverage indicator
-# ---------------------------------------------------------------------------
-
-
-def _fmt_short_date(dt: datetime) -> str:
-    """Format a datetime concisely: omit time when midnight, omit tzinfo."""
-    dt_naive = dt.replace(tzinfo=None)
-    if dt_naive.hour == 0 and dt_naive.minute == 0 and dt_naive.second == 0:
-        return dt_naive.strftime("%Y-%m-%d")
-    return dt_naive.strftime("%Y-%m-%d %H:%M")
-
-
-class CoverageBar:
-    """Displayable coverage bar for TimeSeries objects."""
-
-    _TERM_BINS = 40
-    _SVG_BINS = 60
-
-    def __init__(
-        self,
-        masks: list[tuple[str, list[bool]]],
-        begin: datetime | None,
-        end: datetime | None,
-    ) -> None:
-        self._masks = masks
-        self._begin = begin
-        self._end = end
-
-    @staticmethod
-    def _bin_coverage(mask: list[bool], n_bins: int) -> list[bool]:
-        n = len(mask)
-        if n == 0:
-            return [False] * n_bins
-        actual_bins = min(n_bins, n)
-        bins: list[bool] = []
-        for i in range(actual_bins):
-            lo = i * n // actual_bins
-            hi = (i + 1) * n // actual_bins
-            bins.append(any(mask[lo:hi]))
-        return bins
-
-    def __repr__(self) -> str:
-        if not self._masks:
-            return ""
-        n_bins = self._TERM_BINS
-        label_w = max(len(name) for name, _ in self._masks) + 2
-
-        lines: list[str] = []
-        bar_len = 0
-        for name, mask in self._masks:
-            binned = self._bin_coverage(mask, n_bins)
-            bar = "".join("\u2588" if b else "\u2591" for b in binned)
-            bar_len = len(binned)
-            lines.append(f"{name:<{label_w}}{bar}")
-
-        start_str = _fmt_short_date(self._begin) if self._begin else ""
-        end_str = _fmt_short_date(self._end) if self._end else ""
-        date_line = f"{start_str:<{bar_len // 2}}{end_str:>{bar_len - bar_len // 2}}"
-        lines.append(f"{'':<{label_w}}{date_line}")
-        return "\n".join(lines)
-
-    def _repr_html_(self) -> str:
-        if not self._masks:
-            return ""
-        n_bins = self._SVG_BINS
-        # Use actual bin count (may be less than n_bins for short series)
-        max_mask_len = max(len(m) for _, m in self._masks) if self._masks else 0
-        actual_bins = min(n_bins, max_mask_len) if max_mask_len > 0 else n_bins
-        label_w = 120  # px reserved for labels
-        bar_w = 480  # px for the bar area
-        row_h = 22
-        n_rows = len(self._masks)
-        date_h = 18
-        total_h = n_rows * row_h + date_h + 4
-
-        parts: list[str] = []
-        parts.append(
-            f'<svg xmlns="http://www.w3.org/2000/svg" '
-            f'viewBox="0 0 {label_w + bar_w} {total_h}" '
-            f'width="100%" style="max-width:{label_w + bar_w}px;'
-            f'font-family:monospace;font-size:12px;">'
-        )
-
-        for row_idx, (name, mask) in enumerate(self._masks):
-            y = row_idx * row_h
-            # label
-            parts.append(
-                f'<text x="{label_w - 6}" y="{y + 15}" '
-                f'text-anchor="end" fill="#333">{escape(name)}</text>'
-            )
-            # bar segments
-            binned = self._bin_coverage(mask, n_bins)
-            seg_w = bar_w / len(binned) if binned else bar_w
-            for i, b in enumerate(binned):
-                color = "#4CAF50" if b else "#e0e0e0"
-                x = label_w + i * seg_w
-                parts.append(
-                    f'<rect x="{x:.1f}" y="{y + 2}" '
-                    f'width="{seg_w:.2f}" height="{row_h - 4}" '
-                    f'fill="{color}" />'
-                )
-
-        # date labels
-        date_y = n_rows * row_h + date_h
-        if self._begin:
-            parts.append(
-                f'<text x="{label_w}" y="{date_y}" '
-                f'text-anchor="start" fill="#666">'
-                f'{escape(_fmt_short_date(self._begin))}</text>'
-            )
-        if self._end:
-            parts.append(
-                f'<text x="{label_w + bar_w}" y="{date_y}" '
-                f'text-anchor="end" fill="#666">'
-                f'{escape(_fmt_short_date(self._end))}</text>'
-            )
-
-        parts.append("</svg>")
-        return "\n".join(parts)
-
-
-class DataPoint(NamedTuple):
-    timestamp: datetime
-    value: float | None
-
-
-# ---------------------------------------------------------------------------
-# _TimeSeriesBase — shared logic for univariate and multivariate
-# ---------------------------------------------------------------------------
-
-
-class _TimeSeriesBase:
-    __slots__ = ()
-
-    @property
-    def timestamps(self) -> list[datetime] | list[tuple[datetime, ...]]:
-        return self._timestamps
-
-    @property
-    def is_multi_index(self) -> bool:
-        """True if timestamps are tuples of datetimes."""
-        return len(self._timestamps) > 0 and isinstance(self._timestamps[0], tuple)
-
-    @property
-    def index_names(self) -> tuple[str, ...]:
-        """Labels for the index dimensions."""
-        if self._index_names is not None:
-            return tuple(self._index_names)
-        if self.is_multi_index and self._timestamps:
-            return tuple(f"index_{i}" for i in range(len(self._timestamps[0])))
-        return ("timestamp",)
-
-    def __len__(self) -> int:
-        return len(self._timestamps)
-
-    def __bool__(self) -> bool:
-        return len(self._timestamps) > 0
-
-    def __contains__(self, dt: datetime) -> bool:
-        """Return True if *dt* appears in the timestamps."""
-        i = bisect.bisect_left(self._timestamps, dt)
-        return i < len(self._timestamps) and self._timestamps[i] == dt
-
-    @property
-    def begin(self) -> datetime | tuple[datetime, ...] | None:
-        return self._timestamps[0] if self._timestamps else None
-
-    @property
-    def end(self) -> datetime | tuple[datetime, ...] | None:
-        return self._timestamps[-1] if self._timestamps else None
-
-    @property
-    def duration(self) -> timedelta | None:
-        """Time span from begin to end; None if empty."""
-        if not self._timestamps:
-            return None
-        first = self._timestamps[0]
-        last = self._timestamps[-1]
-        if isinstance(first, tuple):
-            return last[0] - first[0]
-        return last - first
-
-    def validate(self) -> list[str]:
-        """Return a list of validation warnings (timestamp ordering and frequency)."""
-        warnings: list[str] = []
-        td = self.frequency.to_timedelta()
-        check_order = True
-        check_freq = td is not None
-        multi = self.is_multi_index
-        for i in range(1, len(self._timestamps)):
-            if check_order and self._timestamps[i] <= self._timestamps[i - 1]:
-                warnings.append(
-                    f"timestamps not strictly increasing at index {i}: "
-                    f"{self._timestamps[i-1]} >= {self._timestamps[i]}"
-                )
-                check_order = False
-            if check_freq:
-                cur = self._timestamps[i][0] if multi else self._timestamps[i]
-                prev = self._timestamps[i - 1][0] if multi else self._timestamps[i - 1]
-                if cur - prev != td:
-                    warnings.append(
-                        f"inconsistent frequency at index {i}: "
-                        f"expected {td}, got {cur - prev}"
-                    )
-                    check_freq = False
-            if not check_order and not check_freq:
-                break
-        return warnings
-
-    # ---- repr (shared) ---------------------------------------------------
-
-    def __repr__(self) -> str:
-        class_name = type(self).__name__
-        meta_lines = self._repr_meta_lines()
-        n = len(self._timestamps)
-
-        # Compute preview row indices
-        if n == 0:
-            indices: list[int] = []
-            truncated = False
-        elif n <= _MAX_PREVIEW * 2 + 1:
-            indices = list(range(n))
-            truncated = False
-        else:
-            indices = list(range(_MAX_PREVIEW)) + list(
-                range(n - _MAX_PREVIEW, n)
-            )
-            truncated = True
-
-        data_rows = self._repr_data_rows(indices) if indices else []
-        col_names = list(self.column_names)
-        show_col_header = len(col_names) > 1
-
-        # Build all content lines (without box chars)
-        content_lines: list[str] = []
-        # Meta section
-        for ml in meta_lines:
-            content_lines.append(ml)
-
-        # Data section
-        if n == 0:
-            content_lines.append(None)  # separator marker
-            content_lines.append("(empty)")
-        else:
-            # Compute column widths for data rows
-            all_rows: list[list[str]] = []
-            if show_col_header:
-                all_rows.append([""] + col_names)
-            all_rows.extend(data_rows)
-
-            ncols_data = len(all_rows[0]) if all_rows else 0
-            col_widths = [0] * ncols_data
-            for row in all_rows:
-                for j, cell in enumerate(row):
-                    col_widths[j] = max(col_widths[j], len(cell))
-
-            # Also account for ellipsis row
-            if truncated:
-                for j in range(ncols_data):
-                    col_widths[j] = max(col_widths[j], 3)
-
-            def _format_row(row: list[str]) -> str:
-                parts: list[str] = []
-                for j, cell in enumerate(row):
-                    if j == 0:
-                        parts.append(f"{cell:<{col_widths[j]}}")
-                    else:
-                        parts.append(f"{cell:>{col_widths[j]}}")
-                return "  ".join(parts)
-
-            content_lines.append(None)  # separator marker
-
-            if show_col_header:
-                content_lines.append(_format_row([""] + col_names))
-
-            head_data = data_rows[:_MAX_PREVIEW] if truncated else data_rows
-            tail_data = data_rows[_MAX_PREVIEW:] if truncated else []
-
-            for row in head_data:
-                content_lines.append(_format_row(row))
-            if truncated:
-                ellipsis_row = ["..."] * ncols_data
-                content_lines.append(_format_row(ellipsis_row))
-                for row in tail_data:
-                    content_lines.append(_format_row(row))
-
-        # Compute box width
-        padding = 2
-        max_content_width = max(
-            (len(line) for line in content_lines if line is not None), default=0
-        )
-        box_inner = max_content_width + padding * 2
-
-        # Build output
-        lines: list[str] = [class_name]
-        top = "\u250c" + "\u2500" * box_inner + "\u2510"
-        bot = "\u2514" + "\u2500" * box_inner + "\u2518"
-        sep = "\u251c" + "\u2500" * box_inner + "\u2524"
-        lines.append(top)
-        for line in content_lines:
-            if line is None:
-                lines.append(sep)
-            else:
-                lines.append(
-                    "\u2502" + " " * padding + line.ljust(max_content_width) + " " * padding + "\u2502"
-                )
-        lines.append(bot)
-        return "\n".join(lines)
-
-    # ---- static helpers --------------------------------------------------
-
-    @staticmethod
-    def _from_float_array(arr: np.ndarray) -> list[float | None]:
-        """Convert float64 ndarray to list[float|None] — NaN → None."""
-        values: list[float | None] = arr.tolist()
-        for i in np.where(np.isnan(arr))[0]:
-            values[i] = None
-        return values
-
-    @staticmethod
-    def _fmt_value(v: float | None) -> str:
-        if v is None or (isinstance(v, float) and np.isnan(v)):
-            return "NaN"
-        if v == int(v):
-            return f"{v:.1f}"
-        return f"{v:g}"
-
-    @staticmethod
-    def _fmt_location(loc: GeoLocation | GeoArea | None) -> str:
-        if loc is None:
-            return ""
-        if isinstance(loc, GeoLocation):
-            return f"{loc.latitude}\u00b0N, {loc.longitude}\u00b0E"
-        name = loc.name or "unnamed"
-        c = loc.centroid
-        return f"{name} (centroid {c.latitude}\u00b0N, {c.longitude}\u00b0E)"
-
-    @staticmethod
-    def _infer_freq_tz(
-        df: pd.DataFrame, fallback_freq: Frequency, fallback_tz: str,
-    ) -> tuple[Frequency, str]:
-        new_tz = str(df.index.tz) if df.index.tz is not None else fallback_tz
-        freq_str: str | None = None
-        if df.index.freq is not None:
-            freq_str = df.index.freqstr
-        elif len(df.index) >= 3:
-            try:
-                freq_str = pd.infer_freq(df.index)
-            except Exception:
-                pass
-        new_freq = (
-            _PANDAS_FREQ_MAP.get(freq_str, fallback_freq)
-            if freq_str
-            else fallback_freq
-        )
-        return (new_freq, new_tz)
-
-
-# ---------------------------------------------------------------------------
-# TimeSeries — univariate (single value column)
-# ---------------------------------------------------------------------------
-
-
-@dataclass(slots=True, repr=False)
+@dataclass(slots=True, repr=False, eq=False)
 class TimeSeries(_TimeSeriesBase):
     frequency: Frequency
     timezone: str = "UTC"
@@ -481,9 +106,14 @@ class TimeSeries(_TimeSeriesBase):
         """Resolve the unit string to a pint.Unit object."""
         if self.unit is None:
             raise ValueError("unit is not set")
-        import pint
-
-        ureg = pint.UnitRegistry()
+        try:
+            import pint
+        except ImportError:
+            raise ImportError(
+                "pint is required for pint_unit. "
+                "Install it with: pip install timedatamodel[pint]"
+            ) from None
+        ureg = _get_pint_registry()
         try:
             return ureg.Unit(self.unit)
         except pint.errors.UndefinedUnitError as e:
@@ -502,6 +132,30 @@ class TimeSeries(_TimeSeriesBase):
             attributes=self.attributes,
             index_names=self._index_names,
         )
+
+    # ---- equality --------------------------------------------------------
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, TimeSeries):
+            return NotImplemented
+        if (
+            self.frequency != other.frequency
+            or self.timezone != other.timezone
+            or self.name != other.name
+            or self.unit != other.unit
+            or self.description != other.description
+            or self.data_type != other.data_type
+            or self.timeseries_type != other.timeseries_type
+            or self.attributes != other.attributes
+            or self._timestamps != other._timestamps
+        ):
+            return False
+        # NaN-aware value comparison
+        a = self._to_float_array()
+        b = other._to_float_array()
+        return bool(np.array_equal(a, b, equal_nan=True))
+
+    __hash__ = None
 
     # ---- sequence protocol -----------------------------------------------
 
@@ -565,8 +219,9 @@ class TimeSeries(_TimeSeriesBase):
 
     def _to_float_array(self) -> np.ndarray:
         """Convert _values to float64 ndarray — None → NaN."""
-        return pd.array(self._values, dtype="Float64").to_numpy(
-            dtype=np.float64, na_value=np.nan
+        return np.array(
+            [v if v is not None else np.nan for v in self._values],
+            dtype=np.float64,
         )
 
     def _apply_scalar(self, func) -> TimeSeries:
@@ -659,74 +314,20 @@ class TimeSeries(_TimeSeriesBase):
         disp_name = escape(self.name or "unnamed")
         n = len(self._timestamps)
 
-        css = """\
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>"""
-
-        html = [css, '<div class="ts-repr">']
-        html.append(
-            f'<div class="ts-header">TimeSeries</div>'
-        )
-
-        html.append('<div class="ts-meta"><table>')
-        html.append(
-            f"<tr><td>Columns</td><td>{disp_name}</td></tr>"
-        )
-        html.append(
-            f"<tr><td>Shape</td><td>({n:,},)</td></tr>"
-        )
-        html.append(
-            f"<tr><td>Frequency</td><td>{escape(str(self.frequency))}</td></tr>"
-        )
-        html.append(f"<tr><td>Timezone</td><td>{escape(self.timezone)}</td></tr>")
+        meta_rows: list[tuple[str, str]] = [
+            ("Columns", disp_name),
+            ("Shape", f"({n:,},)"),
+            ("Frequency", escape(str(self.frequency))),
+            ("Timezone", escape(self.timezone)),
+        ]
         if self.unit:
-            html.append(f"<tr><td>Unit</td><td>{escape(self.unit)}</td></tr>")
+            meta_rows.append(("Unit", escape(self.unit)))
         if self.data_type:
-            html.append(
-                f"<tr><td>Data type</td>"
-                f"<td>{escape(str(self.data_type))}</td></tr>"
-            )
+            meta_rows.append(("Data type", escape(str(self.data_type))))
         if self.location:
-            html.append(
-                f"<tr><td>Location</td>"
-                f"<td>{escape(self._fmt_location(self.location))}</td></tr>"
-            )
+            meta_rows.append(("Location", escape(self._fmt_location(self.location))))
         if self.description:
-            html.append(
-                f"<tr><td>Description</td>"
-                f"<td>{escape(self.description)}</td></tr>"
-            )
-        html.append("</table></div>")
-
-        idx_names = self.index_names
-        col_names = self.column_names
-        n_cols = len(idx_names) + len(col_names)
-        html.append('<div class="ts-data"><table>')
-        header_cells = "".join(f"<th>{escape(c)}</th>" for c in idx_names)
-        header_cells += "".join(f"<th>{escape(c)}</th>" for c in col_names)
-        html.append(f"<tr>{header_cells}</tr>")
+            meta_rows.append(("Description", escape(self.description)))
 
         def _html_row(i: int) -> str:
             ts = self._timestamps[i]
@@ -741,35 +342,14 @@ class TimeSeries(_TimeSeriesBase):
             )
             return f"<tr>{ts_cells}{val_cells}</tr>"
 
-        if n == 0:
-            html.append(
-                f'<tr><td colspan="{n_cols}" class="ts-ellipsis">'
-                f"(empty)</td></tr>"
-            )
-        else:
-            show_all = n <= _MAX_PREVIEW * 2 + 1
-            head_rows = range(min(_MAX_PREVIEW, n))
-            tail_rows = (
-                range(max(n - _MAX_PREVIEW, _MAX_PREVIEW), n)
-                if not show_all
-                else range(0)
-            )
-
-            for i in head_rows:
-                html.append(_html_row(i))
-
-            if not show_all:
-                ellipsis_cells = "".join(
-                    f'<td class="ts-ellipsis">&hellip;</td>'
-                    for _ in range(n_cols)
-                )
-                html.append(f"<tr>{ellipsis_cells}</tr>")
-                for i in tail_rows:
-                    html.append(_html_row(i))
-
-        html.append("</table></div>")
-        html.append("</div>")
-        return "\n".join(html)
+        return _build_repr_html(
+            class_name="TimeSeries",
+            meta_rows=meta_rows,
+            index_names=self.index_names,
+            column_names=self.column_names,
+            n_rows=n,
+            html_row_fn=_html_row,
+        )
 
     # ---- numpy / pandas / polars -----------------------------------------
 
@@ -777,8 +357,9 @@ class TimeSeries(_TimeSeriesBase):
         """Return values as a 1D numpy float64 array (None -> nan)."""
         return self._to_float_array()
 
-    def to_pandas_dataframe(self) -> pd.DataFrame:
+    def to_pandas_dataframe(self) -> "pd.DataFrame":
         """Return a pandas DataFrame with DatetimeIndex or MultiIndex."""
+        pd = _import_pandas()
         arr = self.to_numpy()
         if self.is_multi_index:
             idx_names = list(self.index_names)
@@ -792,7 +373,7 @@ class TimeSeries(_TimeSeriesBase):
         col_name = self.name or "value"
         return pd.DataFrame({col_name: arr}, index=index)
 
-    def to_pd_df(self) -> pd.DataFrame:
+    def to_pd_df(self) -> "pd.DataFrame":
         """Alias for to_pandas_dataframe()."""
         return self.to_pandas_dataframe()
 
@@ -824,7 +405,7 @@ class TimeSeries(_TimeSeriesBase):
     @classmethod
     def from_pandas(
         cls,
-        df: pd.DataFrame,
+        df: "pd.DataFrame",
         frequency: Frequency | None = None,
         value_column: str | None = None,
         *,
@@ -842,6 +423,7 @@ class TimeSeries(_TimeSeriesBase):
         Supports DatetimeIndex (single-index) and MultiIndex (multi-index).
         If *frequency* is ``None``, frequency and timezone are auto-inferred.
         """
+        pd = _import_pandas()
         if isinstance(df.index, pd.MultiIndex):
             timestamps = [
                 tuple(
@@ -933,7 +515,7 @@ class TimeSeries(_TimeSeriesBase):
 
     def update_from_pandas(
         self,
-        df: pd.DataFrame,
+        df: "pd.DataFrame",
         value_column: str | None = None,
         inplace: bool = False,
     ) -> TimeSeries | None:
@@ -942,6 +524,7 @@ class TimeSeries(_TimeSeriesBase):
         By default returns a **new** TimeSeries.  With ``inplace=True``
         the current instance is mutated and ``None`` is returned.
         """
+        pd = _import_pandas()
         if isinstance(df.index, pd.MultiIndex):
             timestamps = [
                 tuple(
@@ -1014,24 +597,41 @@ class TimeSeries(_TimeSeriesBase):
             else self._values.tolist()
         )
 
-        payload: dict = {"timestamps": ts_json, "values": val_json}
+        payload: dict = {
+            "timestamps": ts_json,
+            "values": val_json,
+            "frequency": str(self.frequency),
+            "timezone": self.timezone,
+        }
         if self._index_names is not None:
             payload["index_names"] = self._index_names
+        if self.name is not None:
+            payload["name"] = self.name
+        if self.unit is not None:
+            payload["unit"] = self.unit
+        if self.description is not None:
+            payload["description"] = self.description
+        if self.data_type is not None:
+            payload["data_type"] = str(self.data_type)
+        if self.timeseries_type != TimeSeriesType.FLAT:
+            payload["timeseries_type"] = str(self.timeseries_type)
+        if self.attributes:
+            payload["attributes"] = self.attributes
         return json.dumps(payload)
 
     @classmethod
     def from_json(
         cls,
         s: str,
-        frequency: Frequency,
+        frequency: Frequency | None = None,
         *,
-        timezone: str = "UTC",
+        timezone: str | None = None,
         name: str | None = None,
         unit: str | None = None,
         description: str | None = None,
         data_type: DataType | None = None,
         location: Location | None = None,
-        timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
+        timeseries_type: TimeSeriesType | None = None,
         attributes: dict[str, str] | None = None,
     ) -> TimeSeries:
         """Reconstruct a TimeSeries from a JSON string produced by to_json()."""
@@ -1049,18 +649,39 @@ class TimeSeries(_TimeSeriesBase):
         values: list[float | None] = data["values"]
         index_names = data.get("index_names")
 
+        # Resolve frequency: explicit kwarg wins, then JSON, then error
+        if frequency is not None:
+            freq = frequency
+        elif "frequency" in data:
+            freq = Frequency(data["frequency"])
+        else:
+            raise ValueError("frequency must be provided either in JSON or as argument")
+
+        # Resolve other metadata: explicit kwarg wins, then JSON value
+        tz = timezone if timezone is not None else data.get("timezone", "UTC")
+        nm = name if name is not None else data.get("name")
+        un = unit if unit is not None else data.get("unit")
+        desc = description if description is not None else data.get("description")
+        dt_ = data_type if data_type is not None else (
+            DataType(data["data_type"]) if "data_type" in data else None
+        )
+        tst = timeseries_type if timeseries_type is not None else (
+            TimeSeriesType(data["timeseries_type"]) if "timeseries_type" in data else TimeSeriesType.FLAT
+        )
+        attrs = attributes if attributes is not None else data.get("attributes")
+
         return cls(
-            frequency,
-            timezone=timezone,
+            freq,
+            timezone=tz,
             timestamps=timestamps,
             values=values,
-            name=name,
-            unit=unit,
-            description=description,
-            data_type=data_type,
+            name=nm,
+            unit=un,
+            description=desc,
+            data_type=dt_,
             location=location,
-            timeseries_type=timeseries_type,
-            attributes=attributes,
+            timeseries_type=tst,
+            attributes=attrs,
             index_names=index_names,
         )
 
@@ -1167,9 +788,10 @@ class TimeSeries(_TimeSeriesBase):
 
     def apply_pandas(
         self,
-        func: Callable[[pd.DataFrame], pd.DataFrame],
+        func: Callable[["pd.DataFrame"], "pd.DataFrame"],
     ) -> TimeSeries:
         """Apply a pandas transformation, preserving metadata and auto-detecting frequency."""
+        pd = _import_pandas()
         df = self.to_pandas_dataframe()
         result = func(df)
         new_freq, new_tz = self._infer_freq_tz(
@@ -1240,20 +862,13 @@ class TimeSeries(_TimeSeriesBase):
         )
 
     @staticmethod
-    def merge(series: list[TimeSeries]) -> TimeSeriesTable:
+    def merge(series: list[TimeSeries]) -> "TimeSeriesTable":
         """Combine multiple univariate TimeSeries into a TimeSeriesTable.
 
         All series must share the same timestamps (same length and values).
-
-        Args:
-            series: List of univariate TimeSeries to merge.
-
-        Returns:
-            A new TimeSeriesTable with one column per input series.
-
-        Raises:
-            ValueError: If the list is empty or timestamps don't match.
         """
+        from .table import TimeSeriesTable
+
         if not series:
             raise ValueError("Cannot merge an empty list of TimeSeries.")
 
@@ -1281,1137 +896,3 @@ class TimeSeries(_TimeSeriesBase):
             timeseries_types=[s.timeseries_type for s in series],
             attributes=[s.attributes or {} for s in series],
         )
-
-
-# ---------------------------------------------------------------------------
-# TimeSeriesTable — multiple value columns (formerly MultivariateTimeSeries)
-# ---------------------------------------------------------------------------
-
-
-@dataclass(slots=True, repr=False)
-class TimeSeriesTable(_TimeSeriesBase):
-    frequency: Frequency
-    timezone: str = "UTC"
-    names: list[str | None] = field(default_factory=lambda: [None])
-    units: list[str | None] = field(default_factory=lambda: [None])
-    descriptions: list[str | None] = field(default_factory=lambda: [None])
-    data_types: list[DataType | None] = field(default_factory=lambda: [None])
-    locations: list[Location | None] = field(default_factory=lambda: [None])
-    timeseries_types: list[TimeSeriesType] = field(
-        default_factory=lambda: [TimeSeriesType.FLAT]
-    )
-    attributes: list[dict[str, str]] = field(default_factory=lambda: [{}])
-    _timestamps: list[datetime] | list[tuple[datetime, ...]] = field(
-        default_factory=list, repr=False
-    )
-    _values: np.ndarray = field(
-        default_factory=lambda: np.empty((0, 0)), repr=False
-    )
-    _index_names: list[str] | None = field(default=None, repr=False)
-
-    def __init__(
-        self,
-        frequency: Frequency,
-        *,
-        timezone: str = "UTC",
-        timestamps: list[datetime] | list[tuple[datetime, ...]] | None = None,
-        values: np.ndarray | list,
-        names: list[str | None] | None = None,
-        units: list[str | None] | None = None,
-        descriptions: list[str | None] | None = None,
-        data_types: list[DataType | None] | None = None,
-        locations: list[Location | None] | None = None,
-        timeseries_types: list[TimeSeriesType] | None = None,
-        attributes: list[dict[str, str]] | None = None,
-        index_names: list[str] | None = None,
-    ) -> None:
-        self.frequency = frequency
-        self.timezone = timezone
-        self._timestamps = timestamps or []
-        self._values = np.asarray(values, dtype=np.float64)
-        self._index_names = index_names
-
-        if self._values.ndim == 1:
-            self._values = self._values.reshape(-1, 1)
-        if self._values.ndim != 2:
-            raise ValueError(
-                f"values must be 1D or 2D, got {self._values.ndim}D"
-            )
-
-        ncols = self._values.shape[1]
-
-        def _validate_list(attr_name, attr_list, default_factory):
-            if attr_list is None:
-                return [default_factory()]
-            if len(attr_list) == 1 or len(attr_list) == ncols:
-                return list(attr_list)
-            raise ValueError(
-                f"{attr_name} must have length 1 or {ncols}, "
-                f"got {len(attr_list)}"
-            )
-
-        self.names = _validate_list("names", names, lambda: None)
-        self.units = _validate_list("units", units, lambda: None)
-        self.descriptions = _validate_list(
-            "descriptions", descriptions, lambda: None
-        )
-        self.data_types = _validate_list(
-            "data_types", data_types, lambda: None
-        )
-        self.locations = _validate_list(
-            "locations", locations, lambda: None
-        )
-        self.timeseries_types = _validate_list(
-            "timeseries_types", timeseries_types, lambda: TimeSeriesType.FLAT
-        )
-        self.attributes = _validate_list("attributes", attributes, dict)
-
-    # ---- properties ------------------------------------------------------
-
-    @property
-    def values(self) -> np.ndarray:
-        return self._values
-
-    @property
-    def n_columns(self) -> int:
-        return self._values.shape[1]
-
-    def _get_attr(self, attr_list: list, col: int):
-        """Resolve broadcast: return attr_list[col] if len > 1, else attr_list[0]."""
-        if len(attr_list) == 1:
-            return attr_list[0]
-        return attr_list[col]
-
-    @property
-    def column_names(self) -> tuple[str, ...]:
-        return tuple(
-            self._get_attr(self.names, i) or f"value_{i}"
-            for i in range(self.n_columns)
-        )
-
-    @property
-    def has_missing(self) -> bool:
-        """True if any value is NaN."""
-        return bool(np.isnan(self._values).any()) if self._values.size else False
-
-    def _coverage_masks(self) -> list[tuple[str, list[bool]]]:
-        masks: list[tuple[str, list[bool]]] = []
-        for col, name in enumerate(self.column_names):
-            col_data = self._values[:, col]
-            masks.append((name, [not np.isnan(v) for v in col_data]))
-        return masks
-
-    def coverage_bar(self) -> CoverageBar:
-        """Return a displayable coverage bar."""
-        return CoverageBar(self._coverage_masks(), self.begin, self.end)
-
-    # ---- helpers for constructing new instances ---------------------------
-
-    def _list_meta_kwargs(self) -> dict:
-        return dict(
-            names=list(self.names),
-            units=list(self.units),
-            descriptions=list(self.descriptions),
-            data_types=list(self.data_types),
-            locations=list(self.locations),
-            timeseries_types=list(self.timeseries_types),
-            attributes=list(self.attributes),
-            index_names=self._index_names,
-        )
-
-    def _clone_with(
-        self, timestamps, values
-    ) -> TimeSeriesTable:
-        return TimeSeriesTable(
-            self.frequency,
-            timezone=self.timezone,
-            timestamps=timestamps,
-            values=values,
-            **self._list_meta_kwargs(),
-        )
-
-    # ---- column extraction ------------------------------------------------
-
-    def select_column(self, col: int | str) -> TimeSeries:
-        """Extract a single column as a univariate TimeSeries.
-
-        Args:
-            col: Column index (int) or column name (str).
-
-        Returns:
-            A new TimeSeries with that column's values and resolved metadata.
-        """
-        if isinstance(col, str):
-            names = self.column_names
-            if col not in names:
-                raise KeyError(f"Column '{col}' not found. Available: {names}")
-            col = names.index(col)
-
-        arr = self._values[:, col]
-        values = self._from_float_array(arr)
-
-        return TimeSeries(
-            self.frequency,
-            timezone=self.timezone,
-            timestamps=list(self._timestamps),
-            values=values,
-            name=self._get_attr(self.names, col),
-            unit=self._get_attr(self.units, col),
-            description=self._get_attr(self.descriptions, col),
-            data_type=self._get_attr(self.data_types, col),
-            location=self._get_attr(self.locations, col),
-            timeseries_type=self._get_attr(self.timeseries_types, col),
-            attributes=self._get_attr(self.attributes, col),
-            index_names=self._index_names,
-        )
-
-    def to_univariate_list(self) -> list[TimeSeries]:
-        """Convert to a list of univariate TimeSeries, one per column."""
-        return [self.select_column(i) for i in range(self.n_columns)]
-
-    # ---- sequence protocol -----------------------------------------------
-
-    @overload
-    def __getitem__(self, index: int) -> tuple: ...
-    @overload
-    def __getitem__(self, index: slice) -> list[tuple]: ...
-
-    def __getitem__(self, index: int | slice) -> tuple | list[tuple]:
-        if isinstance(index, slice):
-            idxs = range(len(self._timestamps))[index]
-            return [
-                (self._timestamps[i], self._values[i].tolist()) for i in idxs
-            ]
-        return (self._timestamps[index], self._values[index].tolist())
-
-    def __iter__(self) -> Iterator[tuple]:
-        return (
-            (t, self._values[i].tolist())
-            for i, t in enumerate(self._timestamps)
-        )
-
-    # ---- head / tail / copy ----------------------------------------------
-
-    def head(self, n: int = 5) -> TimeSeriesTable:
-        """Return a new TimeSeriesTable with the first *n* points."""
-        return self._clone_with(self._timestamps[:n], self._values[:n])
-
-    def tail(self, n: int = 5) -> TimeSeriesTable:
-        """Return a new TimeSeriesTable with the last *n* points."""
-        if n == 0:
-            return self._clone_with([], self._values[:0])
-        return self._clone_with(self._timestamps[-n:], self._values[-n:])
-
-    def copy(self) -> TimeSeriesTable:
-        """Return a shallow copy (timestamps list and values array are new)."""
-        return self._clone_with(
-            list(self._timestamps), self._values.copy()
-        )
-
-    # ---- scalar arithmetic -----------------------------------------------
-
-    def _apply_scalar(self, func) -> TimeSeriesTable:
-        arr = self._values.astype(np.float64, copy=True)
-        return self._clone_with(list(self._timestamps), func(arr))
-
-    def __add__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v + scalar)
-
-    def __radd__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: scalar + v)
-
-    def __sub__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v - scalar)
-
-    def __rsub__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: scalar - v)
-
-    def __mul__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v * scalar)
-
-    def __rmul__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: scalar * v)
-
-    def __truediv__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v / scalar)
-
-    def __neg__(self) -> TimeSeriesTable:
-        return self._apply_scalar(lambda v: -v)
-
-    def __abs__(self) -> TimeSeriesTable:
-        return self._apply_scalar(abs)
-
-    def __round__(self, n: int = 0) -> TimeSeriesTable:
-        arr = self._values.astype(np.float64, copy=True)
-        return self._clone_with(list(self._timestamps), np.round(arr, n))
-
-    # ---- repr hooks -------------------------------------------------------
-
-    def _repr_meta_lines(self) -> list[str]:
-        label_w = 18
-        lines: list[str] = []
-        cn = self.column_names
-        lines.append(f"{'Columns:':<{label_w}}{', '.join(cn)}")
-        n = len(self._timestamps)
-        lines.append(f"{'Shape:':<{label_w}}({n}, {self.n_columns})")
-        lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
-        lines.append(f"{'Timezone:':<{label_w}}{self.timezone}")
-
-        # Unit — show if any is set
-        unit_vals = [self._get_attr(self.units, i) for i in range(self.n_columns)]
-        if any(u is not None for u in unit_vals):
-            lines.append(f"{'Unit:':<{label_w}}{', '.join(str(u) if u else '-' for u in unit_vals)}")
-
-        # Data type — show if any is set
-        dt_vals = [self._get_attr(self.data_types, i) for i in range(self.n_columns)]
-        if any(d is not None for d in dt_vals):
-            lines.append(f"{'Data type:':<{label_w}}{', '.join(str(d) if d else '-' for d in dt_vals)}")
-
-        # Location — show if any is set
-        loc_vals = [self._get_attr(self.locations, i) for i in range(self.n_columns)]
-        if any(loc is not None for loc in loc_vals):
-            lines.append(f"{'Location:':<{label_w}}{', '.join(self._fmt_location(loc) or '-' for loc in loc_vals)}")
-
-        # Timeseries type — show if any is not FLAT
-        tst_vals = [self._get_attr(self.timeseries_types, i) for i in range(self.n_columns)]
-        if any(t != "FLAT" for t in tst_vals):
-            lines.append(f"{'Timeseries type:':<{label_w}}{', '.join(str(t) for t in tst_vals)}")
-
-        return lines
-
-    def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
-        return [
-            [str(self._timestamps[i])]
-            + [self._fmt_value(float(v)) for v in self._values[i]]
-            for i in indices
-        ]
-
-    def _repr_html_(self) -> str:
-        cn = self.column_names
-        ncols = self.n_columns
-        n = len(self._timestamps)
-
-        css = """\
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>"""
-
-        label = ", ".join(escape(c) for c in cn)
-        html = [css, '<div class="ts-repr">']
-        html.append(
-            f'<div class="ts-header">{type(self).__name__}</div>'
-        )
-
-        html.append('<div class="ts-meta"><table>')
-        html.append(
-            f"<tr><td>Columns</td><td>{label}</td></tr>"
-        )
-        html.append(
-            f"<tr><td>Shape</td><td>({n:,}, {ncols})</td></tr>"
-        )
-        html.append(
-            f"<tr><td>Frequency</td>"
-            f"<td>{escape(str(self.frequency))}</td></tr>"
-        )
-        html.append(
-            f"<tr><td>Timezone</td><td>{escape(self.timezone)}</td></tr>"
-        )
-        html.append("</table></div>")
-
-        idx_names = self.index_names
-        total_cols = len(idx_names) + ncols
-        html.append('<div class="ts-data"><table>')
-        header_cells = "".join(
-            f"<th>{escape(c)}</th>" for c in idx_names
-        )
-        header_cells += "".join(f"<th>{escape(c)}</th>" for c in cn)
-        html.append(f"<tr>{header_cells}</tr>")
-
-        def _html_row(i: int) -> str:
-            ts = self._timestamps[i]
-            if isinstance(ts, tuple):
-                ts_cells = "".join(
-                    f"<td>{escape(str(t))}</td>" for t in ts
-                )
-            else:
-                ts_cells = f"<td>{escape(str(ts))}</td>"
-            val_cells = "".join(
-                f"<td>{escape(self._fmt_value(float(v)))}</td>"
-                for v in self._values[i]
-            )
-            return f"<tr>{ts_cells}{val_cells}</tr>"
-
-        if n == 0:
-            html.append(
-                f'<tr><td colspan="{total_cols}" class="ts-ellipsis">'
-                f"(empty)</td></tr>"
-            )
-        else:
-            show_all = n <= _MAX_PREVIEW * 2 + 1
-            head_rows = range(min(_MAX_PREVIEW, n))
-            tail_rows = (
-                range(max(n - _MAX_PREVIEW, _MAX_PREVIEW), n)
-                if not show_all
-                else range(0)
-            )
-
-            for i in head_rows:
-                html.append(_html_row(i))
-
-            if not show_all:
-                ellipsis_cells = "".join(
-                    f'<td class="ts-ellipsis">&hellip;</td>'
-                    for _ in range(total_cols)
-                )
-                html.append(f"<tr>{ellipsis_cells}</tr>")
-                for i in tail_rows:
-                    html.append(_html_row(i))
-
-        html.append("</table></div>")
-        html.append("</div>")
-        return "\n".join(html)
-
-    # ---- numpy / pandas / polars -----------------------------------------
-
-    def to_numpy(self) -> np.ndarray:
-        """Return values as a 2D numpy float64 array."""
-        return self._values.astype(np.float64, copy=True)
-
-    def to_pandas_dataframe(self) -> pd.DataFrame:
-        """Return a pandas DataFrame with multiple value columns."""
-        arr = self.to_numpy()
-        if self.is_multi_index:
-            idx_names = list(self.index_names)
-            index = pd.MultiIndex.from_tuples(
-                self._timestamps, names=idx_names
-            )
-        else:
-            index = pd.DatetimeIndex(
-                self._timestamps, name=self.index_names[0]
-            )
-        cols = list(self.column_names)
-        return pd.DataFrame(arr, index=index, columns=cols)
-
-    def to_pd_df(self) -> pd.DataFrame:
-        """Alias for to_pandas_dataframe()."""
-        return self.to_pandas_dataframe()
-
-    def to_pl_df(self):
-        """Alias for to_polars_dataframe()."""
-        return self.to_polars_dataframe()
-
-    def to_polars_dataframe(self):
-        """Return a polars DataFrame with timestamp and value columns."""
-        try:
-            import polars as pl
-        except ImportError as e:
-            raise ImportError(
-                "polars is required for to_polars_dataframe(). "
-                "Install it with: pip install timedatamodel[polars]"
-            ) from e
-
-        data: dict = {}
-        if self.is_multi_index:
-            for i, iname in enumerate(self.index_names):
-                data[iname] = [t[i] for t in self._timestamps]
-        else:
-            data[self.index_names[0]] = self._timestamps
-
-        arr = self.to_numpy()
-        for j, cname in enumerate(self.column_names):
-            data[cname] = arr[:, j]
-
-        return pl.DataFrame(data)
-
-    @classmethod
-    def from_pandas(
-        cls,
-        df: pd.DataFrame,
-        frequency: Frequency | None = None,
-        *,
-        timezone: str = "UTC",
-        names: list[str | None] | None = None,
-        units: list[str | None] | None = None,
-        descriptions: list[str | None] | None = None,
-        data_types: list[DataType | None] | None = None,
-        locations: list[Location | None] | None = None,
-        timeseries_types: list[TimeSeriesType] | None = None,
-        attributes: list[dict[str, str]] | None = None,
-    ) -> TimeSeriesTable:
-        """Create a TimeSeriesTable from a pandas DataFrame.
-
-        All numeric columns become value columns.  Column names become
-        ``names`` if not explicitly provided.
-        """
-        if isinstance(df.index, pd.MultiIndex):
-            timestamps = [
-                tuple(
-                    lvl.to_pydatetime()
-                    if hasattr(lvl, "to_pydatetime")
-                    else lvl
-                    for lvl in row
-                )
-                for row in df.index
-            ]
-            index_names = list(df.index.names)
-        elif isinstance(df.index, pd.DatetimeIndex):
-            timestamps = df.index.to_pydatetime().tolist()
-            index_names = None
-        else:
-            raise ValueError(
-                "DataFrame must have a DatetimeIndex or MultiIndex"
-            )
-
-        cols = list(df.columns)
-        values = df[cols].to_numpy(dtype=np.float64)
-
-        if names is None:
-            names = [str(c) for c in cols]
-
-        if frequency is None:
-            if isinstance(df.index, pd.DatetimeIndex):
-                frequency, timezone = cls._infer_freq_tz(
-                    df, Frequency.NONE, timezone
-                )
-            else:
-                frequency = Frequency.NONE
-
-        return cls(
-            frequency,
-            timezone=timezone,
-            timestamps=timestamps,
-            values=values,
-            names=names,
-            units=units,
-            descriptions=descriptions,
-            data_types=data_types,
-            locations=locations,
-            timeseries_types=timeseries_types,
-            attributes=attributes,
-            index_names=index_names,
-        )
-
-    # ---- serialization I/O -----------------------------------------------
-
-    def to_json(self) -> str:
-        """Serialize to a JSON string (timestamps as ISO-8601 strings)."""
-        if self.is_multi_index:
-            ts_json = [
-                [dt.isoformat() for dt in tup] for tup in self._timestamps
-            ]
-        else:
-            ts_json = [t.isoformat() for t in self._timestamps]
-
-        payload: dict = {
-            "timestamps": ts_json,
-            "values": self._values.tolist(),
-            "column_names": list(self.column_names),
-        }
-        if self._index_names is not None:
-            payload["index_names"] = self._index_names
-        return json.dumps(payload)
-
-    @classmethod
-    def from_json(
-        cls,
-        s: str,
-        frequency: Frequency,
-        *,
-        timezone: str = "UTC",
-        names: list[str | None] | None = None,
-        units: list[str | None] | None = None,
-        descriptions: list[str | None] | None = None,
-        data_types: list[DataType | None] | None = None,
-        locations: list[Location | None] | None = None,
-        timeseries_types: list[TimeSeriesType] | None = None,
-        attributes: list[dict[str, str]] | None = None,
-    ) -> TimeSeriesTable:
-        """Reconstruct from a JSON string produced by to_json()."""
-        data = json.loads(s)
-        raw_ts = data["timestamps"]
-
-        if raw_ts and isinstance(raw_ts[0], list):
-            timestamps = [
-                tuple(datetime.fromisoformat(dt) for dt in row)
-                for row in raw_ts
-            ]
-        else:
-            timestamps = [datetime.fromisoformat(t) for t in raw_ts]
-
-        values = np.array(data["values"], dtype=np.float64)
-        index_names = data.get("index_names")
-
-        if names is None:
-            cn = data.get("column_names")
-            if cn:
-                names = cn
-
-        return cls(
-            frequency,
-            timezone=timezone,
-            timestamps=timestamps,
-            values=values,
-            names=names,
-            units=units,
-            descriptions=descriptions,
-            data_types=data_types,
-            locations=locations,
-            timeseries_types=timeseries_types,
-            attributes=attributes,
-            index_names=index_names,
-        )
-
-    def to_csv(self, path: str | Path) -> None:
-        """Write timestamps and values to a CSV file."""
-        idx_names = list(self.index_names)
-        col_names = list(self.column_names)
-        with open(path, "w", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(idx_names + col_names)
-            for i, t in enumerate(self._timestamps):
-                if isinstance(t, tuple):
-                    ts_cells = [dt.isoformat() for dt in t]
-                else:
-                    ts_cells = [t.isoformat()]
-                val_cells = [
-                    "" if np.isnan(v) else v for v in self._values[i]
-                ]
-                writer.writerow(ts_cells + val_cells)
-
-    @classmethod
-    def from_csv(
-        cls,
-        path: str | Path,
-        frequency: Frequency,
-        *,
-        timezone: str = "UTC",
-        names: list[str | None] | None = None,
-        units: list[str | None] | None = None,
-        descriptions: list[str | None] | None = None,
-        data_types: list[DataType | None] | None = None,
-        locations: list[Location | None] | None = None,
-        timeseries_types: list[TimeSeriesType] | None = None,
-        attributes: list[dict[str, str]] | None = None,
-    ) -> TimeSeriesTable:
-        """Read a TimeSeriesTable from a CSV file produced by to_csv()."""
-        with open(path, "r", newline="") as f:
-            reader = csv.reader(f)
-            header = next(reader)
-
-            idx_cols: list[int] = []
-            val_cols: list[int] = []
-            for i, hname in enumerate(header):
-                if hname in ("timestamp",) or hname.endswith("_time"):
-                    idx_cols.append(i)
-                else:
-                    val_cols.append(i)
-            if not idx_cols:
-                idx_cols = [0]
-                val_cols = list(range(1, len(header)))
-
-            multi_index = len(idx_cols) > 1
-
-            timestamps: list = []
-            rows: list = []
-            for row in reader:
-                if multi_index:
-                    timestamps.append(
-                        tuple(
-                            datetime.fromisoformat(row[i]) for i in idx_cols
-                        )
-                    )
-                else:
-                    timestamps.append(
-                        datetime.fromisoformat(row[idx_cols[0]])
-                    )
-
-                rows.append([
-                    np.nan if row[i] == "" else float(row[i])
-                    for i in val_cols
-                ])
-
-        values = np.array(rows, dtype=np.float64)
-        index_names = (
-            [header[i] for i in idx_cols] if multi_index else None
-        )
-
-        if names is None:
-            names = [header[i] for i in val_cols]
-
-        return cls(
-            frequency,
-            timezone=timezone,
-            timestamps=timestamps,
-            values=values,
-            names=names,
-            units=units,
-            descriptions=descriptions,
-            data_types=data_types,
-            locations=locations,
-            timeseries_types=timeseries_types,
-            attributes=attributes,
-            index_names=index_names,
-        )
-
-    def validate(self) -> list[str]:
-        """Return a list of validation warnings."""
-        warnings = super().validate()
-        n_values = self._values.shape[0]
-        if len(self._timestamps) != n_values:
-            warnings.insert(
-                0,
-                f"length mismatch: {len(self._timestamps)} timestamps "
-                f"vs {n_values} values",
-            )
-        return warnings
-
-    # ---- pandas / numpy bridges ------------------------------------------
-
-    def apply_pandas(
-        self,
-        func: Callable[[pd.DataFrame], pd.DataFrame],
-    ) -> TimeSeriesTable:
-        """Apply a pandas transformation, preserving metadata and auto-detecting frequency."""
-        df = self.to_pandas_dataframe()
-        result = func(df)
-        new_freq, new_tz = self._infer_freq_tz(
-            result, self.frequency, self.timezone
-        )
-
-        if isinstance(result.index, pd.MultiIndex):
-            timestamps = [
-                tuple(
-                    lvl.to_pydatetime()
-                    if hasattr(lvl, "to_pydatetime")
-                    else lvl
-                    for lvl in row
-                )
-                for row in result.index
-            ]
-            index_names = list(result.index.names)
-        elif isinstance(result.index, pd.DatetimeIndex):
-            timestamps = result.index.to_pydatetime().tolist()
-            index_names = None
-        else:
-            raise ValueError(
-                "apply_pandas result must have a DatetimeIndex or MultiIndex"
-            )
-
-        values = result.to_numpy(dtype=np.float64)
-        new_names = [str(c) for c in result.columns]
-        new_ncols = len(result.columns)
-
-        def _carry_over(attr, default_factory):
-            if len(attr) == 1 or len(attr) == new_ncols:
-                return list(attr)
-            return [default_factory()]
-
-        return TimeSeriesTable(
-            new_freq,
-            timezone=new_tz,
-            timestamps=timestamps,
-            values=values,
-            names=new_names,
-            units=_carry_over(self.units, lambda: None),
-            descriptions=_carry_over(self.descriptions, lambda: None),
-            data_types=_carry_over(self.data_types, lambda: None),
-            locations=_carry_over(self.locations, lambda: None),
-            timeseries_types=_carry_over(
-                self.timeseries_types, lambda: TimeSeriesType.FLAT
-            ),
-            attributes=_carry_over(self.attributes, dict),
-            index_names=index_names,
-        )
-
-    def apply_numpy(
-        self,
-        func: Callable[[np.ndarray], np.ndarray],
-    ) -> TimeSeriesTable:
-        """Apply a numpy transformation to values, keeping timestamps and resolution unchanged."""
-        arr = self.to_numpy()
-        result = np.asarray(func(arr), dtype=np.float64)
-        if result.shape[0] != len(self._timestamps):
-            raise ValueError(
-                f"apply_numpy: result length ({result.shape[0]}) must match "
-                f"series length ({len(self._timestamps)})"
-            )
-        return self._clone_with(list(self._timestamps), result)
-
-
-MultivariateTimeSeries = TimeSeriesTable
-MultiTimeSeries = TimeSeriesTable
-
-
-# ---------------------------------------------------------------------------
-# TimeSeriesCollection — container for heterogeneous time series
-# ---------------------------------------------------------------------------
-
-
-class TimeSeriesCollection:
-    """Container for TimeSeries and/or TimeSeriesTable objects that don't share an index.
-
-    Items are stored internally as an ordered ``dict[str, TimeSeries | TimeSeriesTable]``.
-    """
-
-    __slots__ = ("_series", "_name", "_description")
-
-    def __init__(
-        self,
-        series: (
-            list[TimeSeries | TimeSeriesTable]
-            | dict[str, TimeSeries | TimeSeriesTable]
-            | None
-        ) = None,
-        *,
-        name: str | None = None,
-        description: str | None = None,
-    ) -> None:
-        self._name = name
-        self._description = description
-
-        if series is None:
-            self._series: dict[str, TimeSeries | TimeSeriesTable] = {}
-        elif isinstance(series, dict):
-            self._series = dict(series)
-        else:
-            self._series = {}
-            used: dict[str, int] = {}
-            for idx, item in enumerate(series):
-                key: str | None = None
-                if isinstance(item, TimeSeries) and item.name:
-                    key = item.name
-                elif isinstance(item, TimeSeriesTable):
-                    names = item.column_names
-                    if names:
-                        key = ",".join(names)
-
-                if key is None:
-                    key = f"series_{idx}"
-
-                if key in used:
-                    used[key] += 1
-                    key = f"{key}_{used[key]}"
-                else:
-                    used[key] = 0
-                self._series[key] = item
-
-    # ---- properties -------------------------------------------------------
-
-    @property
-    def name(self) -> str | None:
-        return self._name
-
-    @property
-    def description(self) -> str | None:
-        return self._description
-
-    @property
-    def names(self) -> list[str]:
-        return list(self._series.keys())
-
-    @property
-    def series_count(self) -> int:
-        return len(self._series)
-
-    # ---- mapping / sequence protocol --------------------------------------
-
-    def __len__(self) -> int:
-        return len(self._series)
-
-    def __bool__(self) -> bool:
-        return len(self._series) > 0
-
-    def __contains__(self, key: str) -> bool:
-        return key in self._series
-
-    def __iter__(self) -> Iterator[str]:
-        return iter(self._series)
-
-    def __getitem__(self, key: str | int) -> TimeSeries | TimeSeriesTable:
-        if isinstance(key, int):
-            keys = list(self._series.keys())
-            return self._series[keys[key]]
-        return self._series[key]
-
-    def keys(self):
-        return self._series.keys()
-
-    def values(self):
-        return self._series.values()
-
-    def items(self):
-        return self._series.items()
-
-    # ---- mutation (returns new collection) --------------------------------
-
-    def add(
-        self,
-        item: TimeSeries | TimeSeriesTable,
-        name: str | None = None,
-    ) -> TimeSeriesCollection:
-        if name is None:
-            if isinstance(item, TimeSeries) and item.name:
-                name = item.name
-            elif isinstance(item, TimeSeriesTable):
-                names = item.column_names
-                name = ",".join(names) if names else None
-            if name is None:
-                name = f"series_{len(self._series)}"
-        new_series = dict(self._series)
-        new_series[name] = item
-        return TimeSeriesCollection(
-            new_series, name=self._name, description=self._description
-        )
-
-    def remove(self, name: str) -> TimeSeriesCollection:
-        new_series = {k: v for k, v in self._series.items() if k != name}
-        return TimeSeriesCollection(
-            new_series, name=self._name, description=self._description
-        )
-
-    # ---- display -----------------------------------------------------------
-
-    def _item_summary(self, key: str, item: TimeSeries | TimeSeriesTable) -> dict:
-        """Summarize a single item for repr tables."""
-        kind = type(item).__name__
-        freq = str(item.frequency) if hasattr(item, "frequency") else "-"
-        tz = item.timezone if hasattr(item, "timezone") else "-"
-        n = len(item)
-        begin = item.begin
-        end = item.end
-        begin_s = _fmt_short_date(begin) if begin else "-"
-        end_s = _fmt_short_date(end) if end else "-"
-        return {
-            "name": key,
-            "type": kind,
-            "freq": freq,
-            "tz": tz,
-            "length": str(n),
-            "begin": begin_s,
-            "end": end_s,
-        }
-
-    def __repr__(self) -> str:
-        class_name = type(self).__name__
-        if not self._series:
-            return f"{class_name}(empty)"
-
-        rows = [
-            self._item_summary(k, v) for k, v in self._series.items()
-        ]
-        headers = ["name", "type", "freq", "tz", "length", "begin", "end"]
-        col_widths = {h: len(h) for h in headers}
-        for row in rows:
-            for h in headers:
-                col_widths[h] = max(col_widths[h], len(row[h]))
-
-        padding = 2
-
-        def _fmt_row(vals: dict) -> str:
-            return "  ".join(f"{vals[h]:<{col_widths[h]}}" for h in headers)
-
-        header_line = _fmt_row({h: h for h in headers})
-        content_lines = [header_line]
-        content_lines.append(None)  # separator
-        for row in rows:
-            content_lines.append(_fmt_row(row))
-
-        max_w = max(
-            (len(line) for line in content_lines if line is not None),
-            default=0,
-        )
-        inner_w = max_w + padding * 2
-        title = f" {class_name} "
-        if self._name:
-            title = f" {class_name}: {self._name} "
-
-        lines: list[str] = []
-        lines.append(
-            f"\u250c{title:\u2500^{inner_w}}\u2510"
-        )
-        for cl in content_lines:
-            if cl is None:
-                lines.append(
-                    f"\u251c{'\u2500' * inner_w}\u2524"
-                )
-            else:
-                lines.append(
-                    f"\u2502{' ' * padding}{cl}{' ' * (inner_w - padding - len(cl))}\u2502"
-                )
-        lines.append(f"\u2514{'\u2500' * inner_w}\u2518")
-        return "\n".join(lines)
-
-    def _repr_html_(self) -> str:
-        if not self._series:
-            return "<div><b>TimeSeriesCollection</b> (empty)</div>"
-
-        rows = [
-            self._item_summary(k, v) for k, v in self._series.items()
-        ]
-        headers = ["name", "type", "freq", "tz", "length", "begin", "end"]
-
-        title = type(self).__name__
-        if self._name:
-            title = f"{title}: {escape(self._name)}"
-
-        css = """\
-<style>
-.tsc-repr { font-family: monospace; font-size: 13px; max-width: 720px; }
-.tsc-repr .tsc-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.tsc-repr table { border-collapse: collapse; width: 100%; }
-.tsc-repr th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.tsc-repr td { padding: 2px 10px; }
-.tsc-repr tr:hover { background: #f5f5f5; }
-</style>"""
-
-        html = [css, '<div class="tsc-repr">']
-        html.append(f'<div class="tsc-header">{escape(title)}</div>')
-        html.append("<table>")
-        html.append(
-            "<tr>" + "".join(f"<th>{escape(h)}</th>" for h in headers) + "</tr>"
-        )
-        for row in rows:
-            html.append(
-                "<tr>"
-                + "".join(f"<td>{escape(row[h])}</td>" for h in headers)
-                + "</tr>"
-            )
-        html.append("</table></div>")
-        return "\n".join(html)
-
-    def coverage_bar(self) -> CoverageBar:
-        """Return a multi-row CoverageBar spanning the global time range."""
-        masks: list[tuple[str, list[bool]]] = []
-        all_begins: list[datetime] = []
-        all_ends: list[datetime] = []
-
-        for key, item in self._series.items():
-            begin = item.begin
-            end = item.end
-            if begin is not None and end is not None:
-                # Unwrap tuples for multi-index
-                b = begin[0] if isinstance(begin, tuple) else begin
-                e = end[0] if isinstance(end, tuple) else end
-                all_begins.append(b)
-                all_ends.append(e)
-
-        if not all_begins:
-            return CoverageBar([], None, None)
-
-        global_begin = min(all_begins)
-        global_end = max(all_ends)
-        global_span = (global_end - global_begin).total_seconds()
-
-        n_bins = CoverageBar._TERM_BINS
-
-        for key, item in self._series.items():
-            begin = item.begin
-            end = item.end
-
-            if isinstance(item, TimeSeries):
-                label = key
-                if begin is None or end is None or global_span == 0:
-                    masks.append((label, [False] * n_bins))
-                    continue
-                b = begin[0] if isinstance(begin, tuple) else begin
-                e = end[0] if isinstance(end, tuple) else end
-                item_masks = item._coverage_masks()
-                _, raw_mask = item_masks[0]
-                # Map raw mask onto global bins
-                bin_mask = self._rebin_to_global(
-                    raw_mask, b, e, global_begin, global_span, n_bins
-                )
-                masks.append((label, bin_mask))
-
-            elif isinstance(item, TimeSeriesTable):
-                if begin is None or end is None or global_span == 0:
-                    for col_name in item.column_names:
-                        label = f"{key}/{col_name}"
-                        masks.append((label, [False] * n_bins))
-                    continue
-                b = begin[0] if isinstance(begin, tuple) else begin
-                e = end[0] if isinstance(end, tuple) else end
-                for col_name, raw_mask in item._coverage_masks():
-                    label = f"{key}/{col_name}"
-                    bin_mask = self._rebin_to_global(
-                        raw_mask, b, e, global_begin, global_span, n_bins
-                    )
-                    masks.append((label, bin_mask))
-
-        return CoverageBar(masks, global_begin, global_end)
-
-    @staticmethod
-    def _rebin_to_global(
-        raw_mask: list[bool],
-        item_begin: datetime,
-        item_end: datetime,
-        global_begin: datetime,
-        global_span: float,
-        n_bins: int,
-    ) -> list[bool]:
-        """Map an item's coverage mask onto global bins."""
-        if not raw_mask or global_span == 0:
-            return [False] * n_bins
-
-        result = [False] * n_bins
-        item_span = (item_end - item_begin).total_seconds()
-        n_points = len(raw_mask)
-
-        for i, present in enumerate(raw_mask):
-            if not present:
-                continue
-            # Position of this point in the item's time range
-            if n_points == 1:
-                t_offset = (item_begin - global_begin).total_seconds()
-            else:
-                t_offset = (
-                    (item_begin - global_begin).total_seconds()
-                    + item_span * i / (n_points - 1)
-                )
-            bin_idx = int(t_offset / global_span * n_bins)
-            bin_idx = min(bin_idx, n_bins - 1)
-            result[bin_idx] = True
-
-        return result

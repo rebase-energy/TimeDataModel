@@ -21,12 +21,7 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Typing :: Typed",
 ]
-dependencies = [
-  "pint>=0.24",
-  "shapely>=2.0",
-  "numpy>=2.0",
-  "pandas>=2.0",
-]
+dependencies = ["numpy>=2.0"]
 
 [project.urls]
 Homepage = "https://github.com/rebase-energy/TimeDataModel"
@@ -34,8 +29,12 @@ Repository = "https://github.com/rebase-energy/TimeDataModel"
 Issues = "https://github.com/rebase-energy/TimeDataModel/issues"
 
 [project.optional-dependencies]
+pandas = ["pandas>=2.0"]
+pint = ["pint>=0.24"]
+geo = ["shapely>=2.0"]
 polars = ["polars>=1.0"]
-dev = ["pytest>=8.0", "polars>=1.0"]
+all = ["pandas>=2.0", "pint>=0.24", "shapely>=2.0", "polars>=1.0"]
+dev = ["pytest>=8.0", "pandas>=2.0", "pint>=0.24", "shapely>=2.0", "polars>=1.0"]
 
 [build-system]
 requires = ["hatchling"]
