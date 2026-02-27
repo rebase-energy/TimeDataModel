@@ -600,3 +600,333 @@ class TestValidation:
         )
         warnings = ts.validate()
         assert any("inconsistent frequency" in w for w in warnings)
+
+
+# ---- Multi-Index Tests ------------------------------------------------
+
+
+class TestMultiIndex:
+    @pytest.fixture
+    def base_times(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        return [base + timedelta(hours=i) for i in range(5)]
+
+    @pytest.fixture
+    def multi_ts(self, hourly_resolution, base_times):
+        knowledge_time = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        timestamps = [(vt, knowledge_time) for vt in base_times]
+        values = [1.0, 2.0, 3.0, None, 5.0]
+        return TimeSeries(
+            hourly_resolution,
+            timestamps=timestamps,
+            values=values,
+            index_names=["valid_time", "knowledge_time"],
+        )
+
+    def test_construction(self, multi_ts):
+        assert len(multi_ts) == 5
+
+    def test_is_multi_index_true(self, multi_ts):
+        assert multi_ts.is_multi_index is True
+
+    def test_is_multi_index_false(self, sample_ts):
+        assert sample_ts.is_multi_index is False
+
+    def test_is_multivariate_false(self, multi_ts):
+        assert multi_ts.is_multivariate is False
+
+    def test_index_names(self, multi_ts):
+        assert multi_ts.index_names == ("valid_time", "knowledge_time")
+
+    def test_index_names_default(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        kt = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        ts = TimeSeries(
+            hourly_resolution,
+            timestamps=[(base, kt)],
+            values=[1.0],
+        )
+        assert ts.index_names == ("index_0", "index_1")
+
+    def test_begin_end(self, multi_ts, base_times):
+        knowledge_time = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        assert multi_ts.begin == (base_times[0], knowledge_time)
+        assert multi_ts.end == (base_times[-1], knowledge_time)
+
+    def test_duration(self, multi_ts):
+        assert multi_ts.duration == timedelta(hours=4)
+
+    def test_contains(self, multi_ts):
+        knowledge_time = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        assert (base, knowledge_time) in multi_ts
+
+    def test_head(self, multi_ts):
+        h = multi_ts.head(2)
+        assert len(h) == 2
+        assert h.is_multi_index
+
+    def test_tail(self, multi_ts):
+        t = multi_ts.tail(2)
+        assert len(t) == 2
+        assert t.is_multi_index
+
+    def test_copy(self, multi_ts):
+        c = multi_ts.copy()
+        assert len(c) == len(multi_ts)
+        assert c.is_multi_index
+        c._values[0] = 999.0
+        assert multi_ts.values[0] == 1.0
+
+    def test_getitem_returns_tuple(self, multi_ts):
+        item = multi_ts[0]
+        assert isinstance(item, tuple)
+        assert not isinstance(item, DataPoint)
+
+    def test_iter_returns_tuples(self, multi_ts):
+        items = list(multi_ts)
+        assert all(isinstance(item, tuple) for item in items)
+        assert not any(isinstance(item, DataPoint) for item in items)
+
+    def test_validate(self, multi_ts):
+        warnings = multi_ts.validate()
+        assert warnings == []
+
+    def test_to_pandas_multiindex(self, multi_ts):
+        df = multi_ts.to_pandas_dataframe()
+        assert isinstance(df.index, pd.MultiIndex)
+        assert list(df.index.names) == ["valid_time", "knowledge_time"]
+        assert len(df) == 5
+
+    def test_from_pandas_multiindex_round_trip(self, multi_ts, hourly_resolution):
+        df = multi_ts.to_pandas_dataframe()
+        ts2 = TimeSeries.from_pandas(df, hourly_resolution)
+        assert ts2.is_multi_index
+        assert len(ts2) == len(multi_ts)
+        assert ts2.values[0] == multi_ts.values[0]
+
+    def test_json_round_trip(self, multi_ts, hourly_resolution):
+        s = multi_ts.to_json()
+        ts2 = TimeSeries.from_json(s, hourly_resolution)
+        assert ts2.is_multi_index
+        assert len(ts2) == len(multi_ts)
+        assert ts2.timestamps[0] == multi_ts.timestamps[0]
+        assert ts2.values[3] is None
+
+    def test_csv_round_trip(self, multi_ts, hourly_resolution):
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
+            path = Path(f.name)
+        try:
+            multi_ts.to_csv(path)
+            ts2 = TimeSeries.from_csv(path, hourly_resolution)
+            assert ts2.is_multi_index
+            assert len(ts2) == len(multi_ts)
+            assert ts2.values[3] is None
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_repr(self, multi_ts):
+        r = repr(multi_ts)
+        assert "TimeSeries" in r
+        assert "5 points" in r
+
+
+# ---- Multivariate Tests -----------------------------------------------
+
+
+class TestMultivariate:
+    @pytest.fixture
+    def mv_ts(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(5)]
+        values = np.array([
+            [1.0, 10.0],
+            [2.0, 20.0],
+            [3.0, 30.0],
+            [np.nan, 40.0],
+            [5.0, 50.0],
+        ])
+        return TimeSeries(
+            hourly_resolution,
+            timestamps=timestamps,
+            values=values,
+            column_names=["power", "temperature"],
+        )
+
+    def test_construction(self, mv_ts):
+        assert len(mv_ts) == 5
+
+    def test_is_multivariate_true(self, mv_ts):
+        assert mv_ts.is_multivariate is True
+
+    def test_is_multivariate_false(self, sample_ts):
+        assert sample_ts.is_multivariate is False
+
+    def test_is_multi_index_false(self, mv_ts):
+        assert mv_ts.is_multi_index is False
+
+    def test_ndim(self, mv_ts):
+        assert mv_ts.ndim == 2
+
+    def test_ndim_univariate(self, sample_ts):
+        assert sample_ts.ndim == 1
+
+    def test_column_names(self, mv_ts):
+        assert mv_ts.column_names == ("power", "temperature")
+
+    def test_column_names_default(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.0, 2.0], [3.0, 4.0]])
+        ts = TimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=values,
+        )
+        assert ts.column_names == ("value_0", "value_1")
+
+    def test_has_missing_true(self, mv_ts):
+        assert mv_ts.has_missing is True
+
+    def test_has_missing_false(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.0, 2.0], [3.0, 4.0]])
+        ts = TimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=values,
+        )
+        assert ts.has_missing is False
+
+    def test_add_scalar(self, mv_ts):
+        ts2 = mv_ts + 10
+        arr = ts2.to_numpy()
+        assert arr[0, 0] == 11.0
+        assert arr[0, 1] == 20.0
+        assert np.isnan(arr[3, 0])  # NaN propagated
+
+    def test_mul_scalar(self, mv_ts):
+        ts2 = mv_ts * 2
+        arr = ts2.to_numpy()
+        assert arr[1, 0] == 4.0
+        assert arr[1, 1] == 40.0
+
+    def test_to_numpy_2d(self, mv_ts):
+        arr = mv_ts.to_numpy()
+        assert arr.ndim == 2
+        assert arr.shape == (5, 2)
+
+    def test_to_pandas_multicolumn(self, mv_ts):
+        df = mv_ts.to_pandas_dataframe()
+        assert isinstance(df.index, pd.DatetimeIndex)
+        assert list(df.columns) == ["power", "temperature"]
+        assert len(df) == 5
+
+    def test_from_pandas_multicolumn_round_trip(self, mv_ts, hourly_resolution):
+        df = mv_ts.to_pandas_dataframe()
+        ts2 = TimeSeries.from_pandas(df, hourly_resolution)
+        assert ts2.is_multivariate
+        assert ts2.ndim == 2
+        np.testing.assert_array_equal(ts2.to_numpy(), mv_ts.to_numpy())
+
+    def test_json_round_trip(self, mv_ts, hourly_resolution):
+        s = mv_ts.to_json()
+        ts2 = TimeSeries.from_json(s, hourly_resolution)
+        assert ts2.is_multivariate
+        assert ts2.ndim == 2
+        np.testing.assert_array_equal(ts2.to_numpy(), mv_ts.to_numpy())
+
+    def test_head(self, mv_ts):
+        h = mv_ts.head(2)
+        assert len(h) == 2
+        assert h.is_multivariate
+        assert h.ndim == 2
+
+    def test_tail(self, mv_ts):
+        t = mv_ts.tail(2)
+        assert len(t) == 2
+        assert t.is_multivariate
+
+    def test_copy(self, mv_ts):
+        c = mv_ts.copy()
+        assert len(c) == len(mv_ts)
+        assert c.is_multivariate
+        c._values[0, 0] = 999.0
+        assert mv_ts.values[0, 0] == 1.0  # original unchanged
+
+    def test_getitem_returns_tuple(self, mv_ts):
+        item = mv_ts[0]
+        assert isinstance(item, tuple)
+        assert not isinstance(item, DataPoint)
+        assert item[1] == [1.0, 10.0]
+
+    def test_iter_returns_tuples(self, mv_ts):
+        items = list(mv_ts)
+        assert all(isinstance(item, tuple) for item in items)
+
+    def test_repr(self, mv_ts):
+        r = repr(mv_ts)
+        assert "TimeSeries" in r
+        assert "5 points" in r
+
+    def test_validate(self, mv_ts):
+        warnings = mv_ts.validate()
+        assert warnings == []
+
+    def test_csv_round_trip(self, mv_ts, hourly_resolution):
+        with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
+            path = Path(f.name)
+        try:
+            mv_ts.to_csv(path)
+            ts2 = TimeSeries.from_csv(path, hourly_resolution)
+            assert ts2.is_multivariate
+            assert ts2.ndim == 2
+            # NaN values should round-trip
+            assert np.isnan(ts2.to_numpy()[3, 0])
+            assert ts2.to_numpy()[0, 0] == 1.0
+        finally:
+            path.unlink(missing_ok=True)
+
+    def test_round(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.567, 2.345], [3.891, 4.123]])
+        ts = TimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=values,
+        )
+        ts2 = round(ts, 1)
+        arr = ts2.to_numpy()
+        assert arr[0, 0] == pytest.approx(1.6)
+        assert arr[0, 1] == pytest.approx(2.3)
+
+
+# ---- Backward Compatibility Tests --------------------------------------
+
+
+class TestBackwardCompatibility:
+    def test_single_index_construction(self, sample_ts):
+        """Existing single-index construction still works identically."""
+        assert len(sample_ts) == 5
+        assert sample_ts.is_multi_index is False
+        assert sample_ts.is_multivariate is False
+        assert sample_ts.ndim == 1
+
+    def test_datapoint_from_getitem(self, sample_ts):
+        """DataPoint still returned from __getitem__ for single-index univariate."""
+        dp = sample_ts[0]
+        assert isinstance(dp, DataPoint)
+        assert dp.value == 1.0
+        assert dp.timestamp == datetime(2024, 1, 1, tzinfo=timezone.utc)
+
+    def test_values_returns_list(self, sample_ts):
+        """values property still returns list for univariate."""
+        assert isinstance(sample_ts.values, list)
+
+    def test_iter_returns_datapoints(self, sample_ts):
+        """__iter__ returns DataPoint for single-index univariate."""
+        points = list(sample_ts)
+        assert all(isinstance(p, DataPoint) for p in points)
+
+    def test_index_names_default(self, sample_ts):
+        """Default index name is 'timestamp'."""
+        assert sample_ts.index_names == ("timestamp",)
