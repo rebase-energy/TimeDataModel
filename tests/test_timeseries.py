@@ -14,6 +14,8 @@ from timedatamodel import (
     GeoLocation,
     MultiTimeSeries,
     MultivariateTimeSeries,
+    TimeSeriesCollection,
+    TimeSeriesTable,
     TimeSeriesType,
     TimeSeries,
 )
@@ -908,7 +910,7 @@ class TestMultivariate:
 
     def test_repr(self, mv_ts):
         r = repr(mv_ts)
-        assert "MultivariateTimeSeries" in r
+        assert "TimeSeriesTable" in r
         assert "(5, 2)" in r
         assert "\u250c" in r  # box-drawing top-left
 
@@ -1001,7 +1003,7 @@ class TestBroadcast:
 
 class TestMultiTimeSeriesAlias:
     def test_alias_is_same_class(self):
-        assert MultiTimeSeries is MultivariateTimeSeries
+        assert TimeSeriesTable is MultivariateTimeSeries is MultiTimeSeries
 
     def test_alias_construction(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
@@ -1012,6 +1014,7 @@ class TestMultiTimeSeriesAlias:
             values=values,
             names=["a", "b"],
         )
+        assert isinstance(ts, TimeSeriesTable)
         assert isinstance(ts, MultivariateTimeSeries)
         assert ts.n_columns == 2
 
@@ -1168,3 +1171,215 @@ class TestMultivariateConversion:
         ts1 = mv.select_column(1)
         assert ts0.unit == "MW"
         assert ts1.unit == "MW"
+
+
+# ---- TimeSeriesCollection Tests ------------------------------------------
+
+
+class TestTimeSeriesCollection:
+    @pytest.fixture
+    def ts_a(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(5)]
+        return TimeSeries(
+            hourly_frequency,
+            timestamps=timestamps,
+            values=[1.0, 2.0, 3.0, 4.0, 5.0],
+            name="power",
+            unit="MW",
+        )
+
+    @pytest.fixture
+    def ts_b(self, hourly_frequency):
+        base = datetime(2024, 1, 5, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(3)]
+        return TimeSeries(
+            hourly_frequency,
+            timestamps=timestamps,
+            values=[10.0, 20.0, 30.0],
+            name="temperature",
+            unit="°C",
+        )
+
+    @pytest.fixture
+    def table(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(4)]
+        values = np.array([
+            [1.0, 10.0],
+            [2.0, 20.0],
+            [3.0, 30.0],
+            [4.0, 40.0],
+        ])
+        return TimeSeriesTable(
+            hourly_frequency,
+            timestamps=timestamps,
+            values=values,
+            names=["wind", "solar"],
+        )
+
+    def test_construction_from_list(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        assert len(coll) == 2
+        assert "power" in coll
+        assert "temperature" in coll
+
+    def test_construction_from_list_with_table(self, ts_a, table):
+        coll = TimeSeriesCollection([ts_a, table])
+        assert len(coll) == 2
+        assert "power" in coll
+
+    def test_construction_from_dict(self, ts_a, ts_b):
+        coll = TimeSeriesCollection({"a": ts_a, "b": ts_b})
+        assert len(coll) == 2
+        assert "a" in coll
+        assert "b" in coll
+
+    def test_construction_empty(self):
+        coll = TimeSeriesCollection()
+        assert len(coll) == 0
+        assert not coll
+
+    def test_auto_naming(self, hourly_frequency):
+        ts = TimeSeries(
+            hourly_frequency,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+        )
+        coll = TimeSeriesCollection([ts])
+        assert "series_0" in coll
+
+    def test_deduplication(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts1 = TimeSeries(
+            hourly_frequency,
+            timestamps=[base],
+            values=[1.0],
+            name="x",
+        )
+        ts2 = TimeSeries(
+            hourly_frequency,
+            timestamps=[base],
+            values=[2.0],
+            name="x",
+        )
+        coll = TimeSeriesCollection([ts1, ts2])
+        assert len(coll) == 2
+        assert "x" in coll
+        assert "x_1" in coll
+
+    def test_len(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        assert len(coll) == 2
+
+    def test_bool_true(self, ts_a):
+        coll = TimeSeriesCollection([ts_a])
+        assert bool(coll) is True
+
+    def test_bool_false(self):
+        coll = TimeSeriesCollection()
+        assert bool(coll) is False
+
+    def test_contains(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        assert "power" in coll
+        assert "nonexistent" not in coll
+
+    def test_getitem_by_name(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        result = coll["power"]
+        assert result is ts_a
+
+    def test_getitem_by_index(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        result = coll[0]
+        assert result is ts_a
+        result2 = coll[1]
+        assert result2 is ts_b
+
+    def test_iter(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        keys = list(coll)
+        assert keys == ["power", "temperature"]
+
+    def test_keys(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        assert list(coll.keys()) == ["power", "temperature"]
+
+    def test_values(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        vals = list(coll.values())
+        assert vals[0] is ts_a
+        assert vals[1] is ts_b
+
+    def test_items(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        items = list(coll.items())
+        assert items[0] == ("power", ts_a)
+        assert items[1] == ("temperature", ts_b)
+
+    def test_names_property(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        assert coll.names == ["power", "temperature"]
+
+    def test_series_count(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        assert coll.series_count == 2
+
+    def test_add(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a])
+        coll2 = coll.add(ts_b)
+        assert len(coll) == 1  # original unchanged
+        assert len(coll2) == 2
+        assert "temperature" in coll2
+
+    def test_add_with_name(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a])
+        coll2 = coll.add(ts_b, name="my_temp")
+        assert "my_temp" in coll2
+
+    def test_remove(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll2 = coll.remove("power")
+        assert len(coll) == 2  # original unchanged
+        assert len(coll2) == 1
+        assert "power" not in coll2
+        assert "temperature" in coll2
+
+    def test_coverage_bar(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        bar = coll.coverage_bar()
+        r = repr(bar)
+        assert "power" in r
+        assert "temperature" in r
+
+    def test_coverage_bar_with_table(self, ts_a, table):
+        coll = TimeSeriesCollection([ts_a, table])
+        bar = coll.coverage_bar()
+        r = repr(bar)
+        assert "power" in r
+
+    def test_coverage_bar_empty(self):
+        coll = TimeSeriesCollection()
+        bar = coll.coverage_bar()
+        assert repr(bar) == ""
+
+    def test_repr(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        r = repr(coll)
+        assert "TimeSeriesCollection" in r
+        assert "power" in r
+        assert "temperature" in r
+        assert "\u250c" in r  # box-drawing top-left
+
+    def test_repr_empty(self):
+        coll = TimeSeriesCollection()
+        r = repr(coll)
+        assert "empty" in r
+
+    def test_repr_html(self, ts_a, ts_b):
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        html = coll._repr_html_()
+        assert "TimeSeriesCollection" in html
+        assert "power" in html
+        assert "temperature" in html
