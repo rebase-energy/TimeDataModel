@@ -12,7 +12,7 @@ from typing import Callable, Iterator, NamedTuple, overload
 import numpy as np
 import pandas as pd
 
-from .enums import DataType, Frequency, StorageType
+from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 from .resolution import Resolution
 
@@ -123,6 +123,106 @@ class _TimeSeriesBase:
                 break
         return warnings
 
+    # ---- repr (shared) ---------------------------------------------------
+
+    def __repr__(self) -> str:
+        class_name = type(self).__name__
+        meta_lines = self._repr_meta_lines()
+        n = len(self._timestamps)
+
+        # Compute preview row indices
+        if n == 0:
+            indices: list[int] = []
+            truncated = False
+        elif n <= _MAX_PREVIEW * 2 + 1:
+            indices = list(range(n))
+            truncated = False
+        else:
+            indices = list(range(_MAX_PREVIEW)) + list(
+                range(n - _MAX_PREVIEW, n)
+            )
+            truncated = True
+
+        data_rows = self._repr_data_rows(indices) if indices else []
+        col_names = list(self.column_names)
+        show_col_header = len(col_names) > 1
+
+        # Build all content lines (without box chars)
+        content_lines: list[str] = []
+        # Meta section
+        for ml in meta_lines:
+            content_lines.append(ml)
+
+        # Data section
+        if n == 0:
+            content_lines.append(None)  # separator marker
+            content_lines.append("(empty)")
+        else:
+            # Compute column widths for data rows
+            all_rows: list[list[str]] = []
+            if show_col_header:
+                all_rows.append([""] + col_names)
+            all_rows.extend(data_rows)
+
+            ncols_data = len(all_rows[0]) if all_rows else 0
+            col_widths = [0] * ncols_data
+            for row in all_rows:
+                for j, cell in enumerate(row):
+                    col_widths[j] = max(col_widths[j], len(cell))
+
+            # Also account for ellipsis row
+            if truncated:
+                for j in range(ncols_data):
+                    col_widths[j] = max(col_widths[j], 3)
+
+            def _format_row(row: list[str]) -> str:
+                parts: list[str] = []
+                for j, cell in enumerate(row):
+                    if j == 0:
+                        parts.append(f"{cell:<{col_widths[j]}}")
+                    else:
+                        parts.append(f"{cell:>{col_widths[j]}}")
+                return "  ".join(parts)
+
+            content_lines.append(None)  # separator marker
+
+            if show_col_header:
+                content_lines.append(_format_row([""] + col_names))
+
+            head_data = data_rows[:_MAX_PREVIEW] if truncated else data_rows
+            tail_data = data_rows[_MAX_PREVIEW:] if truncated else []
+
+            for row in head_data:
+                content_lines.append(_format_row(row))
+            if truncated:
+                ellipsis_row = ["..."] * ncols_data
+                content_lines.append(_format_row(ellipsis_row))
+                for row in tail_data:
+                    content_lines.append(_format_row(row))
+
+        # Compute box width
+        padding = 2
+        max_content_width = max(
+            (len(line) for line in content_lines if line is not None), default=0
+        )
+        box_inner = max_content_width + padding * 2
+
+        # Build output
+        lines: list[str] = [class_name]
+        top = "\u250c" + "\u2500" * box_inner + "\u2510"
+        bot = "\u2514" + "\u2500" * box_inner + "\u2518"
+        sep = "\u251c" + "\u2500" * box_inner + "\u2524"
+        lines.append(top)
+        for line in content_lines:
+            if line is None:
+                lines.append(sep)
+            else:
+                lines.append(
+                    "\u2502" + " " * padding + line.ljust(max_content_width) + " " * padding + "\u2502"
+                )
+        lines.append(bot)
+        return "\n".join(lines)
+
     # ---- static helpers --------------------------------------------------
 
     @staticmethod
@@ -177,7 +277,7 @@ class _TimeSeriesBase:
 # ---------------------------------------------------------------------------
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, repr=False)
 class TimeSeries(_TimeSeriesBase):
     resolution: Resolution
     name: str | None = None
@@ -185,7 +285,7 @@ class TimeSeries(_TimeSeriesBase):
     description: str | None = None
     data_type: DataType | None = None
     location: Location | None = None
-    storage_type: StorageType = StorageType.FLAT
+    timeseries_type: TimeSeriesType = TimeSeriesType.FLAT
     attributes: dict[str, str] = field(default_factory=dict)
     _timestamps: list[datetime] | list[tuple[datetime, ...]] = field(
         default_factory=list, repr=False
@@ -205,7 +305,7 @@ class TimeSeries(_TimeSeriesBase):
         description: str | None = None,
         data_type: DataType | None = None,
         location: Location | None = None,
-        storage_type: StorageType = StorageType.FLAT,
+        timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
         index_names: list[str] | None = None,
     ) -> None:
@@ -215,7 +315,7 @@ class TimeSeries(_TimeSeriesBase):
         self.description = description
         self.data_type = data_type
         self.location = location
-        self.storage_type = storage_type
+        self.timeseries_type = timeseries_type
         self.attributes = attributes if attributes is not None else {}
         self._index_names = index_names
 
@@ -267,7 +367,7 @@ class TimeSeries(_TimeSeriesBase):
             description=self.description,
             data_type=self.data_type,
             location=self.location,
-            storage_type=self.storage_type,
+            timeseries_type=self.timeseries_type,
             attributes=self.attributes,
             index_names=self._index_names,
         )
@@ -394,51 +494,30 @@ class TimeSeries(_TimeSeriesBase):
             **self._meta_kwargs(),
         )
 
-    # ---- repr ------------------------------------------------------------
+    # ---- repr hooks -------------------------------------------------------
 
-    def __repr__(self) -> str:
-        disp_name = self.name or "unnamed"
-        n = len(self._timestamps)
-        header = f"<TimeSeries '{disp_name}' ({n} points)>"
-        lines = [header]
-
+    def _repr_meta_lines(self) -> list[str]:
+        label_w = 18
+        lines: list[str] = []
+        lines.append(f"{'Columns:':<{label_w}}{self.name or 'unnamed'}")
+        lines.append(f"{'Shape:':<{label_w}}({len(self._timestamps)},)")
         r = self.resolution
-        lines.append(f"Resolution:  {r.frequency} ({r.timezone})")
-
+        lines.append(f"{'Resolution:':<{label_w}}{r.frequency} ({r.timezone})")
         if self.unit:
-            lines.append(f"Unit:        {self.unit}")
+            lines.append(f"{'Unit:':<{label_w}}{self.unit}")
         if self.data_type:
-            lines.append(f"Data type:   {self.data_type}")
+            lines.append(f"{'Data type:':<{label_w}}{self.data_type}")
         if self.location:
-            lines.append(f"Location:    {self._fmt_location(self.location)}")
-        if self.storage_type and self.storage_type != "FLAT":
-            lines.append(f"Storage:     {self.storage_type}")
+            lines.append(f"{'Location:':<{label_w}}{self._fmt_location(self.location)}")
+        if self.timeseries_type and self.timeseries_type != "FLAT":
+            lines.append(f"{'Timeseries type:':<{label_w}}{self.timeseries_type}")
+        return lines
 
-        if n == 0:
-            lines.append("Data:        (empty)")
-        else:
-            lines.append("Data:")
-            show_all = n <= _MAX_PREVIEW * 2 + 1
-            if show_all:
-                rows = range(n)
-            else:
-                rows = list(range(_MAX_PREVIEW)) + list(
-                    range(n - _MAX_PREVIEW, n)
-                )
-
-            ts_strs = {i: str(self._timestamps[i]) for i in rows}
-            val_strs = {i: self._fmt_value(self._values[i]) for i in rows}
-            ts_w = max(len(s) for s in ts_strs.values())
-            val_w = max(len(s) for s in val_strs.values())
-
-            for i in rows:
-                if not show_all and i == n - _MAX_PREVIEW:
-                    lines.append(f"    {'...':<{ts_w}}  {'...':<{val_w}}")
-                lines.append(
-                    f"    {ts_strs[i]:<{ts_w}}  {val_strs[i]:>{val_w}}"
-                )
-
-        return "\n".join(lines)
+    def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
+        return [
+            [str(self._timestamps[i]), self._fmt_value(self._values[i])]
+            for i in indices
+        ]
 
     def _repr_html_(self) -> str:
         disp_name = escape(self.name or "unnamed")
@@ -615,7 +694,7 @@ class TimeSeries(_TimeSeriesBase):
         description: str | None = None,
         data_type: DataType | None = None,
         location: Location | None = None,
-        storage_type: StorageType = StorageType.FLAT,
+        timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
     ) -> TimeSeries:
         """Create a TimeSeries from a pandas DataFrame.
@@ -666,7 +745,7 @@ class TimeSeries(_TimeSeriesBase):
             description=description,
             data_type=data_type,
             location=location,
-            storage_type=storage_type,
+            timeseries_type=timeseries_type,
             attributes=attributes,
             index_names=index_names,
         )
@@ -684,7 +763,7 @@ class TimeSeries(_TimeSeriesBase):
         description: str | None = None,
         data_type: DataType | None = None,
         location: Location | None = None,
-        storage_type: StorageType = StorageType.FLAT,
+        timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
     ) -> TimeSeries:
         """Create a TimeSeries from a polars DataFrame."""
@@ -705,7 +784,7 @@ class TimeSeries(_TimeSeriesBase):
             description=description,
             data_type=data_type,
             location=location,
-            storage_type=storage_type,
+            timeseries_type=timeseries_type,
             attributes=attributes,
         )
 
@@ -767,7 +846,7 @@ class TimeSeries(_TimeSeriesBase):
             description=self.description,
             data_type=self.data_type,
             location=self.location,
-            storage_type=self.storage_type,
+            timeseries_type=self.timeseries_type,
             attributes=self.attributes,
             index_names=index_names,
         )
@@ -805,7 +884,7 @@ class TimeSeries(_TimeSeriesBase):
         description: str | None = None,
         data_type: DataType | None = None,
         location: Location | None = None,
-        storage_type: StorageType = StorageType.FLAT,
+        timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
     ) -> TimeSeries:
         """Reconstruct a TimeSeries from a JSON string produced by to_json()."""
@@ -832,7 +911,7 @@ class TimeSeries(_TimeSeriesBase):
             description=description,
             data_type=data_type,
             location=location,
-            storage_type=storage_type,
+            timeseries_type=timeseries_type,
             attributes=attributes,
             index_names=index_names,
         )
@@ -864,7 +943,7 @@ class TimeSeries(_TimeSeriesBase):
         description: str | None = None,
         data_type: DataType | None = None,
         location: Location | None = None,
-        storage_type: StorageType = StorageType.FLAT,
+        timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
     ) -> TimeSeries:
         """Read a TimeSeries from a CSV file produced by to_csv()."""
@@ -917,7 +996,7 @@ class TimeSeries(_TimeSeriesBase):
             description=description,
             data_type=data_type,
             location=location,
-            storage_type=storage_type,
+            timeseries_type=timeseries_type,
             attributes=attributes,
             index_names=index_names,
         )
@@ -982,7 +1061,7 @@ class TimeSeries(_TimeSeriesBase):
             description=self.description,
             data_type=self.data_type,
             location=self.location,
-            storage_type=self.storage_type,
+            timeseries_type=self.timeseries_type,
             attributes=self.attributes,
             index_names=index_names,
         )
@@ -1012,7 +1091,7 @@ class TimeSeries(_TimeSeriesBase):
 # ---------------------------------------------------------------------------
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, repr=False)
 class MultivariateTimeSeries(_TimeSeriesBase):
     resolution: Resolution
     names: list[str | None] = field(default_factory=lambda: [None])
@@ -1020,8 +1099,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
     descriptions: list[str | None] = field(default_factory=lambda: [None])
     data_types: list[DataType | None] = field(default_factory=lambda: [None])
     locations: list[Location | None] = field(default_factory=lambda: [None])
-    storage_types: list[StorageType] = field(
-        default_factory=lambda: [StorageType.FLAT]
+    timeseries_types: list[TimeSeriesType] = field(
+        default_factory=lambda: [TimeSeriesType.FLAT]
     )
     attributes: list[dict[str, str]] = field(default_factory=lambda: [{}])
     _timestamps: list[datetime] | list[tuple[datetime, ...]] = field(
@@ -1043,7 +1122,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         descriptions: list[str | None] | None = None,
         data_types: list[DataType | None] | None = None,
         locations: list[Location | None] | None = None,
-        storage_types: list[StorageType] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
         index_names: list[str] | None = None,
     ) -> None:
@@ -1082,8 +1161,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         self.locations = _validate_list(
             "locations", locations, lambda: None
         )
-        self.storage_types = _validate_list(
-            "storage_types", storage_types, lambda: StorageType.FLAT
+        self.timeseries_types = _validate_list(
+            "timeseries_types", timeseries_types, lambda: TimeSeriesType.FLAT
         )
         self.attributes = _validate_list("attributes", attributes, dict)
 
@@ -1124,7 +1203,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
             descriptions=list(self.descriptions),
             data_types=list(self.data_types),
             locations=list(self.locations),
-            storage_types=list(self.storage_types),
+            timeseries_types=list(self.timeseries_types),
             attributes=list(self.attributes),
             index_names=self._index_names,
         )
@@ -1138,6 +1217,44 @@ class MultivariateTimeSeries(_TimeSeriesBase):
             values=values,
             **self._list_meta_kwargs(),
         )
+
+    # ---- column extraction ------------------------------------------------
+
+    def select_column(self, col: int | str) -> TimeSeries:
+        """Extract a single column as a univariate TimeSeries.
+
+        Args:
+            col: Column index (int) or column name (str).
+
+        Returns:
+            A new TimeSeries with that column's values and resolved metadata.
+        """
+        if isinstance(col, str):
+            names = self.column_names
+            if col not in names:
+                raise KeyError(f"Column '{col}' not found. Available: {names}")
+            col = names.index(col)
+
+        arr = self._values[:, col]
+        values = self._from_float_array(arr)
+
+        return TimeSeries(
+            self.resolution,
+            timestamps=list(self._timestamps),
+            values=values,
+            name=self._get_attr(self.names, col),
+            unit=self._get_attr(self.units, col),
+            description=self._get_attr(self.descriptions, col),
+            data_type=self._get_attr(self.data_types, col),
+            location=self._get_attr(self.locations, col),
+            timeseries_type=self._get_attr(self.timeseries_types, col),
+            attributes=self._get_attr(self.attributes, col),
+            index_names=self._index_names,
+        )
+
+    def to_univariate_list(self) -> list[TimeSeries]:
+        """Convert to a list of univariate TimeSeries, one per column."""
+        return [self.select_column(i) for i in range(self.n_columns)]
 
     # ---- sequence protocol -----------------------------------------------
 
@@ -1229,51 +1346,46 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         arr = self._values.astype(np.float64, copy=True)
         return self._clone_with(list(self._timestamps), np.round(arr, n))
 
-    # ---- repr ------------------------------------------------------------
+    # ---- repr hooks -------------------------------------------------------
 
-    def _fmt_row_value(self, i: int) -> str:
-        return "  ".join(self._fmt_value(float(v)) for v in self._values[i])
-
-    def __repr__(self) -> str:
+    def _repr_meta_lines(self) -> list[str]:
+        label_w = 18
+        lines: list[str] = []
         cn = self.column_names
+        lines.append(f"{'Columns:':<{label_w}}{', '.join(cn)}")
         n = len(self._timestamps)
-        label = ", ".join(cn) if cn else "empty"
-        header = (
-            f"<MultivariateTimeSeries [{label}] "
-            f"({n} points, {self.n_columns} columns)>"
-        )
-        lines = [header]
-
+        lines.append(f"{'Shape:':<{label_w}}({n}, {self.n_columns})")
         r = self.resolution
-        lines.append(f"Resolution:  {r.frequency} ({r.timezone})")
+        lines.append(f"{'Resolution:':<{label_w}}{r.frequency} ({r.timezone})")
 
-        if n == 0:
-            lines.append("Data:        (empty)")
-        else:
-            lines.append("Data:")
-            show_all = n <= _MAX_PREVIEW * 2 + 1
-            if show_all:
-                rows = range(n)
-            else:
-                rows = list(range(_MAX_PREVIEW)) + list(
-                    range(n - _MAX_PREVIEW, n)
-                )
+        # Unit — show if any is set
+        unit_vals = [self._get_attr(self.units, i) for i in range(self.n_columns)]
+        if any(u is not None for u in unit_vals):
+            lines.append(f"{'Unit:':<{label_w}}{', '.join(str(u) if u else '-' for u in unit_vals)}")
 
-            ts_strs = {i: str(self._timestamps[i]) for i in rows}
-            val_strs = {i: self._fmt_row_value(i) for i in rows}
-            ts_w = max(len(s) for s in ts_strs.values())
-            val_w = max(len(s) for s in val_strs.values())
+        # Data type — show if any is set
+        dt_vals = [self._get_attr(self.data_types, i) for i in range(self.n_columns)]
+        if any(d is not None for d in dt_vals):
+            lines.append(f"{'Data type:':<{label_w}}{', '.join(str(d) if d else '-' for d in dt_vals)}")
 
-            for i in rows:
-                if not show_all and i == n - _MAX_PREVIEW:
-                    lines.append(
-                        f"    {'...':<{ts_w}}  {'...':<{val_w}}"
-                    )
-                lines.append(
-                    f"    {ts_strs[i]:<{ts_w}}  {val_strs[i]:>{val_w}}"
-                )
+        # Location — show if any is set
+        loc_vals = [self._get_attr(self.locations, i) for i in range(self.n_columns)]
+        if any(loc is not None for loc in loc_vals):
+            lines.append(f"{'Location:':<{label_w}}{', '.join(self._fmt_location(loc) or '-' for loc in loc_vals)}")
 
-        return "\n".join(lines)
+        # Timeseries type — show if any is not FLAT
+        tst_vals = [self._get_attr(self.timeseries_types, i) for i in range(self.n_columns)]
+        if any(t != "FLAT" for t in tst_vals):
+            lines.append(f"{'Timeseries type:':<{label_w}}{', '.join(str(t) for t in tst_vals)}")
+
+        return lines
+
+    def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
+        return [
+            [str(self._timestamps[i])]
+            + [self._fmt_value(float(v)) for v in self._values[i]]
+            for i in indices
+        ]
 
     def _repr_html_(self) -> str:
         cn = self.column_names
@@ -1442,7 +1554,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         descriptions: list[str | None] | None = None,
         data_types: list[DataType | None] | None = None,
         locations: list[Location | None] | None = None,
-        storage_types: list[StorageType] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
     ) -> MultivariateTimeSeries:
         """Create a MultivariateTimeSeries from a pandas DataFrame.
@@ -1492,7 +1604,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
             descriptions=descriptions,
             data_types=data_types,
             locations=locations,
-            storage_types=storage_types,
+            timeseries_types=timeseries_types,
             attributes=attributes,
             index_names=index_names,
         )
@@ -1528,7 +1640,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         descriptions: list[str | None] | None = None,
         data_types: list[DataType | None] | None = None,
         locations: list[Location | None] | None = None,
-        storage_types: list[StorageType] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
     ) -> MultivariateTimeSeries:
         """Reconstruct from a JSON string produced by to_json()."""
@@ -1560,7 +1672,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
             descriptions=descriptions,
             data_types=data_types,
             locations=locations,
-            storage_types=storage_types,
+            timeseries_types=timeseries_types,
             attributes=attributes,
             index_names=index_names,
         )
@@ -1593,7 +1705,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         descriptions: list[str | None] | None = None,
         data_types: list[DataType | None] | None = None,
         locations: list[Location | None] | None = None,
-        storage_types: list[StorageType] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
     ) -> MultivariateTimeSeries:
         """Read a MultivariateTimeSeries from a CSV file produced by to_csv()."""
@@ -1650,7 +1762,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
             descriptions=descriptions,
             data_types=data_types,
             locations=locations,
-            storage_types=storage_types,
+            timeseries_types=timeseries_types,
             attributes=attributes,
             index_names=index_names,
         )
@@ -1715,8 +1827,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
             descriptions=_carry_over(self.descriptions, lambda: None),
             data_types=_carry_over(self.data_types, lambda: None),
             locations=_carry_over(self.locations, lambda: None),
-            storage_types=_carry_over(
-                self.storage_types, lambda: StorageType.FLAT
+            timeseries_types=_carry_over(
+                self.timeseries_types, lambda: TimeSeriesType.FLAT
             ),
             attributes=_carry_over(self.attributes, dict),
             index_names=index_names,

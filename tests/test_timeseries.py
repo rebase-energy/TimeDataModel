@@ -15,7 +15,7 @@ from timedatamodel import (
     MultiTimeSeries,
     MultivariateTimeSeries,
     Resolution,
-    StorageType,
+    TimeSeriesType,
     TimeSeries,
 )
 
@@ -82,7 +82,7 @@ class TestConstruction:
             description="Hourly power",
             data_type=DataType.ACTUAL,
             location=loc,
-            storage_type=StorageType.FLAT,
+            timeseries_type=TimeSeriesType.FLAT,
             attributes={"source": "test"},
         )
         assert ts.name == "power"
@@ -90,7 +90,7 @@ class TestConstruction:
         assert ts.description == "Hourly power"
         assert ts.data_type == DataType.ACTUAL
         assert ts.location == loc
-        assert ts.storage_type == StorageType.FLAT
+        assert ts.timeseries_type == TimeSeriesType.FLAT
         assert ts.attributes["source"] == "test"
 
     def test_defaults(self, hourly_resolution):
@@ -100,7 +100,7 @@ class TestConstruction:
         assert ts.description is None
         assert ts.data_type is None
         assert ts.location is None
-        assert ts.storage_type == StorageType.FLAT
+        assert ts.timeseries_type == TimeSeriesType.FLAT
         assert ts.attributes == {}
 
 
@@ -783,7 +783,8 @@ class TestMultiIndex:
     def test_repr(self, multi_ts):
         r = repr(multi_ts)
         assert "TimeSeries" in r
-        assert "5 points" in r
+        assert "(5,)" in r
+        assert "\u250c" in r  # box-drawing top-left
 
 
 # ---- Multivariate Tests -----------------------------------------------
@@ -907,7 +908,8 @@ class TestMultivariate:
     def test_repr(self, mv_ts):
         r = repr(mv_ts)
         assert "MultivariateTimeSeries" in r
-        assert "5 points" in r
+        assert "(5, 2)" in r
+        assert "\u250c" in r  # box-drawing top-left
 
     def test_validate(self, mv_ts):
         warnings = mv_ts.validate()

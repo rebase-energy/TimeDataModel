@@ -1,4 +1,4 @@
-from .enums import DataType, Frequency, StorageType
+from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 from .resolution import Resolution
 from .timeseries import DataPoint, MultiTimeSeries, MultivariateTimeSeries, TimeSeries
@@ -14,6 +14,6 @@ __all__ = [
     "MultiTimeSeries",
     "MultivariateTimeSeries",
     "Resolution",
-    "StorageType",
+    "TimeSeriesType",
     "TimeSeries",
 ]
