@@ -7,19 +7,23 @@ from .datapoint import DataPoint
 from .timeseries import TimeSeries
 from .table import TimeSeriesTable, MultivariateTimeSeries, MultiTimeSeries
 from .collection import TimeSeriesCollection
+from .cube import Dimension, NDTimeSeries, TimeSeriesCube
 
 __version__ = version("timedatamodel")
 __all__ = [
     "CoverageBar",
     "DataPoint",
     "DataType",
+    "Dimension",
     "Frequency",
     "GeoArea",
     "GeoLocation",
     "Location",
     "MultiTimeSeries",
     "MultivariateTimeSeries",
+    "NDTimeSeries",
     "TimeSeriesCollection",
+    "TimeSeriesCube",
     "TimeSeriesTable",
     "TimeSeriesType",
     "TimeSeries",
