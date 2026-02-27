@@ -1,6 +1,6 @@
 [project]
 name = "timedatamodel"
-version = "0.1.0"
+version = "0.1.1"
 description = "A lightweight data model for time series data with pandas, numpy, and polars support"
 readme = "README.md"
 requires-python = ">=3.11"
