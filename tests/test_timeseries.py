@@ -389,6 +389,88 @@ class TestTier6IO:
             path.unlink(missing_ok=True)
 
 
+class TestFromPandasAutoInfer:
+    def test_infer_hourly(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        index = pd.DatetimeIndex(
+            [base + timedelta(hours=i) for i in range(5)], freq="h"
+        )
+        df = pd.DataFrame({"power": [1.0, 2.0, 3.0, 4.0, 5.0]}, index=index)
+        ts = TimeSeries.from_pandas(df)
+        assert ts.resolution.frequency == Frequency.PT1H
+        assert ts.metadata.name == "power"
+        assert len(ts) == 5
+
+    def test_infer_daily(self):
+        index = pd.date_range("2024-01-01", periods=5, freq="D", tz="UTC")
+        df = pd.DataFrame({"temp": range(5)}, index=index)
+        ts = TimeSeries.from_pandas(df)
+        assert ts.resolution.frequency == Frequency.P1D
+
+    def test_infer_from_few_points_falls_back(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        index = pd.DatetimeIndex([base, base + timedelta(hours=1)])
+        df = pd.DataFrame({"v": [1.0, 2.0]}, index=index)
+        ts = TimeSeries.from_pandas(df)
+        # Only 2 points, no explicit freq → falls back to NONE
+        assert ts.resolution.frequency == Frequency.NONE
+
+    def test_infer_timezone(self):
+        index = pd.date_range("2024-01-01", periods=5, freq="h", tz="Europe/Berlin")
+        df = pd.DataFrame({"v": range(5)}, index=index)
+        ts = TimeSeries.from_pandas(df)
+        assert ts.resolution.timezone == "Europe/Berlin"
+
+    def test_explicit_resolution_still_works(self):
+        index = pd.date_range("2024-01-01", periods=3, freq="h", tz="UTC")
+        df = pd.DataFrame({"v": [1.0, 2.0, 3.0]}, index=index)
+        res = Resolution(Frequency.P1D, "US/Eastern")
+        ts = TimeSeries.from_pandas(df, resolution=res)
+        assert ts.resolution == res
+
+    def test_no_datetime_index_raises(self):
+        df = pd.DataFrame({"v": [1, 2, 3]})
+        with pytest.raises(ValueError, match="DatetimeIndex"):
+            TimeSeries.from_pandas(df)
+
+
+class TestUpdateFromPandas:
+    def test_returns_new_by_default(self, sample_ts):
+        new_index = pd.date_range("2025-01-01", periods=3, freq="D", tz="UTC")
+        df = pd.DataFrame({"energy": [10.0, 20.0, 30.0]}, index=new_index)
+        result = sample_ts.update_from_pandas(df)
+        assert isinstance(result, TimeSeries)
+        assert len(result) == 3
+        assert result[0].value == 10.0
+        assert result.resolution.frequency == Frequency.P1D
+        assert result.metadata.name == "energy"
+        # Original unchanged
+        assert len(sample_ts) == 5
+        assert sample_ts[0].value == 1.0
+
+    def test_inplace_returns_none(self, sample_ts):
+        new_index = pd.date_range("2025-01-01", periods=3, freq="D", tz="UTC")
+        df = pd.DataFrame({"energy": [10.0, 20.0, 30.0]}, index=new_index)
+        result = sample_ts.update_from_pandas(df, inplace=True)
+        assert result is None
+        assert len(sample_ts) == 3
+        assert sample_ts[0].value == 10.0
+        assert sample_ts.resolution.frequency == Frequency.P1D
+        assert sample_ts.metadata.name == "energy"
+
+    def test_value_column(self, sample_ts):
+        new_index = pd.date_range("2025-01-01", periods=2, freq="h", tz="UTC")
+        df = pd.DataFrame({"a": [1.0, 2.0], "b": [3.0, 4.0]}, index=new_index)
+        result = sample_ts.update_from_pandas(df, value_column="b")
+        assert result[0].value == 3.0
+        assert result[1].value == 4.0
+
+    def test_no_datetime_index_raises(self, sample_ts):
+        df = pd.DataFrame({"v": [1, 2]})
+        with pytest.raises(ValueError, match="DatetimeIndex"):
+            sample_ts.update_from_pandas(df)
+
+
 class TestApplyPandas:
     def test_ffill(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.ffill())

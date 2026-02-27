@@ -423,11 +423,15 @@ class TimeSeries:
     def from_pandas(
         cls,
         df: pd.DataFrame,
-        resolution: Resolution,
+        resolution: Resolution | None = None,
         metadata: Metadata | None = None,
         value_column: str | None = None,
     ) -> TimeSeries:
-        """Create a TimeSeries from a pandas DataFrame with DatetimeIndex."""
+        """Create a TimeSeries from a pandas DataFrame with DatetimeIndex.
+
+        If *resolution* is ``None``, the frequency and timezone are
+        auto-inferred from the DataFrame's DatetimeIndex.
+        """
         if not isinstance(df.index, pd.DatetimeIndex):
             raise ValueError("DataFrame must have a DatetimeIndex")
         col = value_column or df.columns[0]
@@ -435,6 +439,8 @@ class TimeSeries:
         arr = df[col].to_numpy(dtype=np.float64, na_value=np.nan)
         values = cls._from_float_array(arr)
         meta = metadata or Metadata(name=col)
+        if resolution is None:
+            resolution = cls._infer_resolution(df, Resolution(Frequency.NONE))
         return cls(resolution, meta, timestamps=timestamps, values=values)
 
     @classmethod
@@ -453,6 +459,33 @@ class TimeSeries:
         values = cls._from_float_array(arr)
         meta = metadata or Metadata(name=val_col)
         return cls(resolution, meta, timestamps=timestamps, values=values)
+
+    def update_from_pandas(
+        self,
+        df: pd.DataFrame,
+        value_column: str | None = None,
+        inplace: bool = False,
+    ) -> TimeSeries | None:
+        """Update a TimeSeries from a pandas DataFrame.
+
+        By default returns a **new** TimeSeries.  With ``inplace=True``
+        the current instance is mutated and ``None`` is returned.
+        """
+        if not isinstance(df.index, pd.DatetimeIndex):
+            raise ValueError("DataFrame must have a DatetimeIndex")
+        col = value_column or df.columns[0]
+        timestamps = df.index.to_pydatetime().tolist()
+        arr = df[col].to_numpy(dtype=np.float64, na_value=np.nan)
+        values = self._from_float_array(arr)
+        new_resolution = self._infer_resolution_from_df(df)
+        new_metadata = self._infer_metadata_from_df(df)
+        if inplace:
+            self._timestamps = timestamps
+            self._values = values
+            self.resolution = new_resolution
+            self.metadata = new_metadata
+            return None
+        return TimeSeries(new_resolution, new_metadata, timestamps=timestamps, values=values)
 
     # ---- Tier 6 — serialization I/O ----------------------------------
 
@@ -542,25 +575,28 @@ class TimeSeries:
 
     # ---- Tier 7 — pandas bridge --------------------------------------
 
-    def _infer_resolution_from_df(self, result: pd.DataFrame) -> Resolution:
-        # Timezone
-        new_tz = str(result.index.tz) if result.index.tz is not None else self.resolution.timezone
+    @staticmethod
+    def _infer_resolution(df: pd.DataFrame, fallback: Resolution) -> Resolution:
+        """Infer Resolution from a DataFrame's DatetimeIndex, falling back to *fallback*."""
+        new_tz = str(df.index.tz) if df.index.tz is not None else fallback.timezone
 
-        # Frequency
         freq_str: str | None = None
-        if result.index.freq is not None:
-            freq_str = result.index.freqstr
-        elif len(result.index) >= 3:
+        if df.index.freq is not None:
+            freq_str = df.index.freqstr
+        elif len(df.index) >= 3:
             try:
-                freq_str = pd.infer_freq(result.index)
+                freq_str = pd.infer_freq(df.index)
             except Exception:
                 pass
 
-        new_freq = _PANDAS_FREQ_MAP.get(freq_str, self.resolution.frequency) if freq_str else self.resolution.frequency
+        new_freq = _PANDAS_FREQ_MAP.get(freq_str, fallback.frequency) if freq_str else fallback.frequency
 
-        if new_freq == self.resolution.frequency and new_tz == self.resolution.timezone:
-            return self.resolution
+        if new_freq == fallback.frequency and new_tz == fallback.timezone:
+            return fallback
         return Resolution(new_freq, new_tz)
+
+    def _infer_resolution_from_df(self, result: pd.DataFrame) -> Resolution:
+        return self._infer_resolution(result, self.resolution)
 
     def _infer_metadata_from_df(self, result: pd.DataFrame) -> Metadata:
         original_col = self.metadata.name or "value"
