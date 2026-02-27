@@ -1240,8 +1240,8 @@ class TimeSeries(_TimeSeriesBase):
         )
 
     @staticmethod
-    def merge(series: list[TimeSeries]) -> MultivariateTimeSeries:
-        """Combine multiple univariate TimeSeries into a MultivariateTimeSeries.
+    def merge(series: list[TimeSeries]) -> TimeSeriesTable:
+        """Combine multiple univariate TimeSeries into a TimeSeriesTable.
 
         All series must share the same timestamps (same length and values).
 
@@ -1249,7 +1249,7 @@ class TimeSeries(_TimeSeriesBase):
             series: List of univariate TimeSeries to merge.
 
         Returns:
-            A new MultivariateTimeSeries with one column per input series.
+            A new TimeSeriesTable with one column per input series.
 
         Raises:
             ValueError: If the list is empty or timestamps don't match.
@@ -1268,7 +1268,7 @@ class TimeSeries(_TimeSeriesBase):
         arrays = [s._to_float_array() for s in series]
         values = np.column_stack(arrays)
 
-        return MultivariateTimeSeries(
+        return TimeSeriesTable(
             series[0].frequency,
             timezone=series[0].timezone,
             timestamps=list(ref_ts),
@@ -1284,12 +1284,12 @@ class TimeSeries(_TimeSeriesBase):
 
 
 # ---------------------------------------------------------------------------
-# MultivariateTimeSeries — multiple value columns
+# TimeSeriesTable — multiple value columns (formerly MultivariateTimeSeries)
 # ---------------------------------------------------------------------------
 
 
 @dataclass(slots=True, repr=False)
-class MultivariateTimeSeries(_TimeSeriesBase):
+class TimeSeriesTable(_TimeSeriesBase):
     frequency: Frequency
     timezone: str = "UTC"
     names: list[str | None] = field(default_factory=lambda: [None])
@@ -1421,8 +1421,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
 
     def _clone_with(
         self, timestamps, values
-    ) -> MultivariateTimeSeries:
-        return MultivariateTimeSeries(
+    ) -> TimeSeriesTable:
+        return TimeSeriesTable(
             self.frequency,
             timezone=self.timezone,
             timestamps=timestamps,
@@ -1492,17 +1492,17 @@ class MultivariateTimeSeries(_TimeSeriesBase):
 
     # ---- head / tail / copy ----------------------------------------------
 
-    def head(self, n: int = 5) -> MultivariateTimeSeries:
-        """Return a new MultivariateTimeSeries with the first *n* points."""
+    def head(self, n: int = 5) -> TimeSeriesTable:
+        """Return a new TimeSeriesTable with the first *n* points."""
         return self._clone_with(self._timestamps[:n], self._values[:n])
 
-    def tail(self, n: int = 5) -> MultivariateTimeSeries:
-        """Return a new MultivariateTimeSeries with the last *n* points."""
+    def tail(self, n: int = 5) -> TimeSeriesTable:
+        """Return a new TimeSeriesTable with the last *n* points."""
         if n == 0:
             return self._clone_with([], self._values[:0])
         return self._clone_with(self._timestamps[-n:], self._values[-n:])
 
-    def copy(self) -> MultivariateTimeSeries:
+    def copy(self) -> TimeSeriesTable:
         """Return a shallow copy (timestamps list and values array are new)."""
         return self._clone_with(
             list(self._timestamps), self._values.copy()
@@ -1510,52 +1510,52 @@ class MultivariateTimeSeries(_TimeSeriesBase):
 
     # ---- scalar arithmetic -----------------------------------------------
 
-    def _apply_scalar(self, func) -> MultivariateTimeSeries:
+    def _apply_scalar(self, func) -> TimeSeriesTable:
         arr = self._values.astype(np.float64, copy=True)
         return self._clone_with(list(self._timestamps), func(arr))
 
-    def __add__(self, scalar: float) -> MultivariateTimeSeries:
+    def __add__(self, scalar: float) -> TimeSeriesTable:
         if not isinstance(scalar, (int, float)):
             return NotImplemented
         return self._apply_scalar(lambda v: v + scalar)
 
-    def __radd__(self, scalar: float) -> MultivariateTimeSeries:
+    def __radd__(self, scalar: float) -> TimeSeriesTable:
         if not isinstance(scalar, (int, float)):
             return NotImplemented
         return self._apply_scalar(lambda v: scalar + v)
 
-    def __sub__(self, scalar: float) -> MultivariateTimeSeries:
+    def __sub__(self, scalar: float) -> TimeSeriesTable:
         if not isinstance(scalar, (int, float)):
             return NotImplemented
         return self._apply_scalar(lambda v: v - scalar)
 
-    def __rsub__(self, scalar: float) -> MultivariateTimeSeries:
+    def __rsub__(self, scalar: float) -> TimeSeriesTable:
         if not isinstance(scalar, (int, float)):
             return NotImplemented
         return self._apply_scalar(lambda v: scalar - v)
 
-    def __mul__(self, scalar: float) -> MultivariateTimeSeries:
+    def __mul__(self, scalar: float) -> TimeSeriesTable:
         if not isinstance(scalar, (int, float)):
             return NotImplemented
         return self._apply_scalar(lambda v: v * scalar)
 
-    def __rmul__(self, scalar: float) -> MultivariateTimeSeries:
+    def __rmul__(self, scalar: float) -> TimeSeriesTable:
         if not isinstance(scalar, (int, float)):
             return NotImplemented
         return self._apply_scalar(lambda v: scalar * v)
 
-    def __truediv__(self, scalar: float) -> MultivariateTimeSeries:
+    def __truediv__(self, scalar: float) -> TimeSeriesTable:
         if not isinstance(scalar, (int, float)):
             return NotImplemented
         return self._apply_scalar(lambda v: v / scalar)
 
-    def __neg__(self) -> MultivariateTimeSeries:
+    def __neg__(self) -> TimeSeriesTable:
         return self._apply_scalar(lambda v: -v)
 
-    def __abs__(self) -> MultivariateTimeSeries:
+    def __abs__(self) -> TimeSeriesTable:
         return self._apply_scalar(abs)
 
-    def __round__(self, n: int = 0) -> MultivariateTimeSeries:
+    def __round__(self, n: int = 0) -> TimeSeriesTable:
         arr = self._values.astype(np.float64, copy=True)
         return self._clone_with(list(self._timestamps), np.round(arr, n))
 
@@ -1634,7 +1634,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         label = ", ".join(escape(c) for c in cn)
         html = [css, '<div class="ts-repr">']
         html.append(
-            f'<div class="ts-header">MultivariateTimeSeries</div>'
+            f'<div class="ts-header">{type(self).__name__}</div>'
         )
 
         html.append('<div class="ts-meta"><table>')
@@ -1772,8 +1772,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
-    ) -> MultivariateTimeSeries:
-        """Create a MultivariateTimeSeries from a pandas DataFrame.
+    ) -> TimeSeriesTable:
+        """Create a TimeSeriesTable from a pandas DataFrame.
 
         All numeric columns become value columns.  Column names become
         ``names`` if not explicitly provided.
@@ -1860,7 +1860,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
-    ) -> MultivariateTimeSeries:
+    ) -> TimeSeriesTable:
         """Reconstruct from a JSON string produced by to_json()."""
         data = json.loads(s)
         raw_ts = data["timestamps"]
@@ -1927,8 +1927,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
-    ) -> MultivariateTimeSeries:
-        """Read a MultivariateTimeSeries from a CSV file produced by to_csv()."""
+    ) -> TimeSeriesTable:
+        """Read a TimeSeriesTable from a CSV file produced by to_csv()."""
         with open(path, "r", newline="") as f:
             reader = csv.reader(f)
             header = next(reader)
@@ -2005,7 +2005,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
     def apply_pandas(
         self,
         func: Callable[[pd.DataFrame], pd.DataFrame],
-    ) -> MultivariateTimeSeries:
+    ) -> TimeSeriesTable:
         """Apply a pandas transformation, preserving metadata and auto-detecting frequency."""
         df = self.to_pandas_dataframe()
         result = func(df)
@@ -2041,7 +2041,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
                 return list(attr)
             return [default_factory()]
 
-        return MultivariateTimeSeries(
+        return TimeSeriesTable(
             new_freq,
             timezone=new_tz,
             timestamps=timestamps,
@@ -2061,7 +2061,7 @@ class MultivariateTimeSeries(_TimeSeriesBase):
     def apply_numpy(
         self,
         func: Callable[[np.ndarray], np.ndarray],
-    ) -> MultivariateTimeSeries:
+    ) -> TimeSeriesTable:
         """Apply a numpy transformation to values, keeping timestamps and resolution unchanged."""
         arr = self.to_numpy()
         result = np.asarray(func(arr), dtype=np.float64)
@@ -2073,4 +2073,345 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         return self._clone_with(list(self._timestamps), result)
 
 
-MultiTimeSeries = MultivariateTimeSeries
+MultivariateTimeSeries = TimeSeriesTable
+MultiTimeSeries = TimeSeriesTable
+
+
+# ---------------------------------------------------------------------------
+# TimeSeriesCollection — container for heterogeneous time series
+# ---------------------------------------------------------------------------
+
+
+class TimeSeriesCollection:
+    """Container for TimeSeries and/or TimeSeriesTable objects that don't share an index.
+
+    Items are stored internally as an ordered ``dict[str, TimeSeries | TimeSeriesTable]``.
+    """
+
+    __slots__ = ("_series", "_name", "_description")
+
+    def __init__(
+        self,
+        series: (
+            list[TimeSeries | TimeSeriesTable]
+            | dict[str, TimeSeries | TimeSeriesTable]
+            | None
+        ) = None,
+        *,
+        name: str | None = None,
+        description: str | None = None,
+    ) -> None:
+        self._name = name
+        self._description = description
+
+        if series is None:
+            self._series: dict[str, TimeSeries | TimeSeriesTable] = {}
+        elif isinstance(series, dict):
+            self._series = dict(series)
+        else:
+            self._series = {}
+            used: dict[str, int] = {}
+            for idx, item in enumerate(series):
+                key: str | None = None
+                if isinstance(item, TimeSeries) and item.name:
+                    key = item.name
+                elif isinstance(item, TimeSeriesTable):
+                    names = item.column_names
+                    if names:
+                        key = ",".join(names)
+
+                if key is None:
+                    key = f"series_{idx}"
+
+                if key in used:
+                    used[key] += 1
+                    key = f"{key}_{used[key]}"
+                else:
+                    used[key] = 0
+                self._series[key] = item
+
+    # ---- properties -------------------------------------------------------
+
+    @property
+    def name(self) -> str | None:
+        return self._name
+
+    @property
+    def description(self) -> str | None:
+        return self._description
+
+    @property
+    def names(self) -> list[str]:
+        return list(self._series.keys())
+
+    @property
+    def series_count(self) -> int:
+        return len(self._series)
+
+    # ---- mapping / sequence protocol --------------------------------------
+
+    def __len__(self) -> int:
+        return len(self._series)
+
+    def __bool__(self) -> bool:
+        return len(self._series) > 0
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._series
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._series)
+
+    def __getitem__(self, key: str | int) -> TimeSeries | TimeSeriesTable:
+        if isinstance(key, int):
+            keys = list(self._series.keys())
+            return self._series[keys[key]]
+        return self._series[key]
+
+    def keys(self):
+        return self._series.keys()
+
+    def values(self):
+        return self._series.values()
+
+    def items(self):
+        return self._series.items()
+
+    # ---- mutation (returns new collection) --------------------------------
+
+    def add(
+        self,
+        item: TimeSeries | TimeSeriesTable,
+        name: str | None = None,
+    ) -> TimeSeriesCollection:
+        if name is None:
+            if isinstance(item, TimeSeries) and item.name:
+                name = item.name
+            elif isinstance(item, TimeSeriesTable):
+                names = item.column_names
+                name = ",".join(names) if names else None
+            if name is None:
+                name = f"series_{len(self._series)}"
+        new_series = dict(self._series)
+        new_series[name] = item
+        return TimeSeriesCollection(
+            new_series, name=self._name, description=self._description
+        )
+
+    def remove(self, name: str) -> TimeSeriesCollection:
+        new_series = {k: v for k, v in self._series.items() if k != name}
+        return TimeSeriesCollection(
+            new_series, name=self._name, description=self._description
+        )
+
+    # ---- display -----------------------------------------------------------
+
+    def _item_summary(self, key: str, item: TimeSeries | TimeSeriesTable) -> dict:
+        """Summarize a single item for repr tables."""
+        kind = type(item).__name__
+        freq = str(item.frequency) if hasattr(item, "frequency") else "-"
+        tz = item.timezone if hasattr(item, "timezone") else "-"
+        n = len(item)
+        begin = item.begin
+        end = item.end
+        begin_s = _fmt_short_date(begin) if begin else "-"
+        end_s = _fmt_short_date(end) if end else "-"
+        return {
+            "name": key,
+            "type": kind,
+            "freq": freq,
+            "tz": tz,
+            "length": str(n),
+            "begin": begin_s,
+            "end": end_s,
+        }
+
+    def __repr__(self) -> str:
+        class_name = type(self).__name__
+        if not self._series:
+            return f"{class_name}(empty)"
+
+        rows = [
+            self._item_summary(k, v) for k, v in self._series.items()
+        ]
+        headers = ["name", "type", "freq", "tz", "length", "begin", "end"]
+        col_widths = {h: len(h) for h in headers}
+        for row in rows:
+            for h in headers:
+                col_widths[h] = max(col_widths[h], len(row[h]))
+
+        padding = 2
+
+        def _fmt_row(vals: dict) -> str:
+            return "  ".join(f"{vals[h]:<{col_widths[h]}}" for h in headers)
+
+        header_line = _fmt_row({h: h for h in headers})
+        content_lines = [header_line]
+        content_lines.append(None)  # separator
+        for row in rows:
+            content_lines.append(_fmt_row(row))
+
+        max_w = max(
+            (len(line) for line in content_lines if line is not None),
+            default=0,
+        )
+        inner_w = max_w + padding * 2
+        title = f" {class_name} "
+        if self._name:
+            title = f" {class_name}: {self._name} "
+
+        lines: list[str] = []
+        lines.append(
+            f"\u250c{title:\u2500^{inner_w}}\u2510"
+        )
+        for cl in content_lines:
+            if cl is None:
+                lines.append(
+                    f"\u251c{'\u2500' * inner_w}\u2524"
+                )
+            else:
+                lines.append(
+                    f"\u2502{' ' * padding}{cl}{' ' * (inner_w - padding - len(cl))}\u2502"
+                )
+        lines.append(f"\u2514{'\u2500' * inner_w}\u2518")
+        return "\n".join(lines)
+
+    def _repr_html_(self) -> str:
+        if not self._series:
+            return "<div><b>TimeSeriesCollection</b> (empty)</div>"
+
+        rows = [
+            self._item_summary(k, v) for k, v in self._series.items()
+        ]
+        headers = ["name", "type", "freq", "tz", "length", "begin", "end"]
+
+        title = type(self).__name__
+        if self._name:
+            title = f"{title}: {escape(self._name)}"
+
+        css = """\
+<style>
+.tsc-repr { font-family: monospace; font-size: 13px; max-width: 720px; }
+.tsc-repr .tsc-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.tsc-repr table { border-collapse: collapse; width: 100%; }
+.tsc-repr th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.tsc-repr td { padding: 2px 10px; }
+.tsc-repr tr:hover { background: #f5f5f5; }
+</style>"""
+
+        html = [css, '<div class="tsc-repr">']
+        html.append(f'<div class="tsc-header">{escape(title)}</div>')
+        html.append("<table>")
+        html.append(
+            "<tr>" + "".join(f"<th>{escape(h)}</th>" for h in headers) + "</tr>"
+        )
+        for row in rows:
+            html.append(
+                "<tr>"
+                + "".join(f"<td>{escape(row[h])}</td>" for h in headers)
+                + "</tr>"
+            )
+        html.append("</table></div>")
+        return "\n".join(html)
+
+    def coverage_bar(self) -> CoverageBar:
+        """Return a multi-row CoverageBar spanning the global time range."""
+        masks: list[tuple[str, list[bool]]] = []
+        all_begins: list[datetime] = []
+        all_ends: list[datetime] = []
+
+        for key, item in self._series.items():
+            begin = item.begin
+            end = item.end
+            if begin is not None and end is not None:
+                # Unwrap tuples for multi-index
+                b = begin[0] if isinstance(begin, tuple) else begin
+                e = end[0] if isinstance(end, tuple) else end
+                all_begins.append(b)
+                all_ends.append(e)
+
+        if not all_begins:
+            return CoverageBar([], None, None)
+
+        global_begin = min(all_begins)
+        global_end = max(all_ends)
+        global_span = (global_end - global_begin).total_seconds()
+
+        n_bins = CoverageBar._TERM_BINS
+
+        for key, item in self._series.items():
+            begin = item.begin
+            end = item.end
+
+            if isinstance(item, TimeSeries):
+                label = key
+                if begin is None or end is None or global_span == 0:
+                    masks.append((label, [False] * n_bins))
+                    continue
+                b = begin[0] if isinstance(begin, tuple) else begin
+                e = end[0] if isinstance(end, tuple) else end
+                item_masks = item._coverage_masks()
+                _, raw_mask = item_masks[0]
+                # Map raw mask onto global bins
+                bin_mask = self._rebin_to_global(
+                    raw_mask, b, e, global_begin, global_span, n_bins
+                )
+                masks.append((label, bin_mask))
+
+            elif isinstance(item, TimeSeriesTable):
+                if begin is None or end is None or global_span == 0:
+                    for col_name in item.column_names:
+                        label = f"{key}/{col_name}"
+                        masks.append((label, [False] * n_bins))
+                    continue
+                b = begin[0] if isinstance(begin, tuple) else begin
+                e = end[0] if isinstance(end, tuple) else end
+                for col_name, raw_mask in item._coverage_masks():
+                    label = f"{key}/{col_name}"
+                    bin_mask = self._rebin_to_global(
+                        raw_mask, b, e, global_begin, global_span, n_bins
+                    )
+                    masks.append((label, bin_mask))
+
+        return CoverageBar(masks, global_begin, global_end)
+
+    @staticmethod
+    def _rebin_to_global(
+        raw_mask: list[bool],
+        item_begin: datetime,
+        item_end: datetime,
+        global_begin: datetime,
+        global_span: float,
+        n_bins: int,
+    ) -> list[bool]:
+        """Map an item's coverage mask onto global bins."""
+        if not raw_mask or global_span == 0:
+            return [False] * n_bins
+
+        result = [False] * n_bins
+        item_span = (item_end - item_begin).total_seconds()
+        n_points = len(raw_mask)
+
+        for i, present in enumerate(raw_mask):
+            if not present:
+                continue
+            # Position of this point in the item's time range
+            if n_points == 1:
+                t_offset = (item_begin - global_begin).total_seconds()
+            else:
+                t_offset = (
+                    (item_begin - global_begin).total_seconds()
+                    + item_span * i / (n_points - 1)
+                )
+            bin_idx = int(t_offset / global_span * n_bins)
+            bin_idx = min(bin_idx, n_bins - 1)
+            result[bin_idx] = True
+
+        return result

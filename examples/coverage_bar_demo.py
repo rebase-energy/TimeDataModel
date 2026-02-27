@@ -7,7 +7,7 @@ import numpy as np
 from timedatamodel import (
     DataType,
     Frequency,
-    MultivariateTimeSeries,
+    TimeSeriesTable,
     TimeSeries,
 )
 
@@ -62,7 +62,7 @@ print(ts_gaps)
 print()
 print(ts_gaps.coverage_bar())
 
-# ── MultivariateTimeSeries with per-column gaps ──────────────────────────
+# ── TimeSeriesTable with per-column gaps ─────────────────────────────────
 
 n = 168
 power = np.array([100 + 20 * np.sin(i / 24 * np.pi) for i in range(n)])
@@ -77,7 +77,7 @@ wind[130:155] = np.nan
 
 vals = np.column_stack([power, temp, wind])
 
-mts = MultivariateTimeSeries(
+mts = TimeSeriesTable(
     frequency,
     timezone=tz,
     timestamps=timestamps,
@@ -88,7 +88,7 @@ mts = MultivariateTimeSeries(
 
 print()
 print("═" * 60)
-print("  MultivariateTimeSeries — three columns with gaps")
+print("  TimeSeriesTable — three columns with gaps")
 print("═" * 60)
 print(mts)
 print()
