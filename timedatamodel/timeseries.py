@@ -551,12 +551,16 @@ class TimeSeries(_TimeSeriesBase):
 
         html = [css, '<div class="ts-repr">']
         html.append(
-            f'<div class="ts-header">'
-            f'TimeSeries &mdash; <em>{disp_name}</em> &nbsp; ({n:,} points)'
-            f'</div>'
+            f'<div class="ts-header">TimeSeries</div>'
         )
 
         html.append('<div class="ts-meta"><table>')
+        html.append(
+            f"<tr><td>Columns</td><td>{disp_name}</td></tr>"
+        )
+        html.append(
+            f"<tr><td>Shape</td><td>({n:,},)</td></tr>"
+        )
         r = self.resolution
         html.append(
             f"<tr><td>Frequency</td><td>{escape(str(r.frequency))}</td></tr>"
@@ -1085,6 +1089,48 @@ class TimeSeries(_TimeSeriesBase):
             **self._meta_kwargs(),
         )
 
+    @staticmethod
+    def merge(series: list[TimeSeries]) -> MultivariateTimeSeries:
+        """Combine multiple univariate TimeSeries into a MultivariateTimeSeries.
+
+        All series must share the same timestamps (same length and values).
+
+        Args:
+            series: List of univariate TimeSeries to merge.
+
+        Returns:
+            A new MultivariateTimeSeries with one column per input series.
+
+        Raises:
+            ValueError: If the list is empty or timestamps don't match.
+        """
+        if not series:
+            raise ValueError("Cannot merge an empty list of TimeSeries.")
+
+        ref_ts = series[0]._timestamps
+        for i, s in enumerate(series[1:], 1):
+            if s._timestamps != ref_ts:
+                raise ValueError(
+                    f"Timestamps of series[{i}] do not match series[0]. "
+                    "All series must share the same timestamps."
+                )
+
+        arrays = [s._to_float_array() for s in series]
+        values = np.column_stack(arrays)
+
+        return MultivariateTimeSeries(
+            series[0].resolution,
+            timestamps=list(ref_ts),
+            values=values,
+            names=[s.name for s in series],
+            units=[s.unit for s in series],
+            descriptions=[s.description for s in series],
+            data_types=[s.data_type for s in series],
+            locations=[s.location for s in series],
+            timeseries_types=[s.timeseries_type for s in series],
+            attributes=[s.attributes or {} for s in series],
+        )
+
 
 # ---------------------------------------------------------------------------
 # MultivariateTimeSeries — multiple value columns
@@ -1421,13 +1467,16 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         label = ", ".join(escape(c) for c in cn)
         html = [css, '<div class="ts-repr">']
         html.append(
-            f'<div class="ts-header">'
-            f"MultivariateTimeSeries &mdash; <em>[{label}]</em>"
-            f" &nbsp; ({n:,} points, {ncols} columns)"
-            f"</div>"
+            f'<div class="ts-header">MultivariateTimeSeries</div>'
         )
 
         html.append('<div class="ts-meta"><table>')
+        html.append(
+            f"<tr><td>Columns</td><td>{label}</td></tr>"
+        )
+        html.append(
+            f"<tr><td>Shape</td><td>({n:,}, {ncols})</td></tr>"
+        )
         r = self.resolution
         html.append(
             f"<tr><td>Frequency</td>"

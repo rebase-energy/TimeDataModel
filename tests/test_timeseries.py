@@ -1038,3 +1038,132 @@ class TestBackwardCompatibility:
 
     def test_index_names_default(self, sample_ts):
         assert sample_ts.index_names == ("timestamp",)
+
+
+# ---- Multivariate Conversion Tests ----------------------------------------
+
+
+class TestMultivariateConversion:
+    @pytest.fixture
+    def mv_ts(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(5)]
+        values = np.array([
+            [1.0, 10.0, 100.0],
+            [2.0, 20.0, 200.0],
+            [3.0, 30.0, 300.0],
+            [np.nan, 40.0, 400.0],
+            [5.0, 50.0, 500.0],
+        ])
+        return MultivariateTimeSeries(
+            hourly_resolution,
+            timestamps=timestamps,
+            values=values,
+            names=["power", "temperature", "pressure"],
+            units=["MW", "°C", "hPa"],
+            descriptions=["Power output", "Ambient temp", "Atmospheric pressure"],
+        )
+
+    def test_select_column_by_index(self, mv_ts):
+        ts = mv_ts.select_column(0)
+        assert isinstance(ts, TimeSeries)
+        assert ts.name == "power"
+        assert ts.unit == "MW"
+        assert ts.description == "Power output"
+        assert len(ts) == 5
+        assert ts[0].value == 1.0
+        assert ts[3].value is None  # NaN -> None
+
+    def test_select_column_by_name(self, mv_ts):
+        ts = mv_ts.select_column("temperature")
+        assert isinstance(ts, TimeSeries)
+        assert ts.name == "temperature"
+        assert ts.unit == "°C"
+        assert len(ts) == 5
+        assert ts[0].value == 10.0
+
+    def test_select_column_invalid_name_raises(self, mv_ts):
+        with pytest.raises(KeyError, match="nonexistent"):
+            mv_ts.select_column("nonexistent")
+
+    def test_select_column_preserves_timestamps(self, mv_ts):
+        ts = mv_ts.select_column(1)
+        assert ts.timestamps == mv_ts.timestamps
+
+    def test_to_univariate_list(self, mv_ts):
+        series_list = mv_ts.to_univariate_list()
+        assert len(series_list) == 3
+        assert all(isinstance(s, TimeSeries) for s in series_list)
+        assert series_list[0].name == "power"
+        assert series_list[1].name == "temperature"
+        assert series_list[2].name == "pressure"
+
+    def test_to_univariate_list_values(self, mv_ts):
+        series_list = mv_ts.to_univariate_list()
+        assert series_list[2][0].value == 100.0
+        assert series_list[2][4].value == 500.0
+
+    def test_merge_roundtrip(self, mv_ts):
+        """select_column -> merge should reconstruct the original."""
+        series_list = mv_ts.to_univariate_list()
+        merged = TimeSeries.merge(series_list)
+        assert isinstance(merged, MultivariateTimeSeries)
+        assert merged.n_columns == 3
+        assert merged.column_names == ("power", "temperature", "pressure")
+        np.testing.assert_array_equal(merged.to_numpy(), mv_ts.to_numpy())
+
+    def test_merge_empty_raises(self):
+        with pytest.raises(ValueError, match="empty list"):
+            TimeSeries.merge([])
+
+    def test_merge_mismatched_timestamps_raises(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts1 = TimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=[1.0, 2.0],
+            name="a",
+        )
+        ts2 = TimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=2)],
+            values=[3.0, 4.0],
+            name="b",
+        )
+        with pytest.raises(ValueError, match="do not match"):
+            TimeSeries.merge([ts1, ts2])
+
+    def test_merge_preserves_metadata(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts1 = TimeSeries(
+            hourly_resolution,
+            timestamps=[base],
+            values=[1.0],
+            name="x", unit="MW", description="desc_x",
+        )
+        ts2 = TimeSeries(
+            hourly_resolution,
+            timestamps=[base],
+            values=[2.0],
+            name="y", unit="°C", description="desc_y",
+        )
+        merged = TimeSeries.merge([ts1, ts2])
+        assert merged.names == ["x", "y"]
+        assert merged.units == ["MW", "°C"]
+        assert merged.descriptions == ["desc_x", "desc_y"]
+
+    def test_select_column_broadcast_unit(self, hourly_resolution):
+        """When a single broadcast unit is used, select_column should resolve it."""
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.0, 2.0], [3.0, 4.0]])
+        mv = MultivariateTimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=values,
+            names=["a", "b"],
+            units=["MW"],  # broadcast
+        )
+        ts0 = mv.select_column(0)
+        ts1 = mv.select_column(1)
+        assert ts0.unit == "MW"
+        assert ts1.unit == "MW"
