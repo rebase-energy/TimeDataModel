@@ -4,6 +4,12 @@ A lightweight Python data model for time series data.
 
 ## Features
 
+- TimeSeries class that can easily be converted to different data structures (lists/numpy/pandas/polars)
+- Native bridges to pandas and numpy
+- Geographical and hierarchical support for time series data
+- Provides a nice repr-method for terminal and notebook (and potentially other plotting functions)
+
+
 - `TimeSeries` class for univariate time series with scalar metadata
 - `MultivariateTimeSeries` class for multi-column time series with list metadata
 - Flexible `Resolution` (frequency + timezone)
