@@ -8,11 +8,11 @@ from timedatamodel import (
     DataType,
     Frequency,
     MultivariateTimeSeries,
-    Resolution,
     TimeSeries,
 )
 
-resolution = Resolution(frequency=Frequency.PT1H, timezone="Europe/Oslo")
+frequency = Frequency.PT1H
+tz = "Europe/Oslo"
 base = datetime(2024, 6, 1, tzinfo=timezone.utc)
 
 # ── TimeSeries with full coverage ────────────────────────────────────────
@@ -21,7 +21,8 @@ timestamps = [base + timedelta(hours=i) for i in range(168)]  # one week
 values = [20.0 + 5 * np.sin(i / 12 * np.pi) for i in range(168)]
 
 ts_full = TimeSeries(
-    resolution,
+    frequency,
+    timezone=tz,
     timestamps=timestamps,
     values=values,
     name="temperature",
@@ -44,7 +45,8 @@ values_with_gaps = [
 ]
 
 ts_gaps = TimeSeries(
-    resolution,
+    frequency,
+    timezone=tz,
     timestamps=timestamps,
     values=values_with_gaps,
     name="temperature",
@@ -76,7 +78,8 @@ wind[130:155] = np.nan
 vals = np.column_stack([power, temp, wind])
 
 mts = MultivariateTimeSeries(
-    resolution,
+    frequency,
+    timezone=tz,
     timestamps=timestamps,
     values=vals,
     names=["power", "temperature", "wind_speed"],
