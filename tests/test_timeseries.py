@@ -11,8 +11,11 @@ from timedatamodel import (
     DataPoint,
     DataType,
     Frequency,
-    Metadata,
+    GeoLocation,
+    MultiTimeSeries,
+    MultivariateTimeSeries,
     Resolution,
+    StorageType,
     TimeSeries,
 )
 
@@ -27,9 +30,13 @@ def sample_ts(hourly_resolution):
     base = datetime(2024, 1, 1, tzinfo=timezone.utc)
     timestamps = [base + timedelta(hours=i) for i in range(5)]
     values = [1.0, 2.0, 3.0, None, 5.0]
-    metadata = Metadata(name="power", unit="MW", data_type=DataType.ACTUAL)
     return TimeSeries(
-        hourly_resolution, metadata, timestamps=timestamps, values=values
+        hourly_resolution,
+        timestamps=timestamps,
+        values=values,
+        name="power",
+        unit="MW",
+        data_type=DataType.ACTUAL,
     )
 
 
@@ -63,6 +70,38 @@ class TestConstruction:
         assert len(ts) == 0
         assert not ts
         assert list(ts) == []
+
+    def test_scalar_metadata(self, hourly_resolution):
+        loc = GeoLocation(latitude=59.91, longitude=10.75)
+        ts = TimeSeries(
+            hourly_resolution,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+            name="power",
+            unit="MW",
+            description="Hourly power",
+            data_type=DataType.ACTUAL,
+            location=loc,
+            storage_type=StorageType.FLAT,
+            attributes={"source": "test"},
+        )
+        assert ts.name == "power"
+        assert ts.unit == "MW"
+        assert ts.description == "Hourly power"
+        assert ts.data_type == DataType.ACTUAL
+        assert ts.location == loc
+        assert ts.storage_type == StorageType.FLAT
+        assert ts.attributes["source"] == "test"
+
+    def test_defaults(self, hourly_resolution):
+        ts = TimeSeries(hourly_resolution)
+        assert ts.name is None
+        assert ts.unit is None
+        assert ts.description is None
+        assert ts.data_type is None
+        assert ts.location is None
+        assert ts.storage_type == StorageType.FLAT
+        assert ts.attributes == {}
 
 
 class TestSequenceProtocol:
@@ -116,13 +155,13 @@ class TestNumpy:
 
 class TestDataFrameAliases:
     def test_to_pd_df(self, sample_ts):
-        import pandas as pd
         df = sample_ts.to_pd_df()
         assert isinstance(df, pd.DataFrame)
         pd.testing.assert_frame_equal(df, sample_ts.to_pandas_dataframe())
 
     def test_to_pl_df(self, sample_ts):
         import polars as pl
+
         df = sample_ts.to_pl_df()
         assert isinstance(df, pl.DataFrame)
         assert df.equals(sample_ts.to_polars_dataframe())
@@ -190,7 +229,7 @@ class TestTier1:
 
     def test_head_default(self, sample_ts):
         h = sample_ts.head()
-        assert len(h) == 5  # series has exactly 5 points
+        assert len(h) == 5
 
     def test_head_n(self, sample_ts):
         h = sample_ts.head(2)
@@ -208,7 +247,7 @@ class TestTier1:
 
     def test_tail_default(self, sample_ts):
         t = sample_ts.tail()
-        assert len(t) == 5  # series has exactly 5 points
+        assert len(t) == 5
 
     def test_tail_n(self, sample_ts):
         t = sample_ts.tail(2)
@@ -229,7 +268,7 @@ class TestTier1:
         assert len(c) == len(sample_ts)
         assert c[0].value == sample_ts[0].value
         c._values[0] = 999.0
-        assert sample_ts[0].value == 1.0  # original unchanged
+        assert sample_ts[0].value == 1.0
 
     def test_has_missing_true(self, sample_ts):
         assert sample_ts.has_missing is True
@@ -259,7 +298,7 @@ class TestTier5Arithmetic:
     def test_add_scalar(self, sample_ts):
         ts2 = sample_ts + 10
         assert ts2[0].value == 11.0
-        assert ts2[3].value is None  # None passthrough
+        assert ts2[3].value is None
 
     def test_radd_scalar(self, sample_ts):
         ts2 = 10 + sample_ts
@@ -325,7 +364,7 @@ class TestTier5Arithmetic:
 
     def test_immutability(self, sample_ts):
         ts2 = sample_ts + 1
-        assert sample_ts[0].value == 1.0  # original unchanged
+        assert sample_ts[0].value == 1.0
 
 
 class TestTier6IO:
@@ -384,7 +423,7 @@ class TestTier6IO:
         try:
             sample_ts.to_csv(path)
             ts2 = TimeSeries.from_csv(path, sample_ts.resolution)
-            assert ts2.metadata.name == "power"
+            assert ts2.name == "power"
         finally:
             path.unlink(missing_ok=True)
 
@@ -398,7 +437,7 @@ class TestFromPandasAutoInfer:
         df = pd.DataFrame({"power": [1.0, 2.0, 3.0, 4.0, 5.0]}, index=index)
         ts = TimeSeries.from_pandas(df)
         assert ts.resolution.frequency == Frequency.PT1H
-        assert ts.metadata.name == "power"
+        assert ts.name == "power"
         assert len(ts) == 5
 
     def test_infer_daily(self):
@@ -412,7 +451,6 @@ class TestFromPandasAutoInfer:
         index = pd.DatetimeIndex([base, base + timedelta(hours=1)])
         df = pd.DataFrame({"v": [1.0, 2.0]}, index=index)
         ts = TimeSeries.from_pandas(df)
-        # Only 2 points, no explicit freq → falls back to NONE
         assert ts.resolution.frequency == Frequency.NONE
 
     def test_infer_timezone(self):
@@ -443,8 +481,7 @@ class TestUpdateFromPandas:
         assert len(result) == 3
         assert result[0].value == 10.0
         assert result.resolution.frequency == Frequency.P1D
-        assert result.metadata.name == "energy"
-        # Original unchanged
+        assert result.name == "energy"
         assert len(sample_ts) == 5
         assert sample_ts[0].value == 1.0
 
@@ -456,7 +493,7 @@ class TestUpdateFromPandas:
         assert len(sample_ts) == 3
         assert sample_ts[0].value == 10.0
         assert sample_ts.resolution.frequency == Frequency.P1D
-        assert sample_ts.metadata.name == "energy"
+        assert sample_ts.name == "energy"
 
     def test_value_column(self, sample_ts):
         new_index = pd.date_range("2025-01-01", periods=2, freq="h", tz="UTC")
@@ -474,12 +511,12 @@ class TestUpdateFromPandas:
 class TestApplyPandas:
     def test_ffill(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.ffill())
-        assert ts2[3].value is not None          # was None
-        assert ts2[3].value == sample_ts[2].value  # forward-filled from index 2
+        assert ts2[3].value is not None
+        assert ts2[3].value == sample_ts[2].value
 
     def test_clip(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.clip(lower=2))
-        assert ts2[0].value == 2.0   # was 1.0, clipped up
+        assert ts2[0].value == 2.0
 
     def test_arithmetic(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df * 10)
@@ -487,7 +524,9 @@ class TestApplyPandas:
 
     def test_metadata_preserved(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.ffill())
-        assert ts2.metadata == sample_ts.metadata
+        assert ts2.name == sample_ts.name
+        assert ts2.unit == sample_ts.unit
+        assert ts2.data_type == sample_ts.data_type
 
     def test_resolution_unchanged_for_noop(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.ffill())
@@ -495,40 +534,40 @@ class TestApplyPandas:
 
     def test_resolution_updated_after_resample(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.resample("2h").mean())
-        assert ts2.resolution.frequency == Frequency.PT1H  # 2h not in map, falls back
-        # Note: we test that frequency falls back to original PT1H
+        assert ts2.resolution.frequency == Frequency.PT1H
 
     def test_timezone_updated_after_tz_convert(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.tz_convert("Europe/Berlin"))
         assert ts2.resolution.timezone == "Europe/Berlin"
 
     def test_none_roundtrip(self, sample_ts):
-        ts2 = sample_ts.apply_pandas(lambda df: df)  # identity
+        ts2 = sample_ts.apply_pandas(lambda df: df)
         assert ts2[3].value is None
 
     def test_immutability(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df + 99)
-        assert sample_ts[0].value == 1.0   # original unchanged
+        assert sample_ts[0].value == 1.0
 
-    def test_column_rename_updates_metadata_name(self, sample_ts):
-        ts2 = sample_ts.apply_pandas(lambda df: df.rename(columns={"power": "power_filled"}))
-        assert ts2.metadata.name == "power_filled"
-        assert ts2.metadata.unit == sample_ts.metadata.unit  # other fields preserved
+    def test_column_rename_updates_name(self, sample_ts):
+        ts2 = sample_ts.apply_pandas(
+            lambda df: df.rename(columns={"power": "power_filled"})
+        )
+        assert ts2.name == "power_filled"
+        assert ts2.unit == sample_ts.unit
 
-    def test_no_rename_preserves_metadata_name(self, sample_ts):
+    def test_no_rename_preserves_name(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.ffill())
-        assert ts2.metadata.name == "power"
+        assert ts2.name == "power"
 
     def test_unit_preserved_after_arithmetic(self, sample_ts):
-        # Cannot auto-detect unit change from pandas — unit stays as original
         ts2 = sample_ts.apply_pandas(lambda df: df * 0.001)
-        assert ts2.metadata.unit == sample_ts.metadata.unit  # still "MW"
+        assert ts2.unit == sample_ts.unit
 
 
 class TestApplyNumpy:
     def test_clip(self, sample_ts):
         ts2 = sample_ts.apply_numpy(lambda arr: np.clip(arr, 2, None))
-        assert ts2[0].value == 2.0  # was 1.0, clipped up
+        assert ts2[0].value == 2.0
 
     def test_arithmetic(self, sample_ts):
         ts2 = sample_ts.apply_numpy(lambda arr: arr * 10)
@@ -540,12 +579,12 @@ class TestApplyNumpy:
         assert ts2[1].value == pytest.approx(np.sqrt(2.0))
 
     def test_nan_passthrough(self, sample_ts):
-        ts2 = sample_ts.apply_numpy(lambda arr: arr)  # identity
-        assert ts2[3].value is None  # NaN stays None
+        ts2 = sample_ts.apply_numpy(lambda arr: arr)
+        assert ts2[3].value is None
 
     def test_nan_fill(self, sample_ts):
         ts2 = sample_ts.apply_numpy(lambda arr: np.nan_to_num(arr, nan=0.0))
-        assert ts2[3].value == 0.0  # None filled with 0
+        assert ts2[3].value == 0.0
 
     def test_timestamps_unchanged(self, sample_ts):
         ts2 = sample_ts.apply_numpy(lambda arr: arr + 1)
@@ -557,23 +596,25 @@ class TestApplyNumpy:
 
     def test_metadata_preserved(self, sample_ts):
         ts2 = sample_ts.apply_numpy(lambda arr: arr + 1)
-        assert ts2.metadata == sample_ts.metadata
+        assert ts2.name == sample_ts.name
+        assert ts2.unit == sample_ts.unit
+        assert ts2.data_type == sample_ts.data_type
 
     def test_immutability(self, sample_ts):
         ts2 = sample_ts.apply_numpy(lambda arr: arr + 99)
-        assert sample_ts[0].value == 1.0  # original unchanged
+        assert sample_ts[0].value == 1.0
 
     def test_wrong_length_raises(self, sample_ts):
         with pytest.raises(ValueError, match="result length"):
-            sample_ts.apply_numpy(lambda arr: arr[:-1])  # shorter array
+            sample_ts.apply_numpy(lambda arr: arr[:-1])
 
     def test_nancumsum(self, sample_ts):
         ts2 = sample_ts.apply_numpy(np.nancumsum)
         assert ts2[0].value == pytest.approx(1.0)
-        assert ts2[1].value == pytest.approx(3.0)   # 1 + 2
-        assert ts2[2].value == pytest.approx(6.0)   # 1 + 2 + 3
-        assert ts2[3].value == pytest.approx(6.0)   # NaN treated as 0
-        assert ts2[4].value == pytest.approx(11.0)  # 6 + 5
+        assert ts2[1].value == pytest.approx(3.0)
+        assert ts2[2].value == pytest.approx(6.0)
+        assert ts2[3].value == pytest.approx(6.0)
+        assert ts2[4].value == pytest.approx(11.0)
 
 
 class TestValidation:
@@ -600,6 +641,33 @@ class TestValidation:
         )
         warnings = ts.validate()
         assert any("inconsistent frequency" in w for w in warnings)
+
+
+class TestPintUnit:
+    def test_pint_unit_valid(self):
+        ts = TimeSeries(
+            Resolution(Frequency.PT1H),
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+            unit="MW",
+        )
+        u = ts.pint_unit
+        assert str(u) == "megawatt"
+
+    def test_pint_unit_none(self):
+        ts = TimeSeries(Resolution(Frequency.PT1H))
+        with pytest.raises(ValueError, match="unit is not set"):
+            ts.pint_unit
+
+    def test_pint_unit_invalid(self):
+        ts = TimeSeries(
+            Resolution(Frequency.PT1H),
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+            unit="not_a_real_unit_xyz",
+        )
+        with pytest.raises(ValueError, match="invalid unit string"):
+            ts.pint_unit
 
 
 # ---- Multi-Index Tests ------------------------------------------------
@@ -631,9 +699,6 @@ class TestMultiIndex:
 
     def test_is_multi_index_false(self, sample_ts):
         assert sample_ts.is_multi_index is False
-
-    def test_is_multivariate_false(self, multi_ts):
-        assert multi_ts.is_multivariate is False
 
     def test_index_names(self, multi_ts):
         assert multi_ts.index_names == ("valid_time", "knowledge_time")
@@ -677,16 +742,6 @@ class TestMultiIndex:
         assert c.is_multi_index
         c._values[0] = 999.0
         assert multi_ts.values[0] == 1.0
-
-    def test_getitem_returns_tuple(self, multi_ts):
-        item = multi_ts[0]
-        assert isinstance(item, tuple)
-        assert not isinstance(item, DataPoint)
-
-    def test_iter_returns_tuples(self, multi_ts):
-        items = list(multi_ts)
-        assert all(isinstance(item, tuple) for item in items)
-        assert not any(isinstance(item, DataPoint) for item in items)
 
     def test_validate(self, multi_ts):
         warnings = multi_ts.validate()
@@ -746,30 +801,18 @@ class TestMultivariate:
             [np.nan, 40.0],
             [5.0, 50.0],
         ])
-        return TimeSeries(
+        return MultivariateTimeSeries(
             hourly_resolution,
             timestamps=timestamps,
             values=values,
-            column_names=["power", "temperature"],
+            names=["power", "temperature"],
         )
 
     def test_construction(self, mv_ts):
         assert len(mv_ts) == 5
 
-    def test_is_multivariate_true(self, mv_ts):
-        assert mv_ts.is_multivariate is True
-
-    def test_is_multivariate_false(self, sample_ts):
-        assert sample_ts.is_multivariate is False
-
-    def test_is_multi_index_false(self, mv_ts):
-        assert mv_ts.is_multi_index is False
-
-    def test_ndim(self, mv_ts):
-        assert mv_ts.ndim == 2
-
-    def test_ndim_univariate(self, sample_ts):
-        assert sample_ts.ndim == 1
+    def test_n_columns(self, mv_ts):
+        assert mv_ts.n_columns == 2
 
     def test_column_names(self, mv_ts):
         assert mv_ts.column_names == ("power", "temperature")
@@ -777,7 +820,7 @@ class TestMultivariate:
     def test_column_names_default(self, hourly_resolution):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0], [3.0, 4.0]])
-        ts = TimeSeries(
+        ts = MultivariateTimeSeries(
             hourly_resolution,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -790,7 +833,7 @@ class TestMultivariate:
     def test_has_missing_false(self, hourly_resolution):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0], [3.0, 4.0]])
-        ts = TimeSeries(
+        ts = MultivariateTimeSeries(
             hourly_resolution,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -802,7 +845,7 @@ class TestMultivariate:
         arr = ts2.to_numpy()
         assert arr[0, 0] == 11.0
         assert arr[0, 1] == 20.0
-        assert np.isnan(arr[3, 0])  # NaN propagated
+        assert np.isnan(arr[3, 0])
 
     def test_mul_scalar(self, mv_ts):
         ts2 = mv_ts * 2
@@ -823,35 +866,33 @@ class TestMultivariate:
 
     def test_from_pandas_multicolumn_round_trip(self, mv_ts, hourly_resolution):
         df = mv_ts.to_pandas_dataframe()
-        ts2 = TimeSeries.from_pandas(df, hourly_resolution)
-        assert ts2.is_multivariate
-        assert ts2.ndim == 2
+        ts2 = MultivariateTimeSeries.from_pandas(df, hourly_resolution)
+        assert ts2.n_columns == 2
         np.testing.assert_array_equal(ts2.to_numpy(), mv_ts.to_numpy())
 
     def test_json_round_trip(self, mv_ts, hourly_resolution):
         s = mv_ts.to_json()
-        ts2 = TimeSeries.from_json(s, hourly_resolution)
-        assert ts2.is_multivariate
-        assert ts2.ndim == 2
+        ts2 = MultivariateTimeSeries.from_json(s, hourly_resolution)
+        assert ts2.n_columns == 2
         np.testing.assert_array_equal(ts2.to_numpy(), mv_ts.to_numpy())
 
     def test_head(self, mv_ts):
         h = mv_ts.head(2)
         assert len(h) == 2
-        assert h.is_multivariate
-        assert h.ndim == 2
+        assert isinstance(h, MultivariateTimeSeries)
+        assert h.n_columns == 2
 
     def test_tail(self, mv_ts):
         t = mv_ts.tail(2)
         assert len(t) == 2
-        assert t.is_multivariate
+        assert isinstance(t, MultivariateTimeSeries)
 
     def test_copy(self, mv_ts):
         c = mv_ts.copy()
         assert len(c) == len(mv_ts)
-        assert c.is_multivariate
+        assert isinstance(c, MultivariateTimeSeries)
         c._values[0, 0] = 999.0
-        assert mv_ts.values[0, 0] == 1.0  # original unchanged
+        assert mv_ts.values[0, 0] == 1.0
 
     def test_getitem_returns_tuple(self, mv_ts):
         item = mv_ts[0]
@@ -865,7 +906,7 @@ class TestMultivariate:
 
     def test_repr(self, mv_ts):
         r = repr(mv_ts)
-        assert "TimeSeries" in r
+        assert "MultivariateTimeSeries" in r
         assert "5 points" in r
 
     def test_validate(self, mv_ts):
@@ -877,10 +918,8 @@ class TestMultivariate:
             path = Path(f.name)
         try:
             mv_ts.to_csv(path)
-            ts2 = TimeSeries.from_csv(path, hourly_resolution)
-            assert ts2.is_multivariate
-            assert ts2.ndim == 2
-            # NaN values should round-trip
+            ts2 = MultivariateTimeSeries.from_csv(path, hourly_resolution)
+            assert ts2.n_columns == 2
             assert np.isnan(ts2.to_numpy()[3, 0])
             assert ts2.to_numpy()[0, 0] == 1.0
         finally:
@@ -889,7 +928,7 @@ class TestMultivariate:
     def test_round(self, hourly_resolution):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.567, 2.345], [3.891, 4.123]])
-        ts = TimeSeries(
+        ts = MultivariateTimeSeries(
             hourly_resolution,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -900,33 +939,100 @@ class TestMultivariate:
         assert arr[0, 1] == pytest.approx(2.3)
 
 
-# ---- Backward Compatibility Tests --------------------------------------
+# ---- Broadcast Validation Tests ------------------------------------------
+
+
+class TestBroadcast:
+    def test_broadcast_single_unit(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.0, 2.0], [3.0, 4.0]])
+        ts = MultivariateTimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=values,
+            names=["a", "b"],
+            units=["MW"],
+        )
+        assert ts.units == ["MW"]
+        assert ts._get_attr(ts.units, 0) == "MW"
+        assert ts._get_attr(ts.units, 1) == "MW"
+
+    def test_broadcast_per_column(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.0, 2.0], [3.0, 4.0]])
+        ts = MultivariateTimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=values,
+            names=["power", "temperature"],
+            units=["MW", "°C"],
+        )
+        assert ts._get_attr(ts.units, 0) == "MW"
+        assert ts._get_attr(ts.units, 1) == "°C"
+
+    def test_broadcast_invalid_length_raises(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+        with pytest.raises(ValueError, match="must have length 1 or 3"):
+            MultivariateTimeSeries(
+                hourly_resolution,
+                timestamps=[base, base + timedelta(hours=1)],
+                values=values,
+                names=["a", "b"],
+            )
+
+    def test_broadcast_default_names(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.0, 2.0], [3.0, 4.0]])
+        ts = MultivariateTimeSeries(
+            hourly_resolution,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=values,
+        )
+        assert ts.names == [None]
+        assert ts.column_names == ("value_0", "value_1")
+
+
+# ---- MultiTimeSeries Alias Test -----------------------------------------
+
+
+class TestMultiTimeSeriesAlias:
+    def test_alias_is_same_class(self):
+        assert MultiTimeSeries is MultivariateTimeSeries
+
+    def test_alias_construction(self, hourly_resolution):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        values = np.array([[1.0, 2.0]])
+        ts = MultiTimeSeries(
+            hourly_resolution,
+            timestamps=[base],
+            values=values,
+            names=["a", "b"],
+        )
+        assert isinstance(ts, MultivariateTimeSeries)
+        assert ts.n_columns == 2
+
+
+# ---- Backward Compatibility Tests ----------------------------------------
 
 
 class TestBackwardCompatibility:
     def test_single_index_construction(self, sample_ts):
-        """Existing single-index construction still works identically."""
         assert len(sample_ts) == 5
         assert sample_ts.is_multi_index is False
-        assert sample_ts.is_multivariate is False
-        assert sample_ts.ndim == 1
 
     def test_datapoint_from_getitem(self, sample_ts):
-        """DataPoint still returned from __getitem__ for single-index univariate."""
         dp = sample_ts[0]
         assert isinstance(dp, DataPoint)
         assert dp.value == 1.0
         assert dp.timestamp == datetime(2024, 1, 1, tzinfo=timezone.utc)
 
     def test_values_returns_list(self, sample_ts):
-        """values property still returns list for univariate."""
         assert isinstance(sample_ts.values, list)
 
     def test_iter_returns_datapoints(self, sample_ts):
-        """__iter__ returns DataPoint for single-index univariate."""
         points = list(sample_ts)
         assert all(isinstance(p, DataPoint) for p in points)
 
     def test_index_names_default(self, sample_ts):
-        """Default index name is 'timestamp'."""
         assert sample_ts.index_names == ("timestamp",)
