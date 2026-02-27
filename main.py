@@ -5,14 +5,14 @@ from timedatamodel import (
     DataType,
     Frequency,
     GeoLocation,
-    Resolution,
     TimeSeries,
 )
 
 
 def main():
-    # Define resolution
-    resolution = Resolution(frequency=Frequency.PT1H, timezone="Europe/Oslo")
+    # Define frequency and timezone
+    frequency = Frequency.PT1H
+    tz = "Europe/Oslo"
     location = GeoLocation(latitude=59.91, longitude=10.75)
 
     # Create a time series with scalar metadata
@@ -20,7 +20,8 @@ def main():
     timestamps = [base + timedelta(hours=i) for i in range(24)]
     values = [100.0 + i * 5.0 for i in range(24)]
     ts = TimeSeries(
-        resolution,
+        frequency,
+        timezone=tz,
         timestamps=timestamps,
         values=values,
         name="power",
@@ -32,7 +33,7 @@ def main():
     )
 
     print(f"TimeSeries: {len(ts)} points")
-    print(f"Resolution: {resolution.frequency} ({resolution.timezone})")
+    print(f"Frequency: {ts.frequency} (Timezone: {ts.timezone})")
     print(f"Unit: {ts.unit} -> pint: {ts.pint_unit}")
     print()
 
@@ -68,12 +69,12 @@ def main():
     print()
 
     # Round-trip via pandas
-    ts2 = TimeSeries.from_pandas(df_pd, resolution)
+    ts2 = TimeSeries.from_pandas(df_pd, frequency, timezone=tz)
     print(f"Round-trip via pandas: {len(ts2)} points, first={ts2[0]}")
 
     # Construction via DataPoint
     data = [DataPoint(base + timedelta(hours=i), float(i)) for i in range(3)]
-    ts3 = TimeSeries(resolution, data=data)
+    ts3 = TimeSeries(frequency, timezone=tz, data=data)
     print(f"From DataPoints: {list(ts3)}")
 
 

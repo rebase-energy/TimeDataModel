@@ -14,7 +14,6 @@ import pandas as pd
 
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
-from .resolution import Resolution
 
 _PANDAS_FREQ_MAP: dict[str, Frequency] = {
     # Modern pandas (>=2.0) aliases
@@ -221,7 +220,7 @@ class _TimeSeriesBase:
     def validate(self) -> list[str]:
         """Return a list of validation warnings (timestamp ordering and frequency)."""
         warnings: list[str] = []
-        td = self.resolution.to_timedelta()
+        td = self.frequency.to_timedelta()
         check_order = True
         check_freq = td is not None
         multi = self.is_multi_index
@@ -374,8 +373,10 @@ class _TimeSeriesBase:
         return f"{name} (centroid {c.latitude}\u00b0N, {c.longitude}\u00b0E)"
 
     @staticmethod
-    def _infer_resolution(df: pd.DataFrame, fallback: Resolution) -> Resolution:
-        new_tz = str(df.index.tz) if df.index.tz is not None else fallback.timezone
+    def _infer_freq_tz(
+        df: pd.DataFrame, fallback_freq: Frequency, fallback_tz: str,
+    ) -> tuple[Frequency, str]:
+        new_tz = str(df.index.tz) if df.index.tz is not None else fallback_tz
         freq_str: str | None = None
         if df.index.freq is not None:
             freq_str = df.index.freqstr
@@ -385,13 +386,11 @@ class _TimeSeriesBase:
             except Exception:
                 pass
         new_freq = (
-            _PANDAS_FREQ_MAP.get(freq_str, fallback.frequency)
+            _PANDAS_FREQ_MAP.get(freq_str, fallback_freq)
             if freq_str
-            else fallback.frequency
+            else fallback_freq
         )
-        if new_freq == fallback.frequency and new_tz == fallback.timezone:
-            return fallback
-        return Resolution(new_freq, new_tz)
+        return (new_freq, new_tz)
 
 
 # ---------------------------------------------------------------------------
@@ -401,7 +400,8 @@ class _TimeSeriesBase:
 
 @dataclass(slots=True, repr=False)
 class TimeSeries(_TimeSeriesBase):
-    resolution: Resolution
+    frequency: Frequency
+    timezone: str = "UTC"
     name: str | None = None
     unit: str | None = None
     description: str | None = None
@@ -417,8 +417,9 @@ class TimeSeries(_TimeSeriesBase):
 
     def __init__(
         self,
-        resolution: Resolution,
+        frequency: Frequency,
         *,
+        timezone: str = "UTC",
         timestamps: list[datetime] | list[tuple[datetime, ...]] | None = None,
         values: list[float | None] | None = None,
         data: list[DataPoint] | None = None,
@@ -431,7 +432,8 @@ class TimeSeries(_TimeSeriesBase):
         attributes: dict[str, str] | None = None,
         index_names: list[str] | None = None,
     ) -> None:
-        self.resolution = resolution
+        self.frequency = frequency
+        self.timezone = timezone
         self.name = name
         self.unit = unit
         self.description = description
@@ -528,7 +530,8 @@ class TimeSeries(_TimeSeriesBase):
     def head(self, n: int = 5) -> TimeSeries:
         """Return a new TimeSeries with the first *n* points."""
         return TimeSeries(
-            self.resolution,
+            self.frequency,
+            timezone=self.timezone,
             timestamps=self._timestamps[:n],
             values=self._values[:n],
             **self._meta_kwargs(),
@@ -538,10 +541,11 @@ class TimeSeries(_TimeSeriesBase):
         """Return a new TimeSeries with the last *n* points."""
         if n == 0:
             return TimeSeries(
-                self.resolution, timestamps=[], values=[], **self._meta_kwargs()
+                self.frequency, timezone=self.timezone, timestamps=[], values=[], **self._meta_kwargs()
             )
         return TimeSeries(
-            self.resolution,
+            self.frequency,
+            timezone=self.timezone,
             timestamps=self._timestamps[-n:],
             values=self._values[-n:],
             **self._meta_kwargs(),
@@ -550,7 +554,8 @@ class TimeSeries(_TimeSeriesBase):
     def copy(self) -> TimeSeries:
         """Return a shallow copy (timestamps and values lists are new)."""
         return TimeSeries(
-            self.resolution,
+            self.frequency,
+            timezone=self.timezone,
             timestamps=list(self._timestamps),
             values=list(self._values),
             **self._meta_kwargs(),
@@ -567,7 +572,8 @@ class TimeSeries(_TimeSeriesBase):
     def _apply_scalar(self, func) -> TimeSeries:
         arr = self._to_float_array()
         return TimeSeries(
-            self.resolution,
+            self.frequency,
+            timezone=self.timezone,
             timestamps=list(self._timestamps),
             values=self._from_float_array(func(arr)),
             **self._meta_kwargs(),
@@ -617,7 +623,8 @@ class TimeSeries(_TimeSeriesBase):
     def __round__(self, n: int = 0) -> TimeSeries:
         arr = self._to_float_array()
         return TimeSeries(
-            self.resolution,
+            self.frequency,
+            timezone=self.timezone,
             timestamps=list(self._timestamps),
             values=self._from_float_array(np.round(arr, n)),
             **self._meta_kwargs(),
@@ -630,8 +637,8 @@ class TimeSeries(_TimeSeriesBase):
         lines: list[str] = []
         lines.append(f"{'Columns:':<{label_w}}{self.name or 'unnamed'}")
         lines.append(f"{'Shape:':<{label_w}}({len(self._timestamps)},)")
-        r = self.resolution
-        lines.append(f"{'Resolution:':<{label_w}}{r.frequency} ({r.timezone})")
+        lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
+        lines.append(f"{'Timezone:':<{label_w}}{self.timezone}")
         if self.unit:
             lines.append(f"{'Unit:':<{label_w}}{self.unit}")
         if self.data_type:
@@ -690,11 +697,10 @@ class TimeSeries(_TimeSeriesBase):
         html.append(
             f"<tr><td>Shape</td><td>({n:,},)</td></tr>"
         )
-        r = self.resolution
         html.append(
-            f"<tr><td>Frequency</td><td>{escape(str(r.frequency))}</td></tr>"
+            f"<tr><td>Frequency</td><td>{escape(str(self.frequency))}</td></tr>"
         )
-        html.append(f"<tr><td>Timezone</td><td>{escape(r.timezone)}</td></tr>")
+        html.append(f"<tr><td>Timezone</td><td>{escape(self.timezone)}</td></tr>")
         if self.unit:
             html.append(f"<tr><td>Unit</td><td>{escape(self.unit)}</td></tr>")
         if self.data_type:
@@ -819,9 +825,10 @@ class TimeSeries(_TimeSeriesBase):
     def from_pandas(
         cls,
         df: pd.DataFrame,
-        resolution: Resolution | None = None,
+        frequency: Frequency | None = None,
         value_column: str | None = None,
         *,
+        timezone: str = "UTC",
         name: str | None = None,
         unit: str | None = None,
         description: str | None = None,
@@ -833,7 +840,7 @@ class TimeSeries(_TimeSeriesBase):
         """Create a TimeSeries from a pandas DataFrame.
 
         Supports DatetimeIndex (single-index) and MultiIndex (multi-index).
-        If *resolution* is ``None``, frequency and timezone are auto-inferred.
+        If *frequency* is ``None``, frequency and timezone are auto-inferred.
         """
         if isinstance(df.index, pd.MultiIndex):
             timestamps = [
@@ -861,16 +868,17 @@ class TimeSeries(_TimeSeriesBase):
         if name is None:
             name = str(col)
 
-        if resolution is None:
+        if frequency is None:
             if isinstance(df.index, pd.DatetimeIndex):
-                resolution = cls._infer_resolution(
-                    df, Resolution(Frequency.NONE)
+                frequency, timezone = cls._infer_freq_tz(
+                    df, Frequency.NONE, timezone
                 )
             else:
-                resolution = Resolution(Frequency.NONE)
+                frequency = Frequency.NONE
 
         return cls(
-            resolution,
+            frequency,
+            timezone=timezone,
             timestamps=timestamps,
             values=values,
             name=name,
@@ -887,10 +895,11 @@ class TimeSeries(_TimeSeriesBase):
     def from_polars(
         cls,
         df,
-        resolution: Resolution,
+        frequency: Frequency,
         timestamp_column: str = "timestamp",
         value_column: str | None = None,
         *,
+        timezone: str = "UTC",
         name: str | None = None,
         unit: str | None = None,
         description: str | None = None,
@@ -909,7 +918,8 @@ class TimeSeries(_TimeSeriesBase):
         if name is None:
             name = val_col
         return cls(
-            resolution,
+            frequency,
+            timezone=timezone,
             timestamps=timestamps,
             values=values,
             name=name,
@@ -955,11 +965,12 @@ class TimeSeries(_TimeSeriesBase):
         arr = df[col].to_numpy(dtype=np.float64, na_value=np.nan)
         values = self._from_float_array(arr)
 
-        new_resolution = (
-            self._infer_resolution(df, self.resolution)
-            if isinstance(df.index, pd.DatetimeIndex)
-            else self.resolution
-        )
+        if isinstance(df.index, pd.DatetimeIndex):
+            new_freq, new_tz = self._infer_freq_tz(
+                df, self.frequency, self.timezone
+            )
+        else:
+            new_freq, new_tz = self.frequency, self.timezone
         original_col = self.name or "value"
         new_name = str(col) if str(col) != original_col else self.name
 
@@ -967,11 +978,13 @@ class TimeSeries(_TimeSeriesBase):
             self._timestamps = timestamps
             self._values = values
             self._index_names = index_names
-            self.resolution = new_resolution
+            self.frequency = new_freq
+            self.timezone = new_tz
             self.name = new_name
             return None
         return TimeSeries(
-            new_resolution,
+            new_freq,
+            timezone=new_tz,
             timestamps=timestamps,
             values=values,
             name=new_name,
@@ -1010,8 +1023,9 @@ class TimeSeries(_TimeSeriesBase):
     def from_json(
         cls,
         s: str,
-        resolution: Resolution,
+        frequency: Frequency,
         *,
+        timezone: str = "UTC",
         name: str | None = None,
         unit: str | None = None,
         description: str | None = None,
@@ -1036,7 +1050,8 @@ class TimeSeries(_TimeSeriesBase):
         index_names = data.get("index_names")
 
         return cls(
-            resolution,
+            frequency,
+            timezone=timezone,
             timestamps=timestamps,
             values=values,
             name=name,
@@ -1069,8 +1084,9 @@ class TimeSeries(_TimeSeriesBase):
     def from_csv(
         cls,
         path: str | Path,
-        resolution: Resolution,
+        frequency: Frequency,
         *,
+        timezone: str = "UTC",
         name: str | None = None,
         unit: str | None = None,
         description: str | None = None,
@@ -1121,7 +1137,8 @@ class TimeSeries(_TimeSeriesBase):
             name = header[val_cols[0]]
 
         return cls(
-            resolution,
+            frequency,
+            timezone=timezone,
             timestamps=timestamps,
             values=rows,
             name=name,
@@ -1152,10 +1169,12 @@ class TimeSeries(_TimeSeriesBase):
         self,
         func: Callable[[pd.DataFrame], pd.DataFrame],
     ) -> TimeSeries:
-        """Apply a pandas transformation, preserving metadata and auto-detecting resolution."""
+        """Apply a pandas transformation, preserving metadata and auto-detecting frequency."""
         df = self.to_pandas_dataframe()
         result = func(df)
-        new_resolution = self._infer_resolution(result, self.resolution)
+        new_freq, new_tz = self._infer_freq_tz(
+            result, self.frequency, self.timezone
+        )
 
         original_col = self.name or "value"
         new_col = (
@@ -1186,7 +1205,8 @@ class TimeSeries(_TimeSeriesBase):
         values = self._from_float_array(arr)
 
         return TimeSeries(
-            new_resolution,
+            new_freq,
+            timezone=new_tz,
             timestamps=timestamps,
             values=values,
             name=new_name,
@@ -1203,7 +1223,7 @@ class TimeSeries(_TimeSeriesBase):
         self,
         func: Callable[[np.ndarray], np.ndarray],
     ) -> TimeSeries:
-        """Apply a numpy transformation to values, keeping timestamps and resolution unchanged."""
+        """Apply a numpy transformation to values, keeping timestamps and frequency unchanged."""
         arr = self.to_numpy()
         result = np.asarray(func(arr), dtype=np.float64)
         if result.shape[0] != len(self._timestamps):
@@ -1212,7 +1232,8 @@ class TimeSeries(_TimeSeriesBase):
                 f"series length ({len(self._timestamps)})"
             )
         return TimeSeries(
-            self.resolution,
+            self.frequency,
+            timezone=self.timezone,
             timestamps=list(self._timestamps),
             values=self._from_float_array(result),
             **self._meta_kwargs(),
@@ -1248,7 +1269,8 @@ class TimeSeries(_TimeSeriesBase):
         values = np.column_stack(arrays)
 
         return MultivariateTimeSeries(
-            series[0].resolution,
+            series[0].frequency,
+            timezone=series[0].timezone,
             timestamps=list(ref_ts),
             values=values,
             names=[s.name for s in series],
@@ -1268,7 +1290,8 @@ class TimeSeries(_TimeSeriesBase):
 
 @dataclass(slots=True, repr=False)
 class MultivariateTimeSeries(_TimeSeriesBase):
-    resolution: Resolution
+    frequency: Frequency
+    timezone: str = "UTC"
     names: list[str | None] = field(default_factory=lambda: [None])
     units: list[str | None] = field(default_factory=lambda: [None])
     descriptions: list[str | None] = field(default_factory=lambda: [None])
@@ -1288,8 +1311,9 @@ class MultivariateTimeSeries(_TimeSeriesBase):
 
     def __init__(
         self,
-        resolution: Resolution,
+        frequency: Frequency,
         *,
+        timezone: str = "UTC",
         timestamps: list[datetime] | list[tuple[datetime, ...]] | None = None,
         values: np.ndarray | list,
         names: list[str | None] | None = None,
@@ -1301,7 +1325,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         attributes: list[dict[str, str]] | None = None,
         index_names: list[str] | None = None,
     ) -> None:
-        self.resolution = resolution
+        self.frequency = frequency
+        self.timezone = timezone
         self._timestamps = timestamps or []
         self._values = np.asarray(values, dtype=np.float64)
         self._index_names = index_names
@@ -1398,7 +1423,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         self, timestamps, values
     ) -> MultivariateTimeSeries:
         return MultivariateTimeSeries(
-            self.resolution,
+            self.frequency,
+            timezone=self.timezone,
             timestamps=timestamps,
             values=values,
             **self._list_meta_kwargs(),
@@ -1425,7 +1451,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         values = self._from_float_array(arr)
 
         return TimeSeries(
-            self.resolution,
+            self.frequency,
+            timezone=self.timezone,
             timestamps=list(self._timestamps),
             values=values,
             name=self._get_attr(self.names, col),
@@ -1541,8 +1568,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         lines.append(f"{'Columns:':<{label_w}}{', '.join(cn)}")
         n = len(self._timestamps)
         lines.append(f"{'Shape:':<{label_w}}({n}, {self.n_columns})")
-        r = self.resolution
-        lines.append(f"{'Resolution:':<{label_w}}{r.frequency} ({r.timezone})")
+        lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
+        lines.append(f"{'Timezone:':<{label_w}}{self.timezone}")
 
         # Unit — show if any is set
         unit_vals = [self._get_attr(self.units, i) for i in range(self.n_columns)]
@@ -1617,13 +1644,12 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         html.append(
             f"<tr><td>Shape</td><td>({n:,}, {ncols})</td></tr>"
         )
-        r = self.resolution
         html.append(
             f"<tr><td>Frequency</td>"
-            f"<td>{escape(str(r.frequency))}</td></tr>"
+            f"<td>{escape(str(self.frequency))}</td></tr>"
         )
         html.append(
-            f"<tr><td>Timezone</td><td>{escape(r.timezone)}</td></tr>"
+            f"<tr><td>Timezone</td><td>{escape(self.timezone)}</td></tr>"
         )
         html.append("</table></div>")
 
@@ -1736,8 +1762,9 @@ class MultivariateTimeSeries(_TimeSeriesBase):
     def from_pandas(
         cls,
         df: pd.DataFrame,
-        resolution: Resolution | None = None,
+        frequency: Frequency | None = None,
         *,
+        timezone: str = "UTC",
         names: list[str | None] | None = None,
         units: list[str | None] | None = None,
         descriptions: list[str | None] | None = None,
@@ -1776,16 +1803,17 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         if names is None:
             names = [str(c) for c in cols]
 
-        if resolution is None:
+        if frequency is None:
             if isinstance(df.index, pd.DatetimeIndex):
-                resolution = cls._infer_resolution(
-                    df, Resolution(Frequency.NONE)
+                frequency, timezone = cls._infer_freq_tz(
+                    df, Frequency.NONE, timezone
                 )
             else:
-                resolution = Resolution(Frequency.NONE)
+                frequency = Frequency.NONE
 
         return cls(
-            resolution,
+            frequency,
+            timezone=timezone,
             timestamps=timestamps,
             values=values,
             names=names,
@@ -1822,8 +1850,9 @@ class MultivariateTimeSeries(_TimeSeriesBase):
     def from_json(
         cls,
         s: str,
-        resolution: Resolution,
+        frequency: Frequency,
         *,
+        timezone: str = "UTC",
         names: list[str | None] | None = None,
         units: list[str | None] | None = None,
         descriptions: list[str | None] | None = None,
@@ -1853,7 +1882,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
                 names = cn
 
         return cls(
-            resolution,
+            frequency,
+            timezone=timezone,
             timestamps=timestamps,
             values=values,
             names=names,
@@ -1887,8 +1917,9 @@ class MultivariateTimeSeries(_TimeSeriesBase):
     def from_csv(
         cls,
         path: str | Path,
-        resolution: Resolution,
+        frequency: Frequency,
         *,
+        timezone: str = "UTC",
         names: list[str | None] | None = None,
         units: list[str | None] | None = None,
         descriptions: list[str | None] | None = None,
@@ -1943,7 +1974,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
             names = [header[i] for i in val_cols]
 
         return cls(
-            resolution,
+            frequency,
+            timezone=timezone,
             timestamps=timestamps,
             values=values,
             names=names,
@@ -1974,10 +2006,12 @@ class MultivariateTimeSeries(_TimeSeriesBase):
         self,
         func: Callable[[pd.DataFrame], pd.DataFrame],
     ) -> MultivariateTimeSeries:
-        """Apply a pandas transformation, preserving metadata and auto-detecting resolution."""
+        """Apply a pandas transformation, preserving metadata and auto-detecting frequency."""
         df = self.to_pandas_dataframe()
         result = func(df)
-        new_resolution = self._infer_resolution(result, self.resolution)
+        new_freq, new_tz = self._infer_freq_tz(
+            result, self.frequency, self.timezone
+        )
 
         if isinstance(result.index, pd.MultiIndex):
             timestamps = [
@@ -2008,7 +2042,8 @@ class MultivariateTimeSeries(_TimeSeriesBase):
             return [default_factory()]
 
         return MultivariateTimeSeries(
-            new_resolution,
+            new_freq,
+            timezone=new_tz,
             timestamps=timestamps,
             values=values,
             names=new_names,
