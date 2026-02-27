@@ -1,10 +1,37 @@
 [project]
 name = "timedatamodel"
 version = "0.1.0"
-description = "Add your description here"
+description = "A lightweight data model for time series data with pandas, numpy, and polars support"
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = ["pint>=0.24", "shapely>=2.0", "numpy>=2.0", "pandas>=2.0"]
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "Rebase Energy", email = "sebastian@rebase.energy" }
+]
+keywords = ["time series", "data model", "pandas", "polars", "energy"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+  "Typing :: Typed",
+]
+dependencies = [
+  "pint>=0.24",
+  "shapely>=2.0",
+  "numpy>=2.0",
+  "pandas>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/rebase-energy/TimeDataModel"
+Repository = "https://github.com/rebase-energy/TimeDataModel"
+Issues = "https://github.com/rebase-energy/TimeDataModel/issues"
 
 [project.optional-dependencies]
 polars = ["polars>=1.0"]
