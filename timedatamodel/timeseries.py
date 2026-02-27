@@ -463,6 +463,16 @@ class TimeSeries(_TimeSeriesBase):
 
     # ---- numpy / pandas / polars -----------------------------------------
 
+    @property
+    def arr(self) -> np.ndarray:
+        """Shorthand for ``to_numpy()``."""
+        return self.to_numpy()
+
+    @property
+    def df(self) -> "pd.DataFrame":
+        """Shorthand for ``to_pandas_dataframe()``."""
+        return self.to_pandas_dataframe()
+
     def to_numpy(self) -> np.ndarray:
         """Return values as a 1D numpy float64 array (None -> nan)."""
         return self._to_float_array()
@@ -688,6 +698,34 @@ class TimeSeries(_TimeSeriesBase):
             timeseries_type=self.timeseries_type,
             attributes=self.attributes,
             index_names=index_names,
+        )
+
+    def update_df(
+        self,
+        df: "pd.DataFrame",
+        value_column: str | None = None,
+    ) -> TimeSeries:
+        """Shorthand for ``update_from_pandas(df)`` — always returns a new TimeSeries."""
+        return self.update_from_pandas(df, value_column)
+
+    def update_arr(self, arr: np.ndarray) -> TimeSeries:
+        """Create a new TimeSeries with *arr* as values, keeping timestamps and metadata."""
+        result = np.asarray(arr, dtype=np.float64)
+        if result.ndim != 1:
+            raise ValueError(
+                f"update_arr: expected 1D array, got {result.ndim}D"
+            )
+        if result.shape[0] != len(self._timestamps):
+            raise ValueError(
+                f"update_arr: array length ({result.shape[0]}) must match "
+                f"series length ({len(self._timestamps)})"
+            )
+        return TimeSeries(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=list(self._timestamps),
+            values=self._from_float_array(result),
+            **self._meta_kwargs(),
         )
 
     # ---- serialization I/O -----------------------------------------------
