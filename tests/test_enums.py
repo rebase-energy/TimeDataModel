@@ -1,4 +1,4 @@
-from timedatamodel import DataType, Frequency, StorageType
+from timedatamodel import DataType, Frequency, TimeSeriesType
 
 
 class TestFrequency:
@@ -33,10 +33,10 @@ class TestDataType:
         assert {dt.value for dt in DataType} == expected
 
 
-class TestStorageType:
+class TestTimeSeriesType:
     def test_membership(self):
-        assert StorageType.FLAT == "FLAT"
-        assert StorageType.OVERLAPPING == "OVERLAPPING"
+        assert TimeSeriesType.FLAT == "FLAT"
+        assert TimeSeriesType.OVERLAPPING == "OVERLAPPING"
 
     def test_string_comparison(self):
-        assert str(StorageType.FLAT) == "FLAT"
+        assert str(TimeSeriesType.FLAT) == "FLAT"

@@ -27,6 +27,6 @@ class DataType(StrEnum):
     ACTUAL = "ACTUAL"
 
 
-class StorageType(StrEnum):
+class TimeSeriesType(StrEnum):
     FLAT = "FLAT"
     OVERLAPPING = "OVERLAPPING"
