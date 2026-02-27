@@ -372,15 +372,30 @@ version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "numpy" },
-    { name = "pandas" },
-    { name = "pint" },
-    { name = "shapely" },
 ]
 
 [package.optional-dependencies]
+all = [
+    { name = "pandas" },
+    { name = "pint" },
+    { name = "polars" },
+    { name = "shapely" },
+]
 dev = [
+    { name = "pandas" },
+    { name = "pint" },
     { name = "polars" },
     { name = "pytest" },
+    { name = "shapely" },
+]
+geo = [
+    { name = "shapely" },
+]
+pandas = [
+    { name = "pandas" },
+]
+pint = [
+    { name = "pint" },
 ]
 polars = [
     { name = "polars" },
@@ -389,14 +404,21 @@ polars = [
 [package.metadata]
 requires-dist = [
     { name = "numpy", specifier = ">=2.0" },
-    { name = "pandas", specifier = ">=2.0" },
-    { name = "pint", specifier = ">=0.24" },
+    { name = "pandas", marker = "extra == 'all'", specifier = ">=2.0" },
+    { name = "pandas", marker = "extra == 'dev'", specifier = ">=2.0" },
+    { name = "pandas", marker = "extra == 'pandas'", specifier = ">=2.0" },
+    { name = "pint", marker = "extra == 'all'", specifier = ">=0.24" },
+    { name = "pint", marker = "extra == 'dev'", specifier = ">=0.24" },
+    { name = "pint", marker = "extra == 'pint'", specifier = ">=0.24" },
+    { name = "polars", marker = "extra == 'all'", specifier = ">=1.0" },
     { name = "polars", marker = "extra == 'dev'", specifier = ">=1.0" },
     { name = "polars", marker = "extra == 'polars'", specifier = ">=1.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-    { name = "shapely", specifier = ">=2.0" },
+    { name = "shapely", marker = "extra == 'all'", specifier = ">=2.0" },
+    { name = "shapely", marker = "extra == 'dev'", specifier = ">=2.0" },
+    { name = "shapely", marker = "extra == 'geo'", specifier = ">=2.0" },
 ]
-provides-extras = ["polars", "dev"]
+provides-extras = ["pandas", "pint", "geo", "polars", "all", "dev"]
 
 [[package]]
 name = "typing-extensions"

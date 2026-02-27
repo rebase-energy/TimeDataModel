@@ -393,6 +393,16 @@ class TimeSeriesTable(_TimeSeriesBase):
 
     # ---- numpy / pandas / polars -----------------------------------------
 
+    @property
+    def arr(self) -> np.ndarray:
+        """Shorthand for ``to_numpy()``."""
+        return self.to_numpy()
+
+    @property
+    def df(self) -> "pd.DataFrame":
+        """Shorthand for ``to_pandas_dataframe()``."""
+        return self.to_pandas_dataframe()
+
     def to_numpy(self) -> np.ndarray:
         """Return values as a 2D numpy float64 array."""
         return self._values.astype(np.float64, copy=True)
@@ -508,6 +518,73 @@ class TimeSeriesTable(_TimeSeriesBase):
             attributes=attributes,
             index_names=index_names,
         )
+
+    def update_df(self, df: "pd.DataFrame") -> TimeSeriesTable:
+        """Create a new TimeSeriesTable from a DataFrame, preserving metadata."""
+        pd = _import_pandas()
+        if isinstance(df.index, pd.MultiIndex):
+            timestamps = [
+                tuple(
+                    lvl.to_pydatetime()
+                    if hasattr(lvl, "to_pydatetime")
+                    else lvl
+                    for lvl in row
+                )
+                for row in df.index
+            ]
+            index_names = list(df.index.names)
+        elif isinstance(df.index, pd.DatetimeIndex):
+            timestamps = df.index.to_pydatetime().tolist()
+            index_names = None
+        else:
+            raise ValueError(
+                "DataFrame must have a DatetimeIndex or MultiIndex"
+            )
+
+        values = df.to_numpy(dtype=np.float64)
+        new_freq, new_tz = self._infer_freq_tz(
+            df, self.frequency, self.timezone
+        )
+        new_names = [str(c) for c in df.columns]
+        new_ncols = len(df.columns)
+
+        def _carry_over(attr, default_factory):
+            if len(attr) == 1 or len(attr) == new_ncols:
+                return list(attr)
+            return [default_factory()]
+
+        return TimeSeriesTable(
+            new_freq,
+            timezone=new_tz,
+            timestamps=timestamps,
+            values=values,
+            names=new_names,
+            units=_carry_over(self.units, lambda: None),
+            descriptions=_carry_over(self.descriptions, lambda: None),
+            data_types=_carry_over(self.data_types, lambda: None),
+            locations=_carry_over(self.locations, lambda: None),
+            timeseries_types=_carry_over(
+                self.timeseries_types, lambda: TimeSeriesType.FLAT
+            ),
+            attributes=_carry_over(self.attributes, dict),
+            index_names=index_names,
+        )
+
+    def update_arr(self, arr: np.ndarray) -> TimeSeriesTable:
+        """Create a new TimeSeriesTable with *arr* as values, keeping timestamps and metadata."""
+        result = np.asarray(arr, dtype=np.float64)
+        if result.ndim == 1:
+            result = result.reshape(-1, 1)
+        if result.ndim != 2:
+            raise ValueError(
+                f"update_arr: expected 1D or 2D array, got {result.ndim}D"
+            )
+        if result.shape[0] != len(self._timestamps):
+            raise ValueError(
+                f"update_arr: array rows ({result.shape[0]}) must match "
+                f"series length ({len(self._timestamps)})"
+            )
+        return self._clone_with(list(self._timestamps), result)
 
     # ---- serialization I/O -----------------------------------------------
 
