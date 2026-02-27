@@ -133,9 +133,75 @@ class TimeSeries(_TimeSeriesBase):
             index_names=self._index_names,
         )
 
-    # ---- equality --------------------------------------------------------
+    # ---- binary helpers --------------------------------------------------
 
-    def __eq__(self, other: object) -> bool:
+    def _validate_alignment(self, other: TimeSeries) -> None:
+        """Raise ValueError if timezone, frequency, or timestamps differ."""
+        if self.timezone != other.timezone:
+            raise ValueError(
+                f"timezone mismatch: {self.timezone!r} vs {other.timezone!r}"
+            )
+        if self.frequency != other.frequency:
+            raise ValueError(
+                f"frequency mismatch: {self.frequency} vs {other.frequency}"
+            )
+        if self._timestamps != other._timestamps:
+            raise ValueError("timestamps do not match")
+
+    def _convert_other_values(self, other: TimeSeries) -> np.ndarray:
+        """Return other's values as float64, converting units if needed."""
+        arr = other._to_float_array()
+        if self.unit and other.unit and self.unit != other.unit:
+            ureg = _get_pint_registry()
+            factor = ureg.Quantity(1, other.unit).to(self.unit).magnitude
+            arr = arr * factor
+        return arr
+
+    def _apply_binary(
+        self, other: TimeSeries, func: Callable[[np.ndarray, np.ndarray], np.ndarray]
+    ) -> TimeSeries:
+        """Element-wise binary op between two aligned TimeSeries."""
+        self._validate_alignment(other)
+        a = self._to_float_array()
+        b = self._convert_other_values(other)
+        result = func(a, b)
+        kwargs = self._meta_kwargs()
+        kwargs["name"] = None
+        return TimeSeries(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=list(self._timestamps),
+            values=self._from_float_array(result),
+            **kwargs,
+        )
+
+    def _apply_comparison(self, other, op) -> TimeSeries:
+        """Element-wise comparison returning TimeSeries of 1.0/0.0/NaN."""
+        if isinstance(other, TimeSeries):
+            self._validate_alignment(other)
+            a = self._to_float_array()
+            b = self._convert_other_values(other)
+        elif isinstance(other, (int, float)):
+            a = self._to_float_array()
+            b = np.full_like(a, other)
+        else:
+            return NotImplemented
+        nan_mask = np.isnan(a) | np.isnan(b)
+        result = np.where(op(a, b), 1.0, 0.0)
+        result[nan_mask] = np.nan
+        return TimeSeries(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=list(self._timestamps),
+            values=self._from_float_array(result),
+            name=None,
+            unit=None,
+        )
+
+    # ---- equality / comparison -------------------------------------------
+
+    def equals(self, other: object) -> bool:
+        """Full structural equality (all metadata + NaN-aware values)."""
         if not isinstance(other, TimeSeries):
             return NotImplemented
         if (
@@ -150,10 +216,35 @@ class TimeSeries(_TimeSeriesBase):
             or self._timestamps != other._timestamps
         ):
             return False
-        # NaN-aware value comparison
         a = self._to_float_array()
         b = other._to_float_array()
         return bool(np.array_equal(a, b, equal_nan=True))
+
+    def __eq__(self, other):
+        if isinstance(other, TimeSeries):
+            return self._apply_comparison(other, np.equal)
+        if isinstance(other, (int, float)):
+            return self._apply_comparison(other, np.equal)
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, TimeSeries):
+            return self._apply_comparison(other, np.not_equal)
+        if isinstance(other, (int, float)):
+            return self._apply_comparison(other, np.not_equal)
+        return NotImplemented
+
+    def __gt__(self, other):
+        return self._apply_comparison(other, np.greater)
+
+    def __ge__(self, other):
+        return self._apply_comparison(other, np.greater_equal)
+
+    def __lt__(self, other):
+        return self._apply_comparison(other, np.less)
+
+    def __le__(self, other):
+        return self._apply_comparison(other, np.less_equal)
 
     __hash__ = None
 
@@ -234,40 +325,59 @@ class TimeSeries(_TimeSeriesBase):
             **self._meta_kwargs(),
         )
 
-    def __add__(self, scalar: float) -> TimeSeries:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v + scalar)
+    def __add__(self, other) -> TimeSeries:
+        if isinstance(other, TimeSeries):
+            return self._apply_binary(other, lambda a, b: a + b)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: v + other)
+        return NotImplemented
 
-    def __radd__(self, scalar: float) -> TimeSeries:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: scalar + v)
+    def __radd__(self, other) -> TimeSeries:
+        if isinstance(other, TimeSeries):
+            return self._apply_binary(other, lambda a, b: b + a)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: other + v)
+        return NotImplemented
 
-    def __sub__(self, scalar: float) -> TimeSeries:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v - scalar)
+    def __sub__(self, other) -> TimeSeries:
+        if isinstance(other, TimeSeries):
+            return self._apply_binary(other, lambda a, b: a - b)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: v - other)
+        return NotImplemented
 
-    def __rsub__(self, scalar: float) -> TimeSeries:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: scalar - v)
+    def __rsub__(self, other) -> TimeSeries:
+        if isinstance(other, TimeSeries):
+            return self._apply_binary(other, lambda a, b: b - a)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: other - v)
+        return NotImplemented
 
-    def __mul__(self, scalar: float) -> TimeSeries:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v * scalar)
+    def __mul__(self, other) -> TimeSeries:
+        if isinstance(other, TimeSeries):
+            return self._apply_binary(other, lambda a, b: a * b)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: v * other)
+        return NotImplemented
 
-    def __rmul__(self, scalar: float) -> TimeSeries:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: scalar * v)
+    def __rmul__(self, other) -> TimeSeries:
+        if isinstance(other, TimeSeries):
+            return self._apply_binary(other, lambda a, b: b * a)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: other * v)
+        return NotImplemented
 
-    def __truediv__(self, scalar: float) -> TimeSeries:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v / scalar)
+    def __truediv__(self, other) -> TimeSeries:
+        if isinstance(other, TimeSeries):
+            return self._apply_binary(other, lambda a, b: a / b)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: v / other)
+        return NotImplemented
+
+    def __rtruediv__(self, other) -> TimeSeries:
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: other / v)
+        return NotImplemented
 
     def __neg__(self) -> TimeSeries:
         return self._apply_scalar(lambda v: -v)

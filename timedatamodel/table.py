@@ -165,7 +165,8 @@ class TimeSeriesTable(_TimeSeriesBase):
 
     # ---- equality --------------------------------------------------------
 
-    def __eq__(self, other: object) -> bool:
+    def equals(self, other: object) -> bool:
+        """Full structural equality (all metadata + NaN-aware values)."""
         if not isinstance(other, TimeSeriesTable):
             return NotImplemented
         if (
@@ -181,6 +182,11 @@ class TimeSeriesTable(_TimeSeriesBase):
         ):
             return False
         return bool(np.array_equal(self._values, other._values, equal_nan=True))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, TimeSeriesTable):
+            return NotImplemented
+        return self.equals(other)
 
     __hash__ = None
 

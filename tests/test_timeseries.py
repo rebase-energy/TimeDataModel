@@ -1519,28 +1519,28 @@ class TestJsonFullMetadata:
 class TestTimeSeriesEquality:
     def test_equal(self, sample_ts):
         copy = sample_ts.copy()
-        assert copy == sample_ts
+        assert copy.equals(sample_ts)
 
     def test_different_values(self, sample_ts):
         other = sample_ts + 1
-        assert other != sample_ts
+        assert not other.equals(sample_ts)
 
     def test_different_metadata(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts1 = TimeSeries(hourly_frequency, timestamps=[base], values=[1.0], name="a")
         ts2 = TimeSeries(hourly_frequency, timestamps=[base], values=[1.0], name="b")
-        assert ts1 != ts2
+        assert not ts1.equals(ts2)
 
     def test_nan_equality(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts1 = TimeSeries(hourly_frequency, timestamps=[base], values=[None])
         ts2 = TimeSeries(hourly_frequency, timestamps=[base], values=[None])
-        assert ts1 == ts2
+        assert ts1.equals(ts2)
 
     def test_empty_equal(self, hourly_frequency):
         ts1 = TimeSeries(hourly_frequency)
         ts2 = TimeSeries(hourly_frequency)
-        assert ts1 == ts2
+        assert ts1.equals(ts2)
 
     def test_not_hashable(self, sample_ts):
         with pytest.raises(TypeError):
@@ -1548,6 +1548,9 @@ class TestTimeSeriesEquality:
 
     def test_different_type_returns_not_implemented(self, sample_ts):
         assert sample_ts.__eq__("not a ts") is NotImplemented
+
+    def test_equals_non_timeseries_returns_not_implemented(self, sample_ts):
+        assert sample_ts.equals("not a ts") is NotImplemented
 
 
 class TestTimeSeriesTableEquality:
@@ -1567,9 +1570,17 @@ class TestTimeSeriesTableEquality:
         copy = sample_table.copy()
         assert copy == sample_table
 
+    def test_equals_method(self, sample_table):
+        copy = sample_table.copy()
+        assert copy.equals(sample_table)
+
     def test_different_values(self, sample_table):
         other = sample_table + 1
         assert other != sample_table
+
+    def test_different_values_equals(self, sample_table):
+        other = sample_table + 1
+        assert not other.equals(sample_table)
 
     def test_different_metadata(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
@@ -1599,3 +1610,250 @@ class TestTimeSeriesTableEquality:
 
     def test_different_type_returns_not_implemented(self, sample_table):
         assert sample_table.__eq__("not a table") is NotImplemented
+
+    def test_equals_non_table_returns_not_implemented(self, sample_table):
+        assert sample_table.equals("not a table") is NotImplemented
+
+
+class TestTimeSeriesArithmeticBinary:
+    @pytest.fixture
+    def ts_a(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(4)]
+        return TimeSeries(
+            hourly_frequency,
+            timestamps=timestamps,
+            values=[1.0, 2.0, 3.0, 4.0],
+            name="a",
+            unit="MW",
+        )
+
+    @pytest.fixture
+    def ts_b(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(4)]
+        return TimeSeries(
+            hourly_frequency,
+            timestamps=timestamps,
+            values=[10.0, 20.0, 30.0, 40.0],
+            name="b",
+            unit="MW",
+        )
+
+    def test_add(self, ts_a, ts_b):
+        result = ts_a + ts_b
+        assert result.values == [11.0, 22.0, 33.0, 44.0]
+        assert result.name is None
+
+    def test_sub(self, ts_a, ts_b):
+        result = ts_b - ts_a
+        assert result.values == [9.0, 18.0, 27.0, 36.0]
+
+    def test_mul(self, ts_a, ts_b):
+        result = ts_a * ts_b
+        assert result.values == [10.0, 40.0, 90.0, 160.0]
+
+    def test_truediv(self, ts_a, ts_b):
+        result = ts_b / ts_a
+        assert result.values == [10.0, 10.0, 10.0, 10.0]
+
+    def test_result_inherits_metadata(self, ts_a, ts_b):
+        result = ts_a + ts_b
+        assert result.frequency == ts_a.frequency
+        assert result.timezone == ts_a.timezone
+        assert result.unit == ts_a.unit
+        assert result.name is None
+
+    def test_timezone_mismatch(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(2)]
+        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], timezone="UTC")
+        b = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], timezone="CET")
+        with pytest.raises(ValueError, match="timezone mismatch"):
+            a + b
+
+    def test_frequency_mismatch(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(2)]
+        a = TimeSeries(Frequency.PT1H, timestamps=ts, values=[1.0, 2.0])
+        b = TimeSeries(Frequency.P1D, timestamps=ts, values=[1.0, 2.0])
+        with pytest.raises(ValueError, match="frequency mismatch"):
+            a + b
+
+    def test_timestamp_mismatch(self, hourly_frequency):
+        base_a = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        base_b = datetime(2024, 1, 2, tzinfo=timezone.utc)
+        a = TimeSeries(
+            hourly_frequency,
+            timestamps=[base_a, base_a + timedelta(hours=1)],
+            values=[1.0, 2.0],
+        )
+        b = TimeSeries(
+            hourly_frequency,
+            timestamps=[base_b, base_b + timedelta(hours=1)],
+            values=[1.0, 2.0],
+        )
+        with pytest.raises(ValueError, match="timestamps do not match"):
+            a + b
+
+    def test_unit_auto_conversion(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(2)]
+        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1000.0, 2000.0], unit="kW")
+        b = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
+        result = a + b
+        assert result.values[0] == pytest.approx(2000.0)
+        assert result.values[1] == pytest.approx(4000.0)
+        assert result.unit == "kW"
+
+    def test_incompatible_units(self, hourly_frequency):
+        import pint
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(2)]
+        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
+        b = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="m")
+        with pytest.raises(pint.errors.DimensionalityError):
+            a + b
+
+    def test_one_unit_none(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(2)]
+        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
+        b = TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0])
+        result = a + b
+        assert result.values == [11.0, 22.0]
+
+    def test_both_units_none(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(2)]
+        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0])
+        b = TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0])
+        result = a + b
+        assert result.values == [11.0, 22.0]
+
+    def test_nan_propagation(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(3)]
+        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, None, 3.0])
+        b = TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0, None])
+        result = a + b
+        assert result.values[0] == 11.0
+        assert result.values[1] is None
+        assert result.values[2] is None
+
+    def test_scalar_still_works(self, ts_a):
+        result = ts_a + 5
+        assert result.values == [6.0, 7.0, 8.0, 9.0]
+
+    def test_rtruediv_scalar(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(3)]
+        a = TimeSeries(hourly_frequency, timestamps=ts, values=[2.0, 5.0, 10.0])
+        result = 10 / a
+        assert result.values[0] == pytest.approx(5.0)
+        assert result.values[1] == pytest.approx(2.0)
+        assert result.values[2] == pytest.approx(1.0)
+
+    def test_unsupported_type_returns_not_implemented(self, ts_a):
+        assert ts_a.__add__("string") is NotImplemented
+        assert ts_a.__mul__("string") is NotImplemented
+        assert ts_a.__truediv__("string") is NotImplemented
+        assert ts_a.__rtruediv__("string") is NotImplemented
+
+
+class TestTimeSeriesComparison:
+    @pytest.fixture
+    def ts_a(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(4)]
+        return TimeSeries(
+            hourly_frequency,
+            timestamps=timestamps,
+            values=[1.0, 2.0, 3.0, 4.0],
+            name="a",
+            unit="MW",
+        )
+
+    @pytest.fixture
+    def ts_b(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(4)]
+        return TimeSeries(
+            hourly_frequency,
+            timestamps=timestamps,
+            values=[1.0, 3.0, 2.0, 4.0],
+            name="b",
+            unit="MW",
+        )
+
+    def test_eq_timeseries(self, ts_a, ts_b):
+        result = ts_a == ts_b
+        assert isinstance(result, TimeSeries)
+        assert result.values == [1.0, 0.0, 0.0, 1.0]
+        assert result.name is None
+        assert result.unit is None
+
+    def test_ne_timeseries(self, ts_a, ts_b):
+        result = ts_a != ts_b
+        assert isinstance(result, TimeSeries)
+        assert result.values == [0.0, 1.0, 1.0, 0.0]
+
+    def test_gt_scalar(self, ts_a):
+        result = ts_a > 2
+        assert isinstance(result, TimeSeries)
+        assert result.values == [0.0, 0.0, 1.0, 1.0]
+
+    def test_gt_timeseries(self, ts_a, ts_b):
+        result = ts_a > ts_b
+        assert result.values == [0.0, 0.0, 1.0, 0.0]
+
+    def test_ge_timeseries(self, ts_a, ts_b):
+        result = ts_a >= ts_b
+        assert result.values == [1.0, 0.0, 1.0, 1.0]
+
+    def test_lt_timeseries(self, ts_a, ts_b):
+        result = ts_a < ts_b
+        assert result.values == [0.0, 1.0, 0.0, 0.0]
+
+    def test_le_timeseries(self, ts_a, ts_b):
+        result = ts_a <= ts_b
+        assert result.values == [1.0, 1.0, 0.0, 1.0]
+
+    def test_comparison_nan_propagation(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(3)]
+        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, None, 3.0])
+        b = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0, None])
+        result = a == b
+        assert result.values[0] == 1.0
+        assert result.values[1] is None
+        assert result.values[2] is None
+
+    def test_comparison_alignment_check(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        a = TimeSeries(
+            hourly_frequency,
+            timestamps=[base],
+            values=[1.0],
+            timezone="UTC",
+        )
+        b = TimeSeries(
+            hourly_frequency,
+            timestamps=[base],
+            values=[1.0],
+            timezone="CET",
+        )
+        with pytest.raises(ValueError, match="timezone mismatch"):
+            a > b
+
+    def test_comparison_result_metadata(self, ts_a, ts_b):
+        result = ts_a > ts_b
+        assert result.name is None
+        assert result.unit is None
+        assert result.frequency == ts_a.frequency
+        assert result.timezone == ts_a.timezone
+
+    def test_eq_scalar(self, ts_a):
+        result = ts_a == 2.0
+        assert isinstance(result, TimeSeries)
+        assert result.values == [0.0, 1.0, 0.0, 0.0]
