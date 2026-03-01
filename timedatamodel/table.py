@@ -16,10 +16,17 @@ from ._base import (
     _build_repr_html,
     _convert_unit_values,
     _import_pandas,
+    _validate_timestamp_sequence,
 )
 from .coverage import CoverageBar
 from .enums import DataType, Frequency, TimeSeriesType
-from .location import GeoArea, GeoLocation, Location
+from .location import (
+    GeoArea,
+    GeoLocation,
+    Location,
+    _location_from_json,
+    _location_to_json,
+)
 
 
 @dataclass(slots=True, repr=False, eq=False)
@@ -70,6 +77,13 @@ class TimeSeriesTable(_TimeSeriesBase):
         if self._values.ndim != 2:
             raise ValueError(
                 f"values must be 1D or 2D, got {self._values.ndim}D"
+            )
+
+        _validate_timestamp_sequence(self._timestamps)
+        if len(self._timestamps) != self._values.shape[0]:
+            raise ValueError(
+                f"length mismatch: {len(self._timestamps)} timestamps "
+                f"vs {self._values.shape[0]} value rows"
             )
 
         ncols = self._values.shape[1]
@@ -876,6 +890,11 @@ class TimeSeriesTable(_TimeSeriesBase):
             payload["timeseries_types"] = [str(t) for t in self.timeseries_types]
         if any(a for a in self.attributes):
             payload["attributes"] = self.attributes
+        if any(l is not None for l in self.locations):
+            payload["locations"] = [
+                _location_to_json(loc) if loc is not None else None
+                for loc in self.locations
+            ]
         if self._index_names is not None:
             payload["index_names"] = self._index_names
         return json.dumps(payload)
@@ -927,6 +946,13 @@ class TimeSeriesTable(_TimeSeriesBase):
             units = data.get("units")
         if descriptions is None:
             descriptions = data.get("descriptions")
+        if locations is None:
+            raw_locations = data.get("locations")
+            if raw_locations is not None:
+                locations = [
+                    _location_from_json(loc) if loc is not None else None
+                    for loc in raw_locations
+                ]
         if data_types is None:
             raw_dt = data.get("data_types")
             if raw_dt:

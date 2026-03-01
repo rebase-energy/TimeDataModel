@@ -93,6 +93,41 @@ class TestConstruction:
         assert ts.timeseries_type == tdm.TimeSeriesType.FLAT
         assert ts.attributes == {}
 
+    def test_length_mismatch_raises(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        with pytest.raises(ValueError, match="length mismatch"):
+            tdm.TimeSeries(
+                hourly_frequency,
+                timestamps=[base, base + timedelta(hours=1)],
+                values=[1.0],
+            )
+
+    def test_invalid_timestamp_type_raises(self, hourly_frequency):
+        with pytest.raises(TypeError, match="timestamp at index 0"):
+            tdm.TimeSeries(
+                hourly_frequency,
+                timestamps=["2024-01-01T00:00:00+00:00"],  # type: ignore[list-item]
+                values=[1.0],
+            )
+
+    def test_table_length_mismatch_raises(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        with pytest.raises(ValueError, match="length mismatch"):
+            tdm.TimeSeriesTable(
+                hourly_frequency,
+                timestamps=[base],
+                values=np.array([[1.0], [2.0]]),
+            )
+
+    def test_table_mixed_timestamp_structure_raises(self, hourly_frequency):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        with pytest.raises(TypeError, match="homogeneous"):
+            tdm.TimeSeriesTable(
+                hourly_frequency,
+                timestamps=[base, (base, base + timedelta(hours=1))],  # type: ignore[list-item]
+                values=np.array([[1.0], [2.0]]),
+            )
+
 
 class TestSequenceProtocol:
     def test_len(self, sample_ts):
@@ -1392,6 +1427,7 @@ class TestToFloatArray:
 class TestJsonFullMetadata:
     def test_timeseries_full_round_trip(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        loc = tdm.GeoLocation(latitude=59.91, longitude=10.75)
         ts = tdm.TimeSeries(
             hourly_frequency,
             timezone="Europe/Berlin",
@@ -1401,6 +1437,7 @@ class TestJsonFullMetadata:
             unit="MW",
             description="Test series",
             data_type=tdm.DataType.ACTUAL,
+            location=loc,
             timeseries_type=tdm.TimeSeriesType.OVERLAPPING,
             attributes={"source": "test"},
         )
@@ -1412,6 +1449,7 @@ class TestJsonFullMetadata:
         assert ts2.unit == "MW"
         assert ts2.description == "Test series"
         assert ts2.data_type == tdm.DataType.ACTUAL
+        assert ts2.location == loc
         assert ts2.timeseries_type == tdm.TimeSeriesType.OVERLAPPING
         assert ts2.attributes == {"source": "test"}
         assert len(ts2) == 3
@@ -1458,6 +1496,8 @@ class TestJsonFullMetadata:
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         timestamps = [base + timedelta(hours=i) for i in range(3)]
         values = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
+        loc_a = tdm.GeoLocation(latitude=59.91, longitude=10.75)
+        loc_b = tdm.GeoLocation(latitude=57.70, longitude=11.97)
         tbl = tdm.TimeSeriesTable(
             hourly_frequency,
             timezone="Europe/Berlin",
@@ -1467,6 +1507,7 @@ class TestJsonFullMetadata:
             units=["MW", "°C"],
             descriptions=["Power output", "Ambient temp"],
             data_types=[tdm.DataType.ACTUAL, tdm.DataType.MEASUREMENT],
+            locations=[loc_a, loc_b],
             attributes=[{"source": "a"}, {"source": "b"}],
         )
         s = tbl.to_json()
@@ -1477,6 +1518,7 @@ class TestJsonFullMetadata:
         assert tbl2.units == ["MW", "°C"]
         assert tbl2.descriptions == ["Power output", "Ambient temp"]
         assert tbl2.data_types == [tdm.DataType.ACTUAL, tdm.DataType.MEASUREMENT]
+        assert tbl2.locations == [loc_a, loc_b]
         assert tbl2.attributes == [{"source": "a"}, {"source": "b"}]
         np.testing.assert_array_equal(tbl2.to_numpy(), values)
 
