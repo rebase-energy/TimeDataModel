@@ -1,0 +1,1068 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hierarchical Time Series &mdash; timedatamodel</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=bed8cb9f" />
+
+  
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            timedatamodel
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/getting_started.html">Getting Started with TimeDataModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/unit_handling_and_validation.html">Unit Handling and Validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/multivariate_timeseries.html">Multivariate Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/data_quality_and_coverage.html">Data Quality and Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/io_and_interoperability.html">I/O and Interoperability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/geographical_support.html">Geographical Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/hierarchical_timeseries.html">Hierarchical Time Series</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">timedatamodel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Hierarchical Time Series</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/_build/html/.doctrees/nbsphinx/tutorials/hierarchical_timeseries.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Hierarchical-Time-Series">
+<h1>Hierarchical Time Series<a class="headerlink" href="#Hierarchical-Time-Series" title="Link to this heading"></a></h1>
+<div class="line-block">
+<div class="line">Many real-world datasets are naturally organised as trees: a country’s electricity consumption breaks into regions, which break into cities.</div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries</span></code> lets you model that structure directly and <strong>aggregate bottom-up</strong> through the tree.</div>
+</div>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">HierarchyNode</span></code></p></td>
+<td><p>A single node — key, level, children, and an optional <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries</span></code></p></td>
+<td><p>The tree container — traversal, aggregation, conversion</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AggregationMethod</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SUM</span></code>, <code class="docutils literal notranslate"><span class="pre">MEAN</span></code>, <code class="docutils literal notranslate"><span class="pre">MIN</span></code>, <code class="docutils literal notranslate"><span class="pre">MAX</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
+
+<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Create-leaf-time-series">
+<h2>Create leaf time series<a class="headerlink" href="#Create-leaf-time-series" title="Link to this heading"></a></h2>
+<p>Each leaf in the hierarchy holds a <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code>. Here we model electricity consumption for five Norwegian cities.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">make_consumption</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">base_mw</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">:</span>
+    <span class="n">pattern</span> <span class="o">=</span> <span class="n">base_mw</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">24</span><span class="p">)))</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">base_mw</span> <span class="o">*</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+        <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;Europe/Oslo&quot;</span><span class="p">,</span>
+        <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="n">pattern</span> <span class="o">+</span> <span class="n">noise</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="n">ts_oslo</span> <span class="o">=</span> <span class="n">make_consumption</span><span class="p">(</span><span class="s2">&quot;Oslo&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+<span class="n">ts_bergen</span> <span class="o">=</span> <span class="n">make_consumption</span><span class="p">(</span><span class="s2">&quot;Bergen&quot;</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+<span class="n">ts_stavanger</span> <span class="o">=</span> <span class="n">make_consumption</span><span class="p">(</span><span class="s2">&quot;Stavanger&quot;</span><span class="p">,</span> <span class="mi">150</span><span class="p">)</span>
+<span class="n">ts_tromsoe</span> <span class="o">=</span> <span class="n">make_consumption</span><span class="p">(</span><span class="s2">&quot;Tromsø&quot;</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+<span class="n">ts_bodoe</span> <span class="o">=</span> <span class="n">make_consumption</span><span class="p">(</span><span class="s2">&quot;Bodø&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Building-a-hierarchy-with-HierarchyNode">
+<h2>Building a hierarchy with HierarchyNode<a class="headerlink" href="#Building-a-hierarchy-with-HierarchyNode" title="Link to this heading"></a></h2>
+<p>Construct the tree by nesting <code class="docutils literal notranslate"><span class="pre">HierarchyNode</span></code> objects. Leaves hold a <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code>; interior nodes have <code class="docutils literal notranslate"><span class="pre">children</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">root</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span>
+    <span class="n">key</span><span class="o">=</span><span class="s2">&quot;Norway&quot;</span><span class="p">,</span>
+    <span class="n">level</span><span class="o">=</span><span class="s2">&quot;country&quot;</span><span class="p">,</span>
+    <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span>
+            <span class="n">key</span><span class="o">=</span><span class="s2">&quot;South&quot;</span><span class="p">,</span>
+            <span class="n">level</span><span class="o">=</span><span class="s2">&quot;region&quot;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;Oslo&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;city&quot;</span><span class="p">,</span> <span class="n">timeseries</span><span class="o">=</span><span class="n">ts_oslo</span><span class="p">),</span>
+                <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;Bergen&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;city&quot;</span><span class="p">,</span> <span class="n">timeseries</span><span class="o">=</span><span class="n">ts_bergen</span><span class="p">),</span>
+                <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;Stavanger&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;city&quot;</span><span class="p">,</span> <span class="n">timeseries</span><span class="o">=</span><span class="n">ts_stavanger</span><span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span>
+            <span class="n">key</span><span class="o">=</span><span class="s2">&quot;North&quot;</span><span class="p">,</span>
+            <span class="n">level</span><span class="o">=</span><span class="s2">&quot;region&quot;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;Tromsø&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;city&quot;</span><span class="p">,</span> <span class="n">timeseries</span><span class="o">=</span><span class="n">ts_tromsoe</span><span class="p">),</span>
+                <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;Bodø&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;city&quot;</span><span class="p">,</span> <span class="n">timeseries</span><span class="o">=</span><span class="n">ts_bodoe</span><span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">hierarchy</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchicalTimeSeries</span><span class="p">(</span>
+    <span class="n">root</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Norway Consumption&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Hourly electricity consumption by city&quot;</span><span class="p">,</span>
+    <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">,</span> <span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">],</span>
+    <span class="n">aggregation</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">AggregationMethod</span><span class="o">.</span><span class="n">SUM</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">hierarchy</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.tsh-repr { font-family: monospace; font-size: 13px; max-width: 720px; }
+.tsh-repr .tsh-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.tsh-repr .tsh-meta { padding: 6px 10px; background: #fafafa; }
+.tsh-repr .tsh-meta table { border-collapse: collapse; }
+.tsh-repr .tsh-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.tsh-repr .tsh-meta td:first-child { color: #666; font-weight: 600; }
+.tsh-repr table.tsh-leaves { border-collapse: collapse; width: 100%; }
+.tsh-repr .tsh-leaves th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.tsh-repr .tsh-leaves td { padding: 2px 10px; }
+.tsh-repr .tsh-leaves tr:hover { background: #f5f5f5; }
+</style>
+<div class="tsh-repr">
+<div class="tsh-header">HierarchicalTimeSeries: Norway Consumption</div>
+<div class="tsh-meta"><table>
+<tr><td>Name</td><td>Norway Consumption</td></tr>
+<tr><td>Levels</td><td>country, region, city</td></tr>
+<tr><td>Nodes</td><td>8 (5 leaves)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>Europe/Oslo</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Aggregation</td><td>sum</td></tr>
+</table></div>
+<table class="tsh-leaves">
+<tr><th>name</th><th>level</th><th>length</th><th>begin</th><th>end</th></tr>
+<tr><td>Oslo</td><td>city</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Bergen</td><td>city</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Stavanger</td><td>city</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Tromsø</td><td>city</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Bodø</td><td>city</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+</table></div></div>
+</div>
+</section>
+<section id="Inspecting-the-tree">
+<h2>Inspecting the tree<a class="headerlink" href="#Inspecting-the-tree" title="Link to this heading"></a></h2>
+<p>Basic properties tell you the shape of the hierarchy.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name:     </span><span class="si">{</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Levels:   </span><span class="si">{</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">levels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# levels: </span><span class="si">{</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">n_levels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# nodes:  </span><span class="si">{</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">n_nodes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# leaves: </span><span class="si">{</span><span class="n">hierarchy</span><span class="o">.</span><span class="n">n_leaves</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Name:     Norway Consumption
+Levels:   [&#39;country&#39;, &#39;region&#39;, &#39;city&#39;]
+# levels: 3
+# nodes:  8
+# leaves: 5
+</pre></div></div>
+</div>
+</section>
+<section id="Navigating-the-tree">
+<h2>Navigating the tree<a class="headerlink" href="#Navigating-the-tree" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">get_node(*path)</span></code> walks by key. <code class="docutils literal notranslate"><span class="pre">get_level(name)</span></code> returns all nodes at a given level.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">south</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="s2">&quot;South&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Node:     </span><span class="si">{</span><span class="n">south</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Level:    </span><span class="si">{</span><span class="n">south</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Is leaf:  </span><span class="si">{</span><span class="n">south</span><span class="o">.</span><span class="n">is_leaf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Children: </span><span class="si">{</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">key</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">south</span><span class="o">.</span><span class="n">children</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Leaves:   </span><span class="si">{</span><span class="n">south</span><span class="o">.</span><span class="n">leaf_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Node:     South
+Level:    region
+Is leaf:  False
+Children: [&#39;Oslo&#39;, &#39;Bergen&#39;, &#39;Stavanger&#39;]
+Leaves:   3
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">oslo_node</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="s2">&quot;South&quot;</span><span class="p">,</span> <span class="s2">&quot;Oslo&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Node:       </span><span class="si">{</span><span class="n">oslo_node</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Is leaf:    </span><span class="si">{</span><span class="n">oslo_node</span><span class="o">.</span><span class="n">is_leaf</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has series: </span><span class="si">{</span><span class="n">oslo_node</span><span class="o">.</span><span class="n">timeseries</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Path:       </span><span class="si">{</span><span class="n">oslo_node</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Depth:      </span><span class="si">{</span><span class="n">oslo_node</span><span class="o">.</span><span class="n">depth</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Siblings:   </span><span class="si">{</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">key</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">oslo_node</span><span class="o">.</span><span class="n">siblings</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Node:       Oslo
+Is leaf:    True
+Has series: True
+Path:       [&#39;Norway&#39;, &#39;South&#39;, &#39;Oslo&#39;]
+Depth:      2
+Siblings:   [&#39;Bergen&#39;, &#39;Stavanger&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">city_nodes</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">get_level</span><span class="p">(</span><span class="s2">&quot;city&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;City-level nodes:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">city_nodes</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2"> — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">timeseries</span><span class="p">)</span><span class="si">}</span><span class="s2"> data points&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+City-level nodes:
+  Oslo — 24 data points
+  Bergen — 24 data points
+  Stavanger — 24 data points
+  Tromsø — 24 data points
+  Bodø — 24 data points
+</pre></div></div>
+</div>
+</section>
+<section id="Leaves-and-walking">
+<h2>Leaves and walking<a class="headerlink" href="#Leaves-and-walking" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">leaves()</span></code> returns all leaf nodes. <code class="docutils literal notranslate"><span class="pre">walk()</span></code> yields nodes in pre-order (default) or post-order.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;All leaves:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">leaves</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">leaf</span><span class="o">.</span><span class="n">key</span><span class="si">:</span><span class="s2">12s</span><span class="si">}</span><span class="s2">  path=</span><span class="si">{</span><span class="n">leaf</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+All leaves:
+  Oslo          path=[&#39;Norway&#39;, &#39;South&#39;, &#39;Oslo&#39;]
+  Bergen        path=[&#39;Norway&#39;, &#39;South&#39;, &#39;Bergen&#39;]
+  Stavanger     path=[&#39;Norway&#39;, &#39;South&#39;, &#39;Stavanger&#39;]
+  Tromsø        path=[&#39;Norway&#39;, &#39;North&#39;, &#39;Tromsø&#39;]
+  Bodø          path=[&#39;Norway&#39;, &#39;North&#39;, &#39;Bodø&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pre-order walk:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s2">&quot;pre&quot;</span><span class="p">):</span>
+    <span class="n">indent</span> <span class="o">=</span> <span class="s2">&quot;  &quot;</span> <span class="o">*</span> <span class="n">node</span><span class="o">.</span><span class="n">depth</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">]&quot;</span>
+    <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">timeseries</span><span class="p">)</span><span class="si">}</span><span class="s2"> pts&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">indent</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Pre-order walk:
+Norway [country]
+  South [region]
+    Oslo [city] — 24 pts
+    Bergen [city] — 24 pts
+    Stavanger [city] — 24 pts
+  North [region]
+    Tromsø [city] — 24 pts
+    Bodø [city] — 24 pts
+</pre></div></div>
+</div>
+</section>
+<section id="Bottom-up-aggregation">
+<h2>Bottom-up aggregation<a class="headerlink" href="#Bottom-up-aggregation" title="Link to this heading"></a></h2>
+<div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">aggregate()</span></code> recursively combines leaf series using the chosen method (default: <code class="docutils literal notranslate"><span class="pre">SUM</span></code>).</div>
+<div class="line">Calling it on the root gives the total for the whole hierarchy.</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">total</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name:   </span><span class="si">{</span><span class="n">total</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">total</span><span class="p">)</span><span class="si">}</span><span class="s2"> data points&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean:   </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">total</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Name:   Norway
+Length: 24 data points
+Mean:   979.5 MW
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">south_total</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">south</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;South region total — mean: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">south_total</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+
+<span class="n">north</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="s2">&quot;North&quot;</span><span class="p">)</span>
+<span class="n">north_total</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">north</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;North region total — mean: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">north_total</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+South region total — mean: 850.6 MW
+North region total — mean: 128.8 MW
+</pre></div></div>
+</div>
+</section>
+<section id="Level-wise-aggregation">
+<h2>Level-wise aggregation<a class="headerlink" href="#Level-wise-aggregation" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">aggregate_level(level)</span></code> aggregates every node at the named level, returning a dict.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">region_agg</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">aggregate_level</span><span class="p">(</span><span class="s2">&quot;region&quot;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">region_agg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">8s</span><span class="si">}</span><span class="s2">  mean=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2"> MW  max=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+South     mean=  850.6 MW  max= 1125.5 MW
+North     mean=  128.8 MW  max=  172.1 MW
+</pre></div></div>
+</div>
+</section>
+<section id="Choosing-an-aggregation-method">
+<h2>Choosing an aggregation method<a class="headerlink" href="#Choosing-an-aggregation-method" title="Link to this heading"></a></h2>
+<p>Override the default method by passing a different <code class="docutils literal notranslate"><span class="pre">AggregationMethod</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="n">tdm</span><span class="o">.</span><span class="n">AggregationMethod</span><span class="p">:</span>
+    <span class="n">agg</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">)</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">agg</span><span class="o">.</span><span class="n">arr</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">method</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">5s</span><span class="si">}</span><span class="s2">  mean=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2">  min=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2">  max=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+sum    mean=  979.5  min=  672.3  max= 1296.0
+mean   mean=  174.0  min=  119.5  max=  230.2
+min    mean=   49.5  min=   31.4  max=   67.9
+max    mean=  499.5  min=  326.4  max=  652.8
+</pre></div></div>
+</div>
+</section>
+<section id="Subtree-extraction">
+<h2>Subtree extraction<a class="headerlink" href="#Subtree-extraction" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">subtree(*path)</span></code> creates a new <code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries</span></code> rooted at the specified node.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">south_tree</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">subtree</span><span class="p">(</span><span class="s2">&quot;South&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">south_tree</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Levels: </span><span class="si">{</span><span class="n">south_tree</span><span class="o">.</span><span class="n">levels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Leaves: </span><span class="si">{</span><span class="n">south_tree</span><span class="o">.</span><span class="n">n_leaves</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+HierarchicalTimeSeries
+┌──────────────────────────────────────────────────────────┐
+│  Name:             Norway Consumption                    │
+│  Levels:           region, city                          │
+│  Nodes:            4 (3 leaves)                          │
+│  Frequency:        PT1H                                  │
+│  Timezone:         Europe/Oslo                           │
+│  Unit:             MW                                    │
+│  Aggregation:      sum                                   │
+├──────────────────────────────────────────────────────────┤
+│  name       level  length  begin       end               │
+├──────────────────────────────────────────────────────────┤
+│  Oslo       city   24      2024-01-15  2024-01-15 23:00  │
+│  Bergen     city   24      2024-01-15  2024-01-15 23:00  │
+│  Stavanger  city   24      2024-01-15  2024-01-15 23:00  │
+└──────────────────────────────────────────────────────────┘
+
+Levels: [&#39;region&#39;, &#39;city&#39;]
+Leaves: 3
+</pre></div></div>
+</div>
+</section>
+<section id="Converting-to-other-containers">
+<h2>Converting to other containers<a class="headerlink" href="#Converting-to-other-containers" title="Link to this heading"></a></h2>
+<p>Flatten the hierarchy into a <code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code> or <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">collection</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">to_collection</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Leaf-level collection: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">collection</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Leaf-level collection: [&#39;Oslo&#39;, &#39;Bergen&#39;, &#39;Stavanger&#39;, &#39;Tromsø&#39;, &#39;Bodø&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">collection_regions</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">to_collection</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;region&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Region-level collection (aggregated):&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">collection_regions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="si">}</span><span class="s2"> pts, mean=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Region-level collection (aggregated):
+  South: 24 pts, mean=850.6 MW
+  North: 24 pts, mean=128.8 MW
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Table shape: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="p">)</span><span class="si">}</span><span class="s2"> rows × </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">n_columns</span><span class="si">}</span><span class="s2"> columns&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns: </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">table</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Table shape: 24 rows × 5 columns
+Columns: [&#39;Oslo&#39;, &#39;Bergen&#39;, &#39;Stavanger&#39;, &#39;Tromsø&#39;, &#39;Bodø&#39;]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
+.ts-repr .ts-meta table { border-collapse: collapse; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; width: 100%; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Columns</td><td>Oslo, Bergen, Stavanger, Tromsø, Bodø</td></tr>
+<tr><td>Shape</td><td>(24, 5)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>Europe/Oslo</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th>timestamp</th><th>Oslo</th><th>Bergen</th><th>Stavanger</th><th>Tromsø</th><th>Bodø</th></tr>
+<tr><td>2024-01-15 00:00:00+00:00</td><td>507.618</td><td>195.717</td><td>155.092</td><td>76.3222</td><td>46.6933</td></tr>
+<tr><td>2024-01-15 01:00:00+00:00</td><td>514.47</td><td>212.666</td><td>162.648</td><td>88.4638</td><td>51.5538</td></tr>
+<tr><td>2024-01-15 02:00:00+00:00</td><td>596.699</td><td>236.498</td><td>175.55</td><td>93.0397</td><td>58.7932</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00:00+00:00</td><td>405.039</td><td>171.012</td><td>125.184</td><td>67.2111</td><td>42.2609</td></tr>
+<tr><td>2024-01-15 22:00:00+00:00</td><td>490.094</td><td>192.526</td><td>128.291</td><td>66.7755</td><td>49.9575</td></tr>
+<tr><td>2024-01-15 23:00:00+00:00</td><td>496.137</td><td>202.236</td><td>141.5</td><td>74.2116</td><td>49.4016</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="Building-from-a-DataFrame">
+<h2>Building from a DataFrame<a class="headerlink" href="#Building-from-a-DataFrame" title="Link to this heading"></a></h2>
+<div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">from_dataframe</span></code> builds the tree from a long-format DataFrame with hierarchy columns.</div>
+<div class="line">Each unique combination of level columns becomes a leaf.</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">ts_dt</span> <span class="ow">in</span> <span class="n">timestamps</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">region</span><span class="p">,</span> <span class="n">cities</span> <span class="ow">in</span> <span class="p">[(</span><span class="s2">&quot;South&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Oslo&quot;</span><span class="p">,</span> <span class="s2">&quot;Bergen&quot;</span><span class="p">]),</span> <span class="p">(</span><span class="s2">&quot;North&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Tromsø&quot;</span><span class="p">,</span> <span class="s2">&quot;Bodø&quot;</span><span class="p">])]:</span>
+        <span class="k">for</span> <span class="n">city</span> <span class="ow">in</span> <span class="n">cities</span><span class="p">:</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">ts_dt</span><span class="p">,</span>
+                <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="n">region</span><span class="p">,</span>
+                <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="n">city</span><span class="p">,</span>
+                <span class="s2">&quot;consumption_mw&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">30</span><span class="p">)),</span>
+            <span class="p">})</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DataFrame shape: </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+DataFrame shape: (96, 4)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>timestamp</th>
+      <th>region</th>
+      <th>city</th>
+      <th>consumption_mw</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2024-01-15 00:00:00+00:00</td>
+      <td>South</td>
+      <td>Oslo</td>
+      <td>169.295075</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2024-01-15 00:00:00+00:00</td>
+      <td>South</td>
+      <td>Bergen</td>
+      <td>205.378269</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2024-01-15 00:00:00+00:00</td>
+      <td>North</td>
+      <td>Tromsø</td>
+      <td>206.599901</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2024-01-15 00:00:00+00:00</td>
+      <td>North</td>
+      <td>Bodø</td>
+      <td>240.775627</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2024-01-15 01:00:00+00:00</td>
+      <td>South</td>
+      <td>Oslo</td>
+      <td>225.053337</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2024-01-15 01:00:00+00:00</td>
+      <td>South</td>
+      <td>Bergen</td>
+      <td>210.706132</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>2024-01-15 01:00:00+00:00</td>
+      <td>North</td>
+      <td>Tromsø</td>
+      <td>243.899087</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>2024-01-15 01:00:00+00:00</td>
+      <td>North</td>
+      <td>Bodø</td>
+      <td>164.337108</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">h_from_df</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchicalTimeSeries</span><span class="o">.</span><span class="n">from_dataframe</span><span class="p">(</span>
+    <span class="n">df</span><span class="p">,</span>
+    <span class="n">level_columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">],</span>
+    <span class="n">value_column</span><span class="o">=</span><span class="s2">&quot;consumption_mw&quot;</span><span class="p">,</span>
+    <span class="n">timestamp_column</span><span class="o">=</span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Consumption from DataFrame&quot;</span><span class="p">,</span>
+    <span class="n">frequency</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;Europe/Oslo&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">h_from_df</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.tsh-repr { font-family: monospace; font-size: 13px; max-width: 720px; }
+.tsh-repr .tsh-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.tsh-repr .tsh-meta { padding: 6px 10px; background: #fafafa; }
+.tsh-repr .tsh-meta table { border-collapse: collapse; }
+.tsh-repr .tsh-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.tsh-repr .tsh-meta td:first-child { color: #666; font-weight: 600; }
+.tsh-repr table.tsh-leaves { border-collapse: collapse; width: 100%; }
+.tsh-repr .tsh-leaves th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.tsh-repr .tsh-leaves td { padding: 2px 10px; }
+.tsh-repr .tsh-leaves tr:hover { background: #f5f5f5; }
+</style>
+<div class="tsh-repr">
+<div class="tsh-header">HierarchicalTimeSeries: Consumption from DataFrame</div>
+<div class="tsh-meta"><table>
+<tr><td>Name</td><td>Consumption from DataFrame</td></tr>
+<tr><td>Levels</td><td>root, region, city</td></tr>
+<tr><td>Nodes</td><td>7 (4 leaves)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>Europe/Oslo</td></tr>
+<tr><td>Aggregation</td><td>sum</td></tr>
+</table></div>
+<table class="tsh-leaves">
+<tr><th>name</th><th>level</th><th>length</th><th>begin</th><th>end</th></tr>
+<tr><td>Bodø</td><td>city</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Tromsø</td><td>city</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Bergen</td><td>city</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Oslo</td><td>city</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+</table></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">total_df</span> <span class="o">=</span> <span class="n">h_from_df</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total from DataFrame hierarchy: mean=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">total_df</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Total from DataFrame hierarchy: mean=797.6 MW
+</pre></div></div>
+</div>
+</section>
+<section id="Another-example:-energy-production-by-source">
+<h2>Another example: energy production by source<a class="headerlink" href="#Another-example:-energy-production-by-source" title="Link to this heading"></a></h2>
+<p>Hierarchies can model any tree-shaped relationship — here, power production broken down by energy source.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">energy_root</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span>
+    <span class="n">key</span><span class="o">=</span><span class="s2">&quot;Total&quot;</span><span class="p">,</span>
+    <span class="n">level</span><span class="o">=</span><span class="s2">&quot;total&quot;</span><span class="p">,</span>
+    <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span>
+            <span class="n">key</span><span class="o">=</span><span class="s2">&quot;Wind&quot;</span><span class="p">,</span>
+            <span class="n">level</span><span class="o">=</span><span class="s2">&quot;source&quot;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;Farm A&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;farm&quot;</span><span class="p">,</span> <span class="n">timeseries</span><span class="o">=</span><span class="n">make_consumption</span><span class="p">(</span><span class="s2">&quot;Farm A&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)),</span>
+                <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;Farm B&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;farm&quot;</span><span class="p">,</span> <span class="n">timeseries</span><span class="o">=</span><span class="n">make_consumption</span><span class="p">(</span><span class="s2">&quot;Farm B&quot;</span><span class="p">,</span> <span class="mi">80</span><span class="p">)),</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span>
+            <span class="n">key</span><span class="o">=</span><span class="s2">&quot;Solar&quot;</span><span class="p">,</span>
+            <span class="n">level</span><span class="o">=</span><span class="s2">&quot;source&quot;</span><span class="p">,</span>
+            <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchyNode</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s2">&quot;Plant X&quot;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;farm&quot;</span><span class="p">,</span> <span class="n">timeseries</span><span class="o">=</span><span class="n">make_consumption</span><span class="p">(</span><span class="s2">&quot;Plant X&quot;</span><span class="p">,</span> <span class="mi">60</span><span class="p">)),</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+
+<span class="n">energy</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">HierarchicalTimeSeries</span><span class="p">(</span>
+    <span class="n">energy_root</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Energy Production&quot;</span><span class="p">,</span>
+    <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;total&quot;</span><span class="p">,</span> <span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="s2">&quot;farm&quot;</span><span class="p">],</span>
+    <span class="n">aggregation</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">AggregationMethod</span><span class="o">.</span><span class="n">SUM</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">energy</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.tsh-repr { font-family: monospace; font-size: 13px; max-width: 720px; }
+.tsh-repr .tsh-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.tsh-repr .tsh-meta { padding: 6px 10px; background: #fafafa; }
+.tsh-repr .tsh-meta table { border-collapse: collapse; }
+.tsh-repr .tsh-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.tsh-repr .tsh-meta td:first-child { color: #666; font-weight: 600; }
+.tsh-repr table.tsh-leaves { border-collapse: collapse; width: 100%; }
+.tsh-repr .tsh-leaves th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.tsh-repr .tsh-leaves td { padding: 2px 10px; }
+.tsh-repr .tsh-leaves tr:hover { background: #f5f5f5; }
+</style>
+<div class="tsh-repr">
+<div class="tsh-header">HierarchicalTimeSeries: Energy Production</div>
+<div class="tsh-meta"><table>
+<tr><td>Name</td><td>Energy Production</td></tr>
+<tr><td>Levels</td><td>total, source, farm</td></tr>
+<tr><td>Nodes</td><td>6 (3 leaves)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>Europe/Oslo</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Aggregation</td><td>sum</td></tr>
+</table></div>
+<table class="tsh-leaves">
+<tr><th>name</th><th>level</th><th>length</th><th>begin</th><th>end</th></tr>
+<tr><td>Farm A</td><td>farm</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Farm B</td><td>farm</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Plant X</td><td>farm</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
+</table></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">source_agg</span> <span class="o">=</span> <span class="n">energy</span><span class="o">.</span><span class="n">aggregate_level</span><span class="p">(</span><span class="s2">&quot;source&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">source_agg</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">8s</span><span class="si">}</span><span class="s2">  mean=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Wind      mean=179.2 MW
+Solar     mean=60.5 MW
+</pre></div></div>
+</div>
+</section>
+<section id="Sequence-protocol">
+<h2>Sequence protocol<a class="headerlink" href="#Sequence-protocol" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries</span></code> supports <code class="docutils literal notranslate"><span class="pre">len</span></code>, <code class="docutils literal notranslate"><span class="pre">in</span></code>, and bracket indexing with slash-separated paths.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total nodes:        </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hierarchy</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;Oslo&#39; in tree:     </span><span class="si">{</span><span class="s1">&#39;Oslo&#39;</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">hierarchy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;Helsinki&#39; in tree: </span><span class="si">{</span><span class="s1">&#39;Helsinki&#39;</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">hierarchy</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">node</span> <span class="o">=</span> <span class="n">hierarchy</span><span class="p">[</span><span class="s2">&quot;South/Oslo&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Bracket access:     </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2"> (leaf=</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Total nodes:        8
+&#39;Oslo&#39; in tree:     True
+&#39;Helsinki&#39; in tree: False
+
+Bracket access:     Oslo (leaf=True)
+</pre></div></div>
+</div>
+</section>
+<section id="Summary">
+<h2>Summary<a class="headerlink" href="#Summary" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>API</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Build manually</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HierarchyNode(key,</span> <span class="pre">level,</span> <span class="pre">children,</span> <span class="pre">timeseries)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Build from DataFrame</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.from_dataframe(df,</span> <span class="pre">level_columns,</span> <span class="pre">value_column)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Build from dict</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.from_dict(tree,</span> <span class="pre">series_map,</span> <span class="pre">levels=...)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Navigate</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">get_node(*path)</span></code>, <code class="docutils literal notranslate"><span class="pre">get_level(name)</span></code>, <code class="docutils literal notranslate"><span class="pre">leaves()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Walk</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">walk(order=&quot;pre&quot;)</span></code> / <code class="docutils literal notranslate"><span class="pre">walk(order=&quot;post&quot;)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Aggregate</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">aggregate(node,</span> <span class="pre">method)</span></code> — bottom-up recursion</p></td>
+</tr>
+<tr class="row-even"><td><p>Level aggregate</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">aggregate_level(level)</span></code> → <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">TimeSeries]</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Subtree</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">subtree(*path)</span></code> → new <code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Convert</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">to_collection(level)</span></code>, <code class="docutils literal notranslate"><span class="pre">to_table(level)</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Sequence ops</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">len(h)</span></code>, <code class="docutils literal notranslate"><span class="pre">key</span> <span class="pre">in</span> <span class="pre">h</span></code>, <code class="docutils literal notranslate"><span class="pre">h[&quot;path/to/node&quot;]</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Rebase Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,8 +1,13 @@
 # API Reference
 
-## Core
+## DataPoint
 
-### TimeSeries
+```{eval-rst}
+.. autoclass:: timedatamodel.DataPoint
+   :members:
+```
+
+## TimeSeries
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.TimeSeries
@@ -10,7 +15,7 @@
    :show-inheritance:
 ```
 
-### TimeSeriesTable
+## TimeSeriesTable
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.TimeSeriesTable
@@ -18,7 +23,7 @@
    :show-inheritance:
 ```
 
-### TimeSeriesCube
+## TimeSeriesCube
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.TimeSeriesCube
@@ -26,23 +31,21 @@
    :show-inheritance:
 ```
 
-### Dimension
+## Dimension
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.Dimension
    :members:
 ```
 
-### TimeSeriesCollection
+## TimeSeriesCollection
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.TimeSeriesCollection
    :members:
 ```
 
-## Enums
-
-### Frequency
+## Frequency
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.Frequency
@@ -50,7 +53,7 @@
    :undoc-members:
 ```
 
-### DataType
+## DataType
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.DataType
@@ -58,7 +61,7 @@
    :undoc-members:
 ```
 
-### TimeSeriesType
+## TimeSeriesType
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.TimeSeriesType
@@ -66,27 +69,21 @@
    :undoc-members:
 ```
 
-## Location
-
-### GeoLocation
+## GeoLocation
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.GeoLocation
    :members:
 ```
 
-### GeoArea
+## GeoArea
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.GeoArea
    :members:
 ```
 
-`Location` is a type alias: `GeoLocation | GeoArea`.
-
-## Hierarchy
-
-### AggregationMethod
+## AggregationMethod
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.AggregationMethod
@@ -94,40 +91,24 @@
    :undoc-members:
 ```
 
-### HierarchyNode
+## HierarchyNode
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.HierarchyNode
    :members:
 ```
 
-### HierarchyTree
+## HierarchyTree
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.HierarchyTree
    :members:
 ```
 
-### HierarchicalTimeSeries
+## HierarchicalTimeSeries
 
 ```{eval-rst}
 .. autoclass:: timedatamodel.HierarchicalTimeSeries
    :members:
    :show-inheritance:
-```
-
-## Primitives
-
-### DataPoint
-
-```{eval-rst}
-.. autoclass:: timedatamodel.DataPoint
-   :members:
-```
-
-### CoverageBar
-
-```{eval-rst}
-.. autoclass:: timedatamodel.CoverageBar
-   :members:
 ```

@@ -11,38 +11,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 1,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:12.838686Z",
-     "iopub.status.busy": "2026-03-01T12:49:12.838525Z",
-     "iopub.status.idle": "2026-03-01T12:49:12.873480Z",
-     "shell.execute_reply": "2026-03-01T12:49:12.872926Z"
-    }
-   },
+   "execution_count": null,
+   "metadata": {},
    "outputs": [],
-   "source": [
-    "from datetime import datetime, timedelta, timezone\n",
-    "\n",
-    "import numpy as np\n",
-    "\n",
-    "import timedatamodel as tdm\n",
-    "\n",
-    "base = datetime(2024, 1, 15, tzinfo=timezone.utc)\n",
-    "timestamps = [base + timedelta(hours=i) for i in range(24)]\n",
-    "values = [100.0 + 50 * np.sin(2 * np.pi * i / 24) for i in range(24)]\n",
-    "\n",
-    "ts = tdm.TimeSeries(\n",
-    "    tdm.Frequency.PT1H,\n",
-    "    timezone=\"UTC\",\n",
-    "    timestamps=timestamps,\n",
-    "    values=values,\n",
-    "    name=\"power\",\n",
-    "    unit=\"MW\",\n",
-    "    description=\"Synthetic daily power curve\",\n",
-    "    data_type=tdm.DataType.SYNTHETIC,\n",
-    ")"
-   ]
+   "source": "from datetime import datetime, timedelta, timezone\n\nimport numpy as np\n\nimport timedatamodel as tdm\n\nbase = datetime(2024, 1, 15, tzinfo=timezone.utc)\ntimestamps = [base + timedelta(hours=i) for i in range(24)]\nvalues = [100.0 + 50 * np.sin(2 * np.pi * i / 24) for i in range(24)]\n\nts = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=values,\n    name=\"power\",\n    unit=\"MW\",\n    description=\"Synthetic daily power curve\",\n    data_type=tdm.DataType.SYNTHETIC,\n)"
   },
   {
    "cell_type": "markdown",
@@ -55,27 +27,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:12.874750Z",
-     "iopub.status.busy": "2026-03-01T12:49:12.874639Z",
-     "iopub.status.idle": "2026-03-01T12:49:12.876632Z",
-     "shell.execute_reply": "2026-03-01T12:49:12.876385Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Type:  <class 'numpy.ndarray'>\n",
-      "Shape: (24,)\n",
-      "Mean:  100.00 MW\n",
-      "Max:   150.00 MW\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "arr = ts.to_numpy()\n",
     "print(f\"Type:  {type(arr)}\")\n",
@@ -95,84 +49,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:12.892297Z",
-     "iopub.status.busy": "2026-03-01T12:49:12.892198Z",
-     "iopub.status.idle": "2026-03-01T12:49:12.978118Z",
-     "shell.execute_reply": "2026-03-01T12:49:12.977661Z"
-    }
-   },
-   "outputs": [
-    {
-     "data": {
-      "text/html": [
-       "<div>\n",
-       "<style scoped>\n",
-       "    .dataframe tbody tr th:only-of-type {\n",
-       "        vertical-align: middle;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe tbody tr th {\n",
-       "        vertical-align: top;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe thead th {\n",
-       "        text-align: right;\n",
-       "    }\n",
-       "</style>\n",
-       "<table border=\"1\" class=\"dataframe\">\n",
-       "  <thead>\n",
-       "    <tr style=\"text-align: right;\">\n",
-       "      <th></th>\n",
-       "      <th>power</th>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>timestamp</th>\n",
-       "      <th></th>\n",
-       "    </tr>\n",
-       "  </thead>\n",
-       "  <tbody>\n",
-       "    <tr>\n",
-       "      <th>2024-01-15 00:00:00+00:00</th>\n",
-       "      <td>100.000000</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2024-01-15 01:00:00+00:00</th>\n",
-       "      <td>112.940952</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2024-01-15 02:00:00+00:00</th>\n",
-       "      <td>125.000000</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2024-01-15 03:00:00+00:00</th>\n",
-       "      <td>135.355339</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2024-01-15 04:00:00+00:00</th>\n",
-       "      <td>143.301270</td>\n",
-       "    </tr>\n",
-       "  </tbody>\n",
-       "</table>\n",
-       "</div>"
-      ],
-      "text/plain": [
-       "                                power\n",
-       "timestamp                            \n",
-       "2024-01-15 00:00:00+00:00  100.000000\n",
-       "2024-01-15 01:00:00+00:00  112.940952\n",
-       "2024-01-15 02:00:00+00:00  125.000000\n",
-       "2024-01-15 03:00:00+00:00  135.355339\n",
-       "2024-01-15 04:00:00+00:00  143.301270"
-      ]
-     },
-     "execution_count": 3,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "df = ts.to_pandas_dataframe()\n",
     "df.head()"
@@ -189,99 +68,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:12.979178Z",
-     "iopub.status.busy": "2026-03-01T12:49:12.979097Z",
-     "iopub.status.idle": "2026-03-01T12:49:12.983635Z",
-     "shell.execute_reply": "2026-03-01T12:49:12.983292Z"
-    }
-   },
-   "outputs": [
-    {
-     "data": {
-      "text/html": [
-       "<style>\n",
-       ".ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }\n",
-       ".ts-repr .ts-header {\n",
-       "  font-weight: bold; font-size: 14px;\n",
-       "  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;\n",
-       "  background: #f0f0f0; color: #1a1a1a;\n",
-       "}\n",
-       ".ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }\n",
-       ".ts-repr .ts-meta table { border-collapse: collapse; }\n",
-       ".ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }\n",
-       ".ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }\n",
-       ".ts-repr .ts-data { padding: 6px 10px; }\n",
-       ".ts-repr .ts-data table {\n",
-       "  border-collapse: collapse; width: 100%; text-align: right;\n",
-       "}\n",
-       ".ts-repr .ts-data th {\n",
-       "  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;\n",
-       "  color: #555; font-weight: 600;\n",
-       "}\n",
-       ".ts-repr .ts-data td { padding: 2px 10px; }\n",
-       ".ts-repr .ts-data tr:hover { background: #f5f5f5; }\n",
-       ".ts-repr .ts-data td:first-child { text-align: left; color: #333; }\n",
-       ".ts-repr .ts-ellipsis { text-align: center !important; color: #999; }\n",
-       "</style>\n",
-       "<div class=\"ts-repr\">\n",
-       "<div class=\"ts-header\">TimeSeries</div>\n",
-       "<div class=\"ts-meta\"><table>\n",
-       "<tr><td>Columns</td><td>load</td></tr>\n",
-       "<tr><td>Shape</td><td>(48,)</td></tr>\n",
-       "<tr><td>Frequency</td><td>PT1H</td></tr>\n",
-       "<tr><td>Timezone</td><td>UTC</td></tr>\n",
-       "<tr><td>Unit</td><td>MW</td></tr>\n",
-       "<tr><td>Data type</td><td>MEASUREMENT</td></tr>\n",
-       "</table></div>\n",
-       "<div class=\"ts-data\"><table>\n",
-       "<tr><th>timestamp</th><th>load</th></tr>\n",
-       "<tr><td>2024-06-01 00:00:00+00:00</td><td>156.094</td></tr>\n",
-       "<tr><td>2024-06-01 01:00:00+00:00</td><td>129.2</td></tr>\n",
-       "<tr><td>2024-06-01 02:00:00+00:00</td><td>165.009</td></tr>\n",
-       "<tr><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td></tr>\n",
-       "<tr><td>2024-06-02 21:00:00+00:00</td><td>154.374</td></tr>\n",
-       "<tr><td>2024-06-02 22:00:00+00:00</td><td>167.429</td></tr>\n",
-       "<tr><td>2024-06-02 23:00:00+00:00</td><td>154.472</td></tr>\n",
-       "</table></div>\n",
-       "</div>"
-      ],
-      "text/plain": [
-       "TimeSeries\n",
-       "┌──────────────────────────────────────┐\n",
-       "│  Columns:          load              │\n",
-       "│  Shape:            (48,)             │\n",
-       "│  Frequency:        PT1H              │\n",
-       "│  Timezone:         UTC               │\n",
-       "│  Unit:             MW                │\n",
-       "│  Data type:        MEASUREMENT       │\n",
-       "├──────────────────────────────────────┤\n",
-       "│  2024-06-01 00:00:00+00:00  156.094  │\n",
-       "│  2024-06-01 01:00:00+00:00    129.2  │\n",
-       "│  2024-06-01 02:00:00+00:00  165.009  │\n",
-       "│  ...                            ...  │\n",
-       "│  2024-06-02 21:00:00+00:00  154.374  │\n",
-       "│  2024-06-02 22:00:00+00:00  167.429  │\n",
-       "│  2024-06-02 23:00:00+00:00  154.472  │\n",
-       "└──────────────────────────────────────┘"
-      ]
-     },
-     "execution_count": 4,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
-   "source": [
-    "import pandas as pd\n",
-    "\n",
-    "idx = pd.date_range(\"2024-06-01\", periods=48, freq=\"h\", tz=\"UTC\")\n",
-    "df_external = pd.DataFrame({\"load\": np.random.default_rng(42).normal(150, 20, 48)}, index=idx)\n",
-    "\n",
-    "ts_from_pd = tdm.TimeSeries.from_pandas(df_external, unit=\"MW\", data_type=tdm.DataType.MEASUREMENT)\n",
-    "ts_from_pd"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "import pandas as pd\n\nidx = pd.date_range(\"2024-06-01\", periods=48, freq=\"h\", tz=\"UTC\")\ndf_external = pd.DataFrame({\"load\": np.random.default_rng(42).normal(150, 20, 48)}, index=idx)\n\nts_from_pd = tdm.TimeSeries.from_pandas(df_external, unit=\"MW\", data_type=tdm.DataType.MEASUREMENT)\nts_from_pd"
   },
   {
    "cell_type": "markdown",
@@ -304,44 +94,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 5,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:12.984656Z",
-     "iopub.status.busy": "2026-03-01T12:49:12.984607Z",
-     "iopub.status.idle": "2026-03-01T12:49:12.987222Z",
-     "shell.execute_reply": "2026-03-01T12:49:12.986972Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Columns: ['wind', 'solar']\n",
-      "Round-trip equals: True\n"
-     ]
-    }
-   ],
-   "source": [
-    "rng = np.random.default_rng(42)\n",
-    "table = tdm.TimeSeriesTable(\n",
-    "    tdm.Frequency.PT1H,\n",
-    "    timestamps=timestamps,\n",
-    "    values=np.column_stack([\n",
-    "        100 + rng.normal(0, 10, 24),\n",
-    "        50 + rng.normal(0, 5, 24),\n",
-    "    ]),\n",
-    "    names=[\"wind\", \"solar\"],\n",
-    "    units=[\"MW\", \"MW\"],\n",
-    ")\n",
-    "\n",
-    "df_table = table.to_pandas_dataframe()\n",
-    "print(f\"Columns: {list(df_table.columns)}\")\n",
-    "\n",
-    "table_back = tdm.TimeSeriesTable.from_pandas(df_table, units=[\"MW\", \"MW\"])\n",
-    "print(f\"Round-trip equals: {table.equals(table_back)}\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "rng = np.random.default_rng(42)\ntable = tdm.TimeSeriesTable(\n    tdm.Frequency.PT1H,\n    timestamps=timestamps,\n    values=np.column_stack([\n        100 + rng.normal(0, 10, 24),\n        50 + rng.normal(0, 5, 24),\n    ]),\n    names=[\"wind\", \"solar\"],\n    units=[\"MW\", \"MW\"],\n)\n\ndf_table = table.to_pandas_dataframe()\nprint(f\"Columns: {list(df_table.columns)}\")\n\ntable_back = tdm.TimeSeriesTable.from_pandas(df_table, units=[\"MW\", \"MW\"])\nprint(f\"Round-trip equals: {table.equals(table_back)}\")"
   },
   {
    "cell_type": "markdown",
@@ -354,47 +110,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:12.988299Z",
-     "iopub.status.busy": "2026-03-01T12:49:12.988238Z",
-     "iopub.status.idle": "2026-03-01T12:49:13.092375Z",
-     "shell.execute_reply": "2026-03-01T12:49:13.091984Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "shape: (5, 2)\n",
-      "┌─────────────────────────┬────────────┐\n",
-      "│ timestamp               ┆ power      │\n",
-      "│ ---                     ┆ ---        │\n",
-      "│ datetime[μs, UTC]       ┆ f64        │\n",
-      "╞═════════════════════════╪════════════╡\n",
-      "│ 2024-01-15 00:00:00 UTC ┆ 100.0      │\n",
-      "│ 2024-01-15 01:00:00 UTC ┆ 112.940952 │\n",
-      "│ 2024-01-15 02:00:00 UTC ┆ 125.0      │\n",
-      "│ 2024-01-15 03:00:00 UTC ┆ 135.355339 │\n",
-      "│ 2024-01-15 04:00:00 UTC ┆ 143.30127  │\n",
-      "└─────────────────────────┴────────────┘\n",
-      "\n",
-      "Round-trip length: 24\n"
-     ]
-    }
-   ],
-   "source": [
-    "try:\n",
-    "    df_pl = ts.to_polars_dataframe()\n",
-    "    print(df_pl.head())\n",
-    "\n",
-    "    ts_from_pl = tdm.TimeSeries.from_polars(df_pl, tdm.Frequency.PT1H, unit=\"MW\")\n",
-    "    print(f\"\\nRound-trip length: {len(ts_from_pl)}\")\n",
-    "except ImportError:\n",
-    "    print(\"polars not installed — skip this cell or: pip install timedatamodel[polars]\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "try:\n    df_pl = ts.to_polars_dataframe()\n    print(df_pl.head())\n\n    ts_from_pl = tdm.TimeSeries.from_polars(df_pl, tdm.Frequency.PT1H, unit=\"MW\")\n    print(f\"\\nRound-trip length: {len(ts_from_pl)}\")\nexcept ImportError:\n    print(\"polars not installed — skip this cell or: pip install timedatamodel[polars]\")"
   },
   {
    "cell_type": "markdown",
@@ -407,24 +126,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:13.093396Z",
-     "iopub.status.busy": "2026-03-01T12:49:13.093312Z",
-     "iopub.status.idle": "2026-03-01T12:49:13.094983Z",
-     "shell.execute_reply": "2026-03-01T12:49:13.094637Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "{\"timestamps\": [\"2024-01-15T00:00:00+00:00\", \"2024-01-15T01:00:00+00:00\", \"2024-01-15T02:00:00+00:00\", \"2024-01-15T03:00:00+00:00\", \"2024-01-15T04:00:00+00:00\", \"2024-01-15T05:00:00+00:00\", \"2024-01-1 ...\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "json_str = ts.to_json()\n",
     "print(json_str[:200], \"...\")"
@@ -432,36 +136,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:13.095806Z",
-     "iopub.status.busy": "2026-03-01T12:49:13.095749Z",
-     "iopub.status.idle": "2026-03-01T12:49:13.097579Z",
-     "shell.execute_reply": "2026-03-01T12:49:13.097181Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Name:      power\n",
-      "Unit:      MW\n",
-      "Frequency: PT1H\n",
-      "Length:    24\n",
-      "Equals original: True\n"
-     ]
-    }
-   ],
-   "source": [
-    "ts_restored = tdm.TimeSeries.from_json(json_str)\n",
-    "print(f\"Name:      {ts_restored.name}\")\n",
-    "print(f\"Unit:      {ts_restored.unit}\")\n",
-    "print(f\"Frequency: {ts_restored.frequency}\")\n",
-    "print(f\"Length:    {len(ts_restored)}\")\n",
-    "print(f\"Equals original: {ts.equals(ts_restored)}\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "ts_restored = tdm.TimeSeries.from_json(json_str)\nprint(f\"Name:      {ts_restored.name}\")\nprint(f\"Unit:      {ts_restored.unit}\")\nprint(f\"Frequency: {ts_restored.frequency}\")\nprint(f\"Length:    {len(ts_restored)}\")\nprint(f\"Equals original: {ts.equals(ts_restored)}\")"
   },
   {
    "cell_type": "markdown",
@@ -472,31 +150,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:13.098471Z",
-     "iopub.status.busy": "2026-03-01T12:49:13.098417Z",
-     "iopub.status.idle": "2026-03-01T12:49:13.100083Z",
-     "shell.execute_reply": "2026-03-01T12:49:13.099744Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Columns: ('wind', 'solar')\n",
-      "Equals original: True\n"
-     ]
-    }
-   ],
-   "source": [
-    "json_table = table.to_json()\n",
-    "table_restored = tdm.TimeSeriesTable.from_json(json_table)\n",
-    "print(f\"Columns: {table_restored.column_names}\")\n",
-    "print(f\"Equals original: {table.equals(table_restored)}\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "json_table = table.to_json()\ntable_restored = tdm.TimeSeriesTable.from_json(json_table)\nprint(f\"Columns: {table_restored.column_names}\")\nprint(f\"Equals original: {table.equals(table_restored)}\")"
   },
   {
    "cell_type": "markdown",
@@ -509,29 +166,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 10,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:13.100868Z",
-     "iopub.status.busy": "2026-03-01T12:49:13.100816Z",
-     "iopub.status.idle": "2026-03-01T12:49:13.103139Z",
-     "shell.execute_reply": "2026-03-01T12:49:13.102808Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "timestamp,power\n",
-      "2024-01-15T00:00:00+00:00,100.0\n",
-      "2024-01-15T01:00:00+00:00,112.94095225512604\n",
-      "2024-01-15T02:00:00+00:00,125.0\n",
-      "2024-01-15T03:00:00+00:00,135.35533905932738\n",
-      "...\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "import tempfile\n",
     "from pathlib import Path\n",
@@ -550,100 +187,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 11,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:13.103888Z",
-     "iopub.status.busy": "2026-03-01T12:49:13.103831Z",
-     "iopub.status.idle": "2026-03-01T12:49:13.106344Z",
-     "shell.execute_reply": "2026-03-01T12:49:13.105981Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Length: 24\n",
-      "Name:   power\n"
-     ]
-    },
-    {
-     "data": {
-      "text/html": [
-       "<style>\n",
-       ".ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }\n",
-       ".ts-repr .ts-header {\n",
-       "  font-weight: bold; font-size: 14px;\n",
-       "  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;\n",
-       "  background: #f0f0f0; color: #1a1a1a;\n",
-       "}\n",
-       ".ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }\n",
-       ".ts-repr .ts-meta table { border-collapse: collapse; }\n",
-       ".ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }\n",
-       ".ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }\n",
-       ".ts-repr .ts-data { padding: 6px 10px; }\n",
-       ".ts-repr .ts-data table {\n",
-       "  border-collapse: collapse; width: 100%; text-align: right;\n",
-       "}\n",
-       ".ts-repr .ts-data th {\n",
-       "  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;\n",
-       "  color: #555; font-weight: 600;\n",
-       "}\n",
-       ".ts-repr .ts-data td { padding: 2px 10px; }\n",
-       ".ts-repr .ts-data tr:hover { background: #f5f5f5; }\n",
-       ".ts-repr .ts-data td:first-child { text-align: left; color: #333; }\n",
-       ".ts-repr .ts-ellipsis { text-align: center !important; color: #999; }\n",
-       "</style>\n",
-       "<div class=\"ts-repr\">\n",
-       "<div class=\"ts-header\">TimeSeries</div>\n",
-       "<div class=\"ts-meta\"><table>\n",
-       "<tr><td>Columns</td><td>power</td></tr>\n",
-       "<tr><td>Shape</td><td>(5,)</td></tr>\n",
-       "<tr><td>Frequency</td><td>PT1H</td></tr>\n",
-       "<tr><td>Timezone</td><td>UTC</td></tr>\n",
-       "<tr><td>Unit</td><td>MW</td></tr>\n",
-       "</table></div>\n",
-       "<div class=\"ts-data\"><table>\n",
-       "<tr><th>timestamp</th><th>power</th></tr>\n",
-       "<tr><td>2024-01-15 00:00:00+00:00</td><td>100.0</td></tr>\n",
-       "<tr><td>2024-01-15 01:00:00+00:00</td><td>112.941</td></tr>\n",
-       "<tr><td>2024-01-15 02:00:00+00:00</td><td>125.0</td></tr>\n",
-       "</table></div>\n",
-       "</div>"
-      ],
-      "text/plain": [
-       "TimeSeries\n",
-       "┌──────────────────────────────────────┐\n",
-       "│  Columns:          power             │\n",
-       "│  Shape:            (5,)              │\n",
-       "│  Frequency:        PT1H              │\n",
-       "│  Timezone:         UTC               │\n",
-       "│  Unit:             MW                │\n",
-       "├──────────────────────────────────────┤\n",
-       "│  2024-01-15 00:00:00+00:00    100.0  │\n",
-       "│  2024-01-15 01:00:00+00:00  112.941  │\n",
-       "│  2024-01-15 02:00:00+00:00    125.0  │\n",
-       "│  2024-01-15 03:00:00+00:00  135.355  │\n",
-       "│  2024-01-15 04:00:00+00:00  143.301  │\n",
-       "└──────────────────────────────────────┘"
-      ]
-     },
-     "execution_count": 11,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
-   "source": [
-    "with tempfile.TemporaryDirectory() as tmp:\n",
-    "    csv_path = Path(tmp) / \"power.csv\"\n",
-    "    ts.to_csv(csv_path)\n",
-    "    ts_from_csv = tdm.TimeSeries.from_csv(csv_path, tdm.Frequency.PT1H, unit=\"MW\")\n",
-    "\n",
-    "print(f\"Length: {len(ts_from_csv)}\")\n",
-    "print(f\"Name:   {ts_from_csv.name}\")\n",
-    "ts_from_csv.head()"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "with tempfile.TemporaryDirectory() as tmp:\n    csv_path = Path(tmp) / \"power.csv\"\n    ts.to_csv(csv_path)\n    ts_from_csv = tdm.TimeSeries.from_csv(csv_path, tdm.Frequency.PT1H, unit=\"MW\")\n\nprint(f\"Length: {len(ts_from_csv)}\")\nprint(f\"Name:   {ts_from_csv.name}\")\nts_from_csv.head()"
   },
   {
    "cell_type": "markdown",
@@ -656,152 +203,17 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 12,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:13.107250Z",
-     "iopub.status.busy": "2026-03-01T12:49:13.107196Z",
-     "iopub.status.idle": "2026-03-01T12:49:13.111302Z",
-     "shell.execute_reply": "2026-03-01T12:49:13.110953Z"
-    }
-   },
-   "outputs": [
-    {
-     "data": {
-      "text/html": [
-       "<div>\n",
-       "<style scoped>\n",
-       "    .dataframe tbody tr th:only-of-type {\n",
-       "        vertical-align: middle;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe tbody tr th {\n",
-       "        vertical-align: top;\n",
-       "    }\n",
-       "\n",
-       "    .dataframe thead th {\n",
-       "        text-align: right;\n",
-       "    }\n",
-       "</style>\n",
-       "<table border=\"1\" class=\"dataframe\">\n",
-       "  <thead>\n",
-       "    <tr style=\"text-align: right;\">\n",
-       "      <th></th>\n",
-       "      <th></th>\n",
-       "      <th>forecast</th>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>issue_time</th>\n",
-       "      <th>valid_time</th>\n",
-       "      <th></th>\n",
-       "    </tr>\n",
-       "  </thead>\n",
-       "  <tbody>\n",
-       "    <tr>\n",
-       "      <th rowspan=\"3\" valign=\"top\">2024-01-15 00:00:00+00:00</th>\n",
-       "      <th>2024-01-15 00:00:00+00:00</th>\n",
-       "      <td>100.0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2024-01-15 01:00:00+00:00</th>\n",
-       "      <td>105.0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2024-01-15 02:00:00+00:00</th>\n",
-       "      <td>110.0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th rowspan=\"3\" valign=\"top\">2024-01-15 12:00:00+00:00</th>\n",
-       "      <th>2024-01-15 12:00:00+00:00</th>\n",
-       "      <td>95.0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2024-01-15 13:00:00+00:00</th>\n",
-       "      <td>100.0</td>\n",
-       "    </tr>\n",
-       "    <tr>\n",
-       "      <th>2024-01-15 14:00:00+00:00</th>\n",
-       "      <td>108.0</td>\n",
-       "    </tr>\n",
-       "  </tbody>\n",
-       "</table>\n",
-       "</div>"
-      ],
-      "text/plain": [
-       "                                                     forecast\n",
-       "issue_time                valid_time                         \n",
-       "2024-01-15 00:00:00+00:00 2024-01-15 00:00:00+00:00     100.0\n",
-       "                          2024-01-15 01:00:00+00:00     105.0\n",
-       "                          2024-01-15 02:00:00+00:00     110.0\n",
-       "2024-01-15 12:00:00+00:00 2024-01-15 12:00:00+00:00      95.0\n",
-       "                          2024-01-15 13:00:00+00:00     100.0\n",
-       "                          2024-01-15 14:00:00+00:00     108.0"
-      ]
-     },
-     "execution_count": 12,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
-   "source": [
-    "issue_times = [\n",
-    "    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n",
-    "]\n",
-    "valid_times = [\n",
-    "    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 2, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 13, tzinfo=timezone.utc),\n",
-    "    datetime(2024, 1, 15, 14, tzinfo=timezone.utc),\n",
-    "]\n",
-    "\n",
-    "ts_multi = tdm.TimeSeries(\n",
-    "    tdm.Frequency.PT1H,\n",
-    "    timestamps=list(zip(issue_times, valid_times)),\n",
-    "    values=[100.0, 105.0, 110.0, 95.0, 100.0, 108.0],\n",
-    "    name=\"forecast\",\n",
-    "    unit=\"MW\",\n",
-    "    index_names=[\"issue_time\", \"valid_time\"],\n",
-    ")\n",
-    "\n",
-    "df_multi = ts_multi.to_pandas_dataframe()\n",
-    "df_multi"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "issue_times = [\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n]\nvalid_times = [\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 2, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 13, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 14, tzinfo=timezone.utc),\n]\n\nts_multi = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timestamps=list(zip(issue_times, valid_times)),\n    values=[100.0, 105.0, 110.0, 95.0, 100.0, 108.0],\n    name=\"forecast\",\n    unit=\"MW\",\n    index_names=[\"issue_time\", \"valid_time\"],\n)\n\ndf_multi = ts_multi.to_pandas_dataframe()\ndf_multi"
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:13.112180Z",
-     "iopub.status.busy": "2026-03-01T12:49:13.112125Z",
-     "iopub.status.idle": "2026-03-01T12:49:13.113776Z",
-     "shell.execute_reply": "2026-03-01T12:49:13.113474Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Index names: ('issue_time', 'valid_time')\n",
-      "Multi-index: True\n",
-      "Equals original: True\n"
-     ]
-    }
-   ],
-   "source": [
-    "ts_multi_back = tdm.TimeSeries.from_pandas(df_multi, tdm.Frequency.PT1H, unit=\"MW\")\n",
-    "print(f\"Index names: {ts_multi_back.index_names}\")\n",
-    "print(f\"Multi-index: {ts_multi_back.is_multi_index}\")\n",
-    "print(f\"Equals original: {ts_multi.equals(ts_multi_back)}\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "ts_multi_back = tdm.TimeSeries.from_pandas(df_multi, tdm.Frequency.PT1H, unit=\"MW\")\nprint(f\"Index names: {ts_multi_back.index_names}\")\nprint(f\"Multi-index: {ts_multi_back.is_multi_index}\")\nprint(f\"Equals original: {ts_multi.equals(ts_multi_back)}\")"
   },
   {
    "cell_type": "markdown",
@@ -828,16 +240,8 @@
    "name": "python3"
   },
   "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
    "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.14.2"
+   "version": "3.11.0"
   }
  },
  "nbformat": 4,

@@ -1,0 +1,771 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Multivariate Time Series\n",
+    "\n",
+    "When you have multiple signals that share the same timestamps — like wind, solar, and hydro power — use `TimeSeriesTable` (also aliased as `MultivariateTimeSeries`). It stores per-column metadata and a 2D numpy array of values."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.691931Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.691825Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.724029Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.723583Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "from datetime import datetime, timedelta, timezone\n",
+    "\n",
+    "import numpy as np\n",
+    "\n",
+    "import timedatamodel as tdm\n",
+    "\n",
+    "base = datetime(2024, 1, 15, tzinfo=timezone.utc)\n",
+    "timestamps = [base + timedelta(hours=i) for i in range(24)]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Creating a TimeSeriesTable\n",
+    "\n",
+    "Pass a 2D array (rows = timestamps, columns = variables) along with per-column metadata."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.725169Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.725060Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.734207Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.733878Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>\n",
+       ".ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }\n",
+       ".ts-repr .ts-header {\n",
+       "  font-weight: bold; font-size: 14px;\n",
+       "  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;\n",
+       "  background: #f0f0f0; color: #1a1a1a;\n",
+       "}\n",
+       ".ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }\n",
+       ".ts-repr .ts-meta table { border-collapse: collapse; }\n",
+       ".ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }\n",
+       ".ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }\n",
+       ".ts-repr .ts-data { padding: 6px 10px; }\n",
+       ".ts-repr .ts-data table {\n",
+       "  border-collapse: collapse; width: 100%; text-align: right;\n",
+       "}\n",
+       ".ts-repr .ts-data th {\n",
+       "  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;\n",
+       "  color: #555; font-weight: 600;\n",
+       "}\n",
+       ".ts-repr .ts-data td { padding: 2px 10px; }\n",
+       ".ts-repr .ts-data tr:hover { background: #f5f5f5; }\n",
+       ".ts-repr .ts-data td:first-child { text-align: left; color: #333; }\n",
+       ".ts-repr .ts-ellipsis { text-align: center !important; color: #999; }\n",
+       "</style>\n",
+       "<div class=\"ts-repr\">\n",
+       "<div class=\"ts-header\">TimeSeriesTable</div>\n",
+       "<div class=\"ts-meta\"><table>\n",
+       "<tr><td>Columns</td><td>wind, solar, hydro</td></tr>\n",
+       "<tr><td>Shape</td><td>(24, 3)</td></tr>\n",
+       "<tr><td>Frequency</td><td>PT1H</td></tr>\n",
+       "<tr><td>Timezone</td><td>UTC</td></tr>\n",
+       "</table></div>\n",
+       "<div class=\"ts-data\"><table>\n",
+       "<tr><th>timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>\n",
+       "<tr><td>2024-01-15 00:00:00+00:00</td><td>81.5236</td><td>0.0</td><td>52.0367</td></tr>\n",
+       "<tr><td>2024-01-15 01:00:00+00:00</td><td>85.592</td><td>0.0</td><td>50.2027</td></tr>\n",
+       "<tr><td>2024-01-15 02:00:00+00:00</td><td>104.536</td><td>1.06462</td><td>50.8674</td></tr>\n",
+       "<tr><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td></tr>\n",
+       "<tr><td>2024-01-15 21:00:00+00:00</td><td>55.812</td><td>0.437377</td><td>49.4261</td></tr>\n",
+       "<tr><td>2024-01-15 22:00:00+00:00</td><td>75.3208</td><td>1.74286</td><td>46.1729</td></tr>\n",
+       "<tr><td>2024-01-15 23:00:00+00:00</td><td>79.2274</td><td>0.447191</td><td>46.6001</td></tr>\n",
+       "</table></div>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "TimeSeriesTable\n",
+       "┌───────────────────────────────────────────────────────────┐\n",
+       "│  Columns:          wind, solar, hydro                     │\n",
+       "│  Shape:            (24, 3)                                │\n",
+       "│  Frequency:        PT1H                                   │\n",
+       "│  Timezone:         UTC                                    │\n",
+       "│  Unit:             MW, MW, MW                             │\n",
+       "│  Data type:        MEASUREMENT, MEASUREMENT, MEASUREMENT  │\n",
+       "├───────────────────────────────────────────────────────────┤\n",
+       "│                                wind     solar    hydro    │\n",
+       "│  2024-01-15 00:00:00+00:00  81.5236       0.0  52.0367    │\n",
+       "│  2024-01-15 01:00:00+00:00   85.592       0.0  50.2027    │\n",
+       "│  2024-01-15 02:00:00+00:00  104.536   1.06462  50.8674    │\n",
+       "│  ...                            ...       ...      ...    │\n",
+       "│  2024-01-15 21:00:00+00:00   55.812  0.437377  49.4261    │\n",
+       "│  2024-01-15 22:00:00+00:00  75.3208   1.74286  46.1729    │\n",
+       "│  2024-01-15 23:00:00+00:00  79.2274  0.447191  46.6001    │\n",
+       "└───────────────────────────────────────────────────────────┘"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "rng = np.random.default_rng(42)\n",
+    "\n",
+    "wind = 80 + 40 * np.sin(np.linspace(0, 2 * np.pi, 24)) + rng.normal(0, 5, 24)\n",
+    "solar = np.clip(60 * np.sin(np.linspace(-0.5, np.pi + 0.5, 24)), 0, None) + rng.normal(0, 2, 24)\n",
+    "solar = np.clip(solar, 0, None)\n",
+    "hydro = 50 + rng.normal(0, 3, 24)\n",
+    "\n",
+    "values = np.column_stack([wind, solar, hydro])\n",
+    "\n",
+    "table = tdm.TimeSeriesTable(\n",
+    "    tdm.Frequency.PT1H,\n",
+    "    timezone=\"UTC\",\n",
+    "    timestamps=timestamps,\n",
+    "    values=values,\n",
+    "    names=[\"wind\", \"solar\", \"hydro\"],\n",
+    "    units=[\"MW\", \"MW\", \"MW\"],\n",
+    "    data_types=[tdm.DataType.MEASUREMENT, tdm.DataType.MEASUREMENT, tdm.DataType.MEASUREMENT],\n",
+    ")\n",
+    "table"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Inspecting table properties"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.749264Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.749147Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.750985Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.750657Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Columns:     ('wind', 'solar', 'hydro')\n",
+      "Shape:       (24, 3)\n",
+      "Begin:       2024-01-15 00:00:00+00:00\n",
+      "End:         2024-01-15 23:00:00+00:00\n",
+      "Has missing: False\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(f\"Columns:     {table.column_names}\")\n",
+    "print(f\"Shape:       ({len(table)}, {table.n_columns})\")\n",
+    "print(f\"Begin:       {table.begin}\")\n",
+    "print(f\"End:         {table.end}\")\n",
+    "print(f\"Has missing: {table.has_missing}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Selecting a single column\n",
+    "\n",
+    "`select_column()` extracts one column as a univariate `TimeSeries`, carrying over its metadata."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.751997Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.751950Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.753898Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.753490Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>\n",
+       ".ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }\n",
+       ".ts-repr .ts-header {\n",
+       "  font-weight: bold; font-size: 14px;\n",
+       "  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;\n",
+       "  background: #f0f0f0; color: #1a1a1a;\n",
+       "}\n",
+       ".ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }\n",
+       ".ts-repr .ts-meta table { border-collapse: collapse; }\n",
+       ".ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }\n",
+       ".ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }\n",
+       ".ts-repr .ts-data { padding: 6px 10px; }\n",
+       ".ts-repr .ts-data table {\n",
+       "  border-collapse: collapse; width: 100%; text-align: right;\n",
+       "}\n",
+       ".ts-repr .ts-data th {\n",
+       "  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;\n",
+       "  color: #555; font-weight: 600;\n",
+       "}\n",
+       ".ts-repr .ts-data td { padding: 2px 10px; }\n",
+       ".ts-repr .ts-data tr:hover { background: #f5f5f5; }\n",
+       ".ts-repr .ts-data td:first-child { text-align: left; color: #333; }\n",
+       ".ts-repr .ts-ellipsis { text-align: center !important; color: #999; }\n",
+       "</style>\n",
+       "<div class=\"ts-repr\">\n",
+       "<div class=\"ts-header\">TimeSeries</div>\n",
+       "<div class=\"ts-meta\"><table>\n",
+       "<tr><td>Columns</td><td>wind</td></tr>\n",
+       "<tr><td>Shape</td><td>(24,)</td></tr>\n",
+       "<tr><td>Frequency</td><td>PT1H</td></tr>\n",
+       "<tr><td>Timezone</td><td>UTC</td></tr>\n",
+       "<tr><td>Unit</td><td>MW</td></tr>\n",
+       "<tr><td>Data type</td><td>MEASUREMENT</td></tr>\n",
+       "</table></div>\n",
+       "<div class=\"ts-data\"><table>\n",
+       "<tr><th>timestamp</th><th>wind</th></tr>\n",
+       "<tr><td>2024-01-15 00:00:00+00:00</td><td>81.5236</td></tr>\n",
+       "<tr><td>2024-01-15 01:00:00+00:00</td><td>85.592</td></tr>\n",
+       "<tr><td>2024-01-15 02:00:00+00:00</td><td>104.536</td></tr>\n",
+       "<tr><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td></tr>\n",
+       "<tr><td>2024-01-15 21:00:00+00:00</td><td>55.812</td></tr>\n",
+       "<tr><td>2024-01-15 22:00:00+00:00</td><td>75.3208</td></tr>\n",
+       "<tr><td>2024-01-15 23:00:00+00:00</td><td>79.2274</td></tr>\n",
+       "</table></div>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "TimeSeries\n",
+       "┌──────────────────────────────────────┐\n",
+       "│  Columns:          wind              │\n",
+       "│  Shape:            (24,)             │\n",
+       "│  Frequency:        PT1H              │\n",
+       "│  Timezone:         UTC               │\n",
+       "│  Unit:             MW                │\n",
+       "│  Data type:        MEASUREMENT       │\n",
+       "├──────────────────────────────────────┤\n",
+       "│  2024-01-15 00:00:00+00:00  81.5236  │\n",
+       "│  2024-01-15 01:00:00+00:00   85.592  │\n",
+       "│  2024-01-15 02:00:00+00:00  104.536  │\n",
+       "│  ...                            ...  │\n",
+       "│  2024-01-15 21:00:00+00:00   55.812  │\n",
+       "│  2024-01-15 22:00:00+00:00  75.3208  │\n",
+       "│  2024-01-15 23:00:00+00:00  79.2274  │\n",
+       "└──────────────────────────────────────┘"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ts_wind = table.select_column(\"wind\")\n",
+    "ts_wind"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.754761Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.754712Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.756286Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.755887Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Name: solar, Unit: MW, Data type: MEASUREMENT\n"
+     ]
+    }
+   ],
+   "source": [
+    "ts_solar = table.select_column(\"solar\")\n",
+    "print(f\"Name: {ts_solar.name}, Unit: {ts_solar.unit}, Data type: {ts_solar.data_type}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Merging univariate series into a table\n",
+    "\n",
+    "`TimeSeries.merge()` is the reverse operation — combine several univariate series that share the same timestamps."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.757286Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.757234Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.759416Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.759064Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>\n",
+       ".ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }\n",
+       ".ts-repr .ts-header {\n",
+       "  font-weight: bold; font-size: 14px;\n",
+       "  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;\n",
+       "  background: #f0f0f0; color: #1a1a1a;\n",
+       "}\n",
+       ".ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }\n",
+       ".ts-repr .ts-meta table { border-collapse: collapse; }\n",
+       ".ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }\n",
+       ".ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }\n",
+       ".ts-repr .ts-data { padding: 6px 10px; }\n",
+       ".ts-repr .ts-data table {\n",
+       "  border-collapse: collapse; width: 100%; text-align: right;\n",
+       "}\n",
+       ".ts-repr .ts-data th {\n",
+       "  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;\n",
+       "  color: #555; font-weight: 600;\n",
+       "}\n",
+       ".ts-repr .ts-data td { padding: 2px 10px; }\n",
+       ".ts-repr .ts-data tr:hover { background: #f5f5f5; }\n",
+       ".ts-repr .ts-data td:first-child { text-align: left; color: #333; }\n",
+       ".ts-repr .ts-ellipsis { text-align: center !important; color: #999; }\n",
+       "</style>\n",
+       "<div class=\"ts-repr\">\n",
+       "<div class=\"ts-header\">TimeSeriesTable</div>\n",
+       "<div class=\"ts-meta\"><table>\n",
+       "<tr><td>Columns</td><td>wind, solar, hydro</td></tr>\n",
+       "<tr><td>Shape</td><td>(24, 3)</td></tr>\n",
+       "<tr><td>Frequency</td><td>PT1H</td></tr>\n",
+       "<tr><td>Timezone</td><td>UTC</td></tr>\n",
+       "</table></div>\n",
+       "<div class=\"ts-data\"><table>\n",
+       "<tr><th>timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>\n",
+       "<tr><td>2024-01-15 00:00:00+00:00</td><td>81.5236</td><td>0.0</td><td>52.0367</td></tr>\n",
+       "<tr><td>2024-01-15 01:00:00+00:00</td><td>85.592</td><td>0.0</td><td>50.2027</td></tr>\n",
+       "<tr><td>2024-01-15 02:00:00+00:00</td><td>104.536</td><td>1.06462</td><td>50.8674</td></tr>\n",
+       "<tr><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td></tr>\n",
+       "<tr><td>2024-01-15 21:00:00+00:00</td><td>55.812</td><td>0.437377</td><td>49.4261</td></tr>\n",
+       "<tr><td>2024-01-15 22:00:00+00:00</td><td>75.3208</td><td>1.74286</td><td>46.1729</td></tr>\n",
+       "<tr><td>2024-01-15 23:00:00+00:00</td><td>79.2274</td><td>0.447191</td><td>46.6001</td></tr>\n",
+       "</table></div>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "TimeSeriesTable\n",
+       "┌─────────────────────────────────────────────────────────┐\n",
+       "│  Columns:          wind, solar, hydro                   │\n",
+       "│  Shape:            (24, 3)                              │\n",
+       "│  Frequency:        PT1H                                 │\n",
+       "│  Timezone:         UTC                                  │\n",
+       "│  Unit:             MW, MW, MW                           │\n",
+       "├─────────────────────────────────────────────────────────┤\n",
+       "│                                wind     solar    hydro  │\n",
+       "│  2024-01-15 00:00:00+00:00  81.5236       0.0  52.0367  │\n",
+       "│  2024-01-15 01:00:00+00:00   85.592       0.0  50.2027  │\n",
+       "│  2024-01-15 02:00:00+00:00  104.536   1.06462  50.8674  │\n",
+       "│  ...                            ...       ...      ...  │\n",
+       "│  2024-01-15 21:00:00+00:00   55.812  0.437377  49.4261  │\n",
+       "│  2024-01-15 22:00:00+00:00  75.3208   1.74286  46.1729  │\n",
+       "│  2024-01-15 23:00:00+00:00  79.2274  0.447191  46.6001  │\n",
+       "└─────────────────────────────────────────────────────────┘"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "ts_a = tdm.TimeSeries(\n",
+    "    tdm.Frequency.PT1H,\n",
+    "    timestamps=timestamps,\n",
+    "    values=wind.tolist(),\n",
+    "    name=\"wind\",\n",
+    "    unit=\"MW\",\n",
+    ")\n",
+    "ts_b = tdm.TimeSeries(\n",
+    "    tdm.Frequency.PT1H,\n",
+    "    timestamps=timestamps,\n",
+    "    values=solar.tolist(),\n",
+    "    name=\"solar\",\n",
+    "    unit=\"MW\",\n",
+    ")\n",
+    "ts_c = tdm.TimeSeries(\n",
+    "    tdm.Frequency.PT1H,\n",
+    "    timestamps=timestamps,\n",
+    "    values=hydro.tolist(),\n",
+    "    name=\"hydro\",\n",
+    "    unit=\"MW\",\n",
+    ")\n",
+    "\n",
+    "merged = tdm.TimeSeries.merge([ts_a, ts_b, ts_c])\n",
+    "merged"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Decomposing a table back to univariate series"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.760321Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.760271Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.761670Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.761368Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "wind: 24 points, unit=MW\n",
+      "solar: 24 points, unit=MW\n",
+      "hydro: 24 points, unit=MW\n"
+     ]
+    }
+   ],
+   "source": [
+    "univariate_list = merged.to_univariate_list()\n",
+    "for ts in univariate_list:\n",
+    "    print(f\"{ts.name}: {len(ts)} points, unit={ts.unit}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Table arithmetic\n",
+    "\n",
+    "Scalar arithmetic works on all columns simultaneously."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.762533Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.762470Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.764272Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.763959Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<style>\n",
+       ".ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }\n",
+       ".ts-repr .ts-header {\n",
+       "  font-weight: bold; font-size: 14px;\n",
+       "  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;\n",
+       "  background: #f0f0f0; color: #1a1a1a;\n",
+       "}\n",
+       ".ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }\n",
+       ".ts-repr .ts-meta table { border-collapse: collapse; }\n",
+       ".ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }\n",
+       ".ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }\n",
+       ".ts-repr .ts-data { padding: 6px 10px; }\n",
+       ".ts-repr .ts-data table {\n",
+       "  border-collapse: collapse; width: 100%; text-align: right;\n",
+       "}\n",
+       ".ts-repr .ts-data th {\n",
+       "  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;\n",
+       "  color: #555; font-weight: 600;\n",
+       "}\n",
+       ".ts-repr .ts-data td { padding: 2px 10px; }\n",
+       ".ts-repr .ts-data tr:hover { background: #f5f5f5; }\n",
+       ".ts-repr .ts-data td:first-child { text-align: left; color: #333; }\n",
+       ".ts-repr .ts-ellipsis { text-align: center !important; color: #999; }\n",
+       "</style>\n",
+       "<div class=\"ts-repr\">\n",
+       "<div class=\"ts-header\">TimeSeriesTable</div>\n",
+       "<div class=\"ts-meta\"><table>\n",
+       "<tr><td>Columns</td><td>wind, solar, hydro</td></tr>\n",
+       "<tr><td>Shape</td><td>(5, 3)</td></tr>\n",
+       "<tr><td>Frequency</td><td>PT1H</td></tr>\n",
+       "<tr><td>Timezone</td><td>UTC</td></tr>\n",
+       "</table></div>\n",
+       "<div class=\"ts-data\"><table>\n",
+       "<tr><th>timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>\n",
+       "<tr><td>2024-01-15 00:00:00+00:00</td><td>0.0815236</td><td>0.0</td><td>0.0520367</td></tr>\n",
+       "<tr><td>2024-01-15 01:00:00+00:00</td><td>0.085592</td><td>0.0</td><td>0.0502027</td></tr>\n",
+       "<tr><td>2024-01-15 02:00:00+00:00</td><td>0.104536</td><td>0.00106462</td><td>0.0508674</td></tr>\n",
+       "</table></div>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "TimeSeriesTable\n",
+       "┌───────────────────────────────────────────────────────────────┐\n",
+       "│  Columns:          wind, solar, hydro                         │\n",
+       "│  Shape:            (5, 3)                                     │\n",
+       "│  Frequency:        PT1H                                       │\n",
+       "│  Timezone:         UTC                                        │\n",
+       "│  Unit:             MW, MW, MW                                 │\n",
+       "│  Data type:        MEASUREMENT, MEASUREMENT, MEASUREMENT      │\n",
+       "├───────────────────────────────────────────────────────────────┤\n",
+       "│                                  wind       solar      hydro  │\n",
+       "│  2024-01-15 00:00:00+00:00  0.0815236         0.0  0.0520367  │\n",
+       "│  2024-01-15 01:00:00+00:00   0.085592         0.0  0.0502027  │\n",
+       "│  2024-01-15 02:00:00+00:00   0.104536  0.00106462  0.0508674  │\n",
+       "│  2024-01-15 03:00:00+00:00   0.113936   0.0031427  0.0518939  │\n",
+       "│  2024-01-15 04:00:00+00:00    0.10576   0.0139355  0.0456285  │\n",
+       "└───────────────────────────────────────────────────────────────┘"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "table_gw = table * 0.001\n",
+    "table_gw.head(5)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Iteration and indexing\n",
+    "\n",
+    "Each row is a `(timestamp, [values...])` tuple."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.765268Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.765198Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.766858Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.766549Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Timestamp: 2024-01-15 00:00:00+00:00\n",
+      "Values:    [81.52358539877216, 0.0, 52.036740689215684]\n"
+     ]
+    }
+   ],
+   "source": [
+    "ts_val, row_vals = table[0]\n",
+    "print(f\"Timestamp: {ts_val}\")\n",
+    "print(f\"Values:    {row_vals}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.767619Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.767577Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.769004Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.768675Z"
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "2024-01-15 00:00  wind=  81.5  solar=  0.0  hydro= 52.0\n",
+      "2024-01-15 01:00  wind=  85.6  solar=  0.0  hydro= 50.2\n",
+      "2024-01-15 02:00  wind= 104.5  solar=  1.1  hydro= 50.9\n",
+      "2024-01-15 03:00  wind= 113.9  solar=  3.1  hydro= 51.9\n"
+     ]
+    }
+   ],
+   "source": [
+    "for ts_val, row_vals in table.head(4):\n",
+    "    wind_mw, solar_mw, hydro_mw = row_vals\n",
+    "    print(f\"{ts_val:%Y-%m-%d %H:%M}  wind={wind_mw:6.1f}  solar={solar_mw:5.1f}  hydro={hydro_mw:5.1f}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Conversion to pandas DataFrame"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {
+    "execution": {
+     "iopub.execute_input": "2026-03-01T12:49:14.769852Z",
+     "iopub.status.busy": "2026-03-01T12:49:14.769811Z",
+     "iopub.status.idle": "2026-03-01T12:49:14.850062Z",
+     "shell.execute_reply": "2026-03-01T12:49:14.849688Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>wind</th>\n",
+       "      <th>solar</th>\n",
+       "      <th>hydro</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>timestamp</th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>2024-01-15 00:00:00+00:00</th>\n",
+       "      <td>81.523585</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>52.036741</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2024-01-15 01:00:00+00:00</th>\n",
+       "      <td>85.591950</td>\n",
+       "      <td>0.000000</td>\n",
+       "      <td>50.202737</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2024-01-15 02:00:00+00:00</th>\n",
+       "      <td>104.535614</td>\n",
+       "      <td>1.064618</td>\n",
+       "      <td>50.867358</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2024-01-15 03:00:00+00:00</th>\n",
+       "      <td>113.936262</td>\n",
+       "      <td>3.142702</td>\n",
+       "      <td>51.893865</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2024-01-15 04:00:00+00:00</th>\n",
+       "      <td>105.760233</td>\n",
+       "      <td>13.935461</td>\n",
+       "      <td>45.628533</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                 wind      solar      hydro\n",
+       "timestamp                                                  \n",
+       "2024-01-15 00:00:00+00:00   81.523585   0.000000  52.036741\n",
+       "2024-01-15 01:00:00+00:00   85.591950   0.000000  50.202737\n",
+       "2024-01-15 02:00:00+00:00  104.535614   1.064618  50.867358\n",
+       "2024-01-15 03:00:00+00:00  113.936262   3.142702  51.893865\n",
+       "2024-01-15 04:00:00+00:00  105.760233  13.935461  45.628533"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df = table.to_pandas_dataframe()\n",
+    "df.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Summary\n",
+    "\n",
+    "- `TimeSeriesTable` stores multiple aligned columns with per-column metadata\n",
+    "- `select_column()` extracts a single column as a `TimeSeries`\n",
+    "- `TimeSeries.merge()` combines univariate series into a table\n",
+    "- `to_univariate_list()` decomposes a table back to individual series\n",
+    "- Scalar arithmetic applies across all columns\n",
+    "\n",
+    "Next up: **nb_06** covers `TimeSeriesCube` and `TimeSeriesCollection` for higher-dimensional data."
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.14.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

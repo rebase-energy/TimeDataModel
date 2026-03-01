@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Generated tutorial notebooks (copied from examples/ by Sphinx hook)
+docs/tutorials/*.ipynb

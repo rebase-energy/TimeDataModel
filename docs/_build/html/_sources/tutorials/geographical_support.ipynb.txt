@@ -19,27 +19,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 1,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.885381Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.885252Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.926081Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.925723Z"
-    }
-   },
+   "execution_count": null,
+   "metadata": {},
    "outputs": [],
-   "source": [
-    "from datetime import datetime, timedelta, timezone\n",
-    "\n",
-    "import numpy as np\n",
-    "\n",
-    "import timedatamodel as tdm\n",
-    "\n",
-    "base = datetime(2024, 1, 15, tzinfo=timezone.utc)\n",
-    "timestamps = [base + timedelta(hours=i) for i in range(24)]\n",
-    "rng = np.random.default_rng(42)"
-   ]
+   "source": "from datetime import datetime, timedelta, timezone\n\nimport numpy as np\n\nimport timedatamodel as tdm\n\nbase = datetime(2024, 1, 15, tzinfo=timezone.utc)\ntimestamps = [base + timedelta(hours=i) for i in range(24)]\nrng = np.random.default_rng(42)"
   },
   {
    "cell_type": "markdown",
@@ -52,62 +35,17 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.927636Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.927531Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.929634Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.929311Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Oslo:    GeoLocation(latitude=59.91, longitude=10.75)\n",
-      "Bergen:  GeoLocation(latitude=60.39, longitude=5.32)\n",
-      "Tromsø:  GeoLocation(latitude=69.65, longitude=18.96)\n"
-     ]
-    }
-   ],
-   "source": [
-    "oslo = tdm.GeoLocation(latitude=59.91, longitude=10.75)\n",
-    "bergen = tdm.GeoLocation(latitude=60.39, longitude=5.32)\n",
-    "tromsoe = tdm.GeoLocation(latitude=69.65, longitude=18.96)\n",
-    "\n",
-    "print(f\"Oslo:    {oslo}\")\n",
-    "print(f\"Bergen:  {bergen}\")\n",
-    "print(f\"Tromsø:  {tromsoe}\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "oslo = tdm.GeoLocation(latitude=59.91, longitude=10.75)\nbergen = tdm.GeoLocation(latitude=60.39, longitude=5.32)\ntromsoe = tdm.GeoLocation(latitude=69.65, longitude=18.96)\n\nprint(f\"Oslo:    {oslo}\")\nprint(f\"Bergen:  {bergen}\")\nprint(f\"Tromsø:  {tromsoe}\")"
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.945023Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.944952Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.946597Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.946247Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Validation error: latitude must be between -90 and 90, got 200\n"
-     ]
-    }
-   ],
-   "source": [
-    "try:\n",
-    "    bad = tdm.GeoLocation(latitude=200, longitude=0)\n",
-    "except ValueError as e:\n",
-    "    print(f\"Validation error: {e}\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "try:\n    bad = tdm.GeoLocation(latitude=200, longitude=0)\nexcept ValueError as e:\n    print(f\"Validation error: {e}\")"
   },
   {
    "cell_type": "markdown",
@@ -120,25 +58,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.947508Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.947444Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.949216Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.948889Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Oslo → Bergen: 305.1 km  (189.6 mi)\n",
-      "Oslo → Tromsø: 1148.4 km\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "d_km = oslo.distance_to(bergen)\n",
     "d_mi = oslo.distance_to(bergen, unit=\"mi\")\n",
@@ -150,25 +72,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 5,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.950110Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.950060Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.951571Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.951240Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Initial bearing Oslo → Bergen: 282.4°\n",
-      "Geographic midpoint: GeoLocation(latitude=60.17777046667162, longitude=8.05483245837952)\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "bearing = oslo.bearing_to(bergen)\n",
     "print(f\"Initial bearing Oslo → Bergen: {bearing:.1f}°\")\n",
@@ -188,30 +94,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.952471Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.952421Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.953888Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.953626Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "100 km east of Oslo: GeoLocation(latitude=59.89782201387188, longitude=12.54332661133784)\n",
-      "Verify distance: 100.0 km\n"
-     ]
-    }
-   ],
-   "source": [
-    "east_of_oslo = oslo.offset(100, 90)  # 100 km due east\n",
-    "print(f\"100 km east of Oslo: {east_of_oslo}\")\n",
-    "print(f\"Verify distance: {oslo.distance_to(east_of_oslo):.1f} km\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "east_of_oslo = oslo.offset(100, 90)  # 100 km due east\nprint(f\"100 km east of Oslo: {east_of_oslo}\")\nprint(f\"Verify distance: {oslo.distance_to(east_of_oslo):.1f} km\")"
   },
   {
    "cell_type": "markdown",
@@ -224,129 +110,16 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.954770Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.954698Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.957409Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.957147Z"
-    }
-   },
-   "outputs": [
-    {
-     "data": {
-      "text/html": [
-       "<style>\n",
-       ".ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }\n",
-       ".ts-repr .ts-header {\n",
-       "  font-weight: bold; font-size: 14px;\n",
-       "  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;\n",
-       "  background: #f0f0f0; color: #1a1a1a;\n",
-       "}\n",
-       ".ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }\n",
-       ".ts-repr .ts-meta table { border-collapse: collapse; }\n",
-       ".ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }\n",
-       ".ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }\n",
-       ".ts-repr .ts-data { padding: 6px 10px; }\n",
-       ".ts-repr .ts-data table {\n",
-       "  border-collapse: collapse; width: 100%; text-align: right;\n",
-       "}\n",
-       ".ts-repr .ts-data th {\n",
-       "  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;\n",
-       "  color: #555; font-weight: 600;\n",
-       "}\n",
-       ".ts-repr .ts-data td { padding: 2px 10px; }\n",
-       ".ts-repr .ts-data tr:hover { background: #f5f5f5; }\n",
-       ".ts-repr .ts-data td:first-child { text-align: left; color: #333; }\n",
-       ".ts-repr .ts-ellipsis { text-align: center !important; color: #999; }\n",
-       "</style>\n",
-       "<div class=\"ts-repr\">\n",
-       "<div class=\"ts-header\">TimeSeries</div>\n",
-       "<div class=\"ts-meta\"><table>\n",
-       "<tr><td>Columns</td><td>temperature</td></tr>\n",
-       "<tr><td>Shape</td><td>(24,)</td></tr>\n",
-       "<tr><td>Frequency</td><td>PT1H</td></tr>\n",
-       "<tr><td>Timezone</td><td>Europe/Oslo</td></tr>\n",
-       "<tr><td>Unit</td><td>°C</td></tr>\n",
-       "<tr><td>Data type</td><td>MEASUREMENT</td></tr>\n",
-       "<tr><td>Location</td><td>59.91°N, 10.75°E</td></tr>\n",
-       "<tr><td>Description</td><td>Hourly temperature at Oslo Blindern</td></tr>\n",
-       "</table></div>\n",
-       "<div class=\"ts-data\"><table>\n",
-       "<tr><th>timestamp</th><th>temperature</th></tr>\n",
-       "<tr><td>2024-01-15 00:00:00+00:00</td><td>5.60943</td></tr>\n",
-       "<tr><td>2024-01-15 01:00:00+00:00</td><td>2.92003</td></tr>\n",
-       "<tr><td>2024-01-15 02:00:00+00:00</td><td>6.5009</td></tr>\n",
-       "<tr><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td></tr>\n",
-       "<tr><td>2024-01-15 21:00:00+00:00</td><td>3.63814</td></tr>\n",
-       "<tr><td>2024-01-15 22:00:00+00:00</td><td>7.44508</td></tr>\n",
-       "<tr><td>2024-01-15 23:00:00+00:00</td><td>4.69094</td></tr>\n",
-       "</table></div>\n",
-       "</div>"
-      ],
-      "text/plain": [
-       "TimeSeries\n",
-       "┌──────────────────────────────────────┐\n",
-       "│  Columns:          temperature       │\n",
-       "│  Shape:            (24,)             │\n",
-       "│  Frequency:        PT1H              │\n",
-       "│  Timezone:         Europe/Oslo       │\n",
-       "│  Unit:             °C                │\n",
-       "│  Data type:        MEASUREMENT       │\n",
-       "│  Location:         59.91°N, 10.75°E  │\n",
-       "├──────────────────────────────────────┤\n",
-       "│  2024-01-15 00:00:00+00:00  5.60943  │\n",
-       "│  2024-01-15 01:00:00+00:00  2.92003  │\n",
-       "│  2024-01-15 02:00:00+00:00   6.5009  │\n",
-       "│  ...                            ...  │\n",
-       "│  2024-01-15 21:00:00+00:00  3.63814  │\n",
-       "│  2024-01-15 22:00:00+00:00  7.44508  │\n",
-       "│  2024-01-15 23:00:00+00:00  4.69094  │\n",
-       "└──────────────────────────────────────┘"
-      ]
-     },
-     "execution_count": 7,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
-   "source": [
-    "ts_oslo = tdm.TimeSeries(\n",
-    "    tdm.Frequency.PT1H,\n",
-    "    timezone=\"Europe/Oslo\",\n",
-    "    timestamps=timestamps,\n",
-    "    values=(5.0 + rng.normal(0, 2, 24)).tolist(),\n",
-    "    name=\"temperature\",\n",
-    "    unit=\"°C\",\n",
-    "    description=\"Hourly temperature at Oslo Blindern\",\n",
-    "    data_type=tdm.DataType.MEASUREMENT,\n",
-    "    location=oslo,\n",
-    ")\n",
-    "ts_oslo"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "ts_oslo = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timezone=\"Europe/Oslo\",\n    timestamps=timestamps,\n    values=(5.0 + rng.normal(0, 2, 24)).tolist(),\n    name=\"temperature\",\n    unit=\"°C\",\n    description=\"Hourly temperature at Oslo Blindern\",\n    data_type=tdm.DataType.MEASUREMENT,\n    location=oslo,\n)\nts_oslo"
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.958368Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.958297Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.959800Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.959529Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Location: GeoLocation(latitude=59.91, longitude=10.75)\n",
-      "Lat: 59.91, Lon: 10.75\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "print(f\"Location: {ts_oslo.location}\")\n",
     "print(f\"Lat: {ts_oslo.location.latitude}, Lon: {ts_oslo.location.longitude}\")"
@@ -363,130 +136,16 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.960710Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.960648Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.962970Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.962623Z"
-    }
-   },
-   "outputs": [
-    {
-     "data": {
-      "text/html": [
-       "<style>\n",
-       ".ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }\n",
-       ".ts-repr .ts-header {\n",
-       "  font-weight: bold; font-size: 14px;\n",
-       "  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;\n",
-       "  background: #f0f0f0; color: #1a1a1a;\n",
-       "}\n",
-       ".ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }\n",
-       ".ts-repr .ts-meta table { border-collapse: collapse; }\n",
-       ".ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }\n",
-       ".ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }\n",
-       ".ts-repr .ts-data { padding: 6px 10px; }\n",
-       ".ts-repr .ts-data table {\n",
-       "  border-collapse: collapse; width: 100%; text-align: right;\n",
-       "}\n",
-       ".ts-repr .ts-data th {\n",
-       "  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;\n",
-       "  color: #555; font-weight: 600;\n",
-       "}\n",
-       ".ts-repr .ts-data td { padding: 2px 10px; }\n",
-       ".ts-repr .ts-data tr:hover { background: #f5f5f5; }\n",
-       ".ts-repr .ts-data td:first-child { text-align: left; color: #333; }\n",
-       ".ts-repr .ts-ellipsis { text-align: center !important; color: #999; }\n",
-       "</style>\n",
-       "<div class=\"ts-repr\">\n",
-       "<div class=\"ts-header\">TimeSeriesTable</div>\n",
-       "<div class=\"ts-meta\"><table>\n",
-       "<tr><td>Columns</td><td>Oslo, Bergen, Tromsø</td></tr>\n",
-       "<tr><td>Shape</td><td>(24, 3)</td></tr>\n",
-       "<tr><td>Frequency</td><td>PT1H</td></tr>\n",
-       "<tr><td>Timezone</td><td>Europe/Oslo</td></tr>\n",
-       "</table></div>\n",
-       "<div class=\"ts-data\"><table>\n",
-       "<tr><th>timestamp</th><th>Oslo</th><th>Bergen</th><th>Tromsø</th></tr>\n",
-       "<tr><td>2024-01-15 00:00:00+00:00</td><td>4.14334</td><td>4.03674</td><td>-11.6778</td></tr>\n",
-       "<tr><td>2024-01-15 01:00:00+00:00</td><td>4.29573</td><td>2.20274</td><td>-6.01136</td></tr>\n",
-       "<tr><td>2024-01-15 02:00:00+00:00</td><td>6.06462</td><td>2.86736</td><td>-7.4303</td></tr>\n",
-       "<tr><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td><td class=\"ts-ellipsis\">&hellip;</td></tr>\n",
-       "<tr><td>2024-01-15 21:00:00+00:00</td><td>5.43738</td><td>1.42609</td><td>-8.31887</td></tr>\n",
-       "<tr><td>2024-01-15 22:00:00+00:00</td><td>6.74286</td><td>-1.82706</td><td>-14.7493</td></tr>\n",
-       "<tr><td>2024-01-15 23:00:00+00:00</td><td>5.44719</td><td>-1.39986</td><td>-13.7884</td></tr>\n",
-       "</table></div>\n",
-       "</div>"
-      ],
-      "text/plain": [
-       "TimeSeriesTable\n",
-       "┌─────────────────────────────────────────────────────────────────────────┐\n",
-       "│  Columns:          Oslo, Bergen, Tromsø                                 │\n",
-       "│  Shape:            (24, 3)                                              │\n",
-       "│  Frequency:        PT1H                                                 │\n",
-       "│  Timezone:         Europe/Oslo                                          │\n",
-       "│  Unit:             °C, °C, °C                                           │\n",
-       "│  Data type:        MEASUREMENT, MEASUREMENT, MEASUREMENT                │\n",
-       "│  Location:         59.91°N, 10.75°E, 60.39°N, 5.32°E, 69.65°N, 18.96°E  │\n",
-       "├─────────────────────────────────────────────────────────────────────────┤\n",
-       "│                                Oslo    Bergen    Tromsø                 │\n",
-       "│  2024-01-15 00:00:00+00:00  4.14334   4.03674  -11.6778                 │\n",
-       "│  2024-01-15 01:00:00+00:00  4.29573   2.20274  -6.01136                 │\n",
-       "│  2024-01-15 02:00:00+00:00  6.06462   2.86736   -7.4303                 │\n",
-       "│  ...                            ...       ...       ...                 │\n",
-       "│  2024-01-15 21:00:00+00:00  5.43738   1.42609  -8.31887                 │\n",
-       "│  2024-01-15 22:00:00+00:00  6.74286  -1.82706  -14.7493                 │\n",
-       "│  2024-01-15 23:00:00+00:00  5.44719  -1.39986  -13.7884                 │\n",
-       "└─────────────────────────────────────────────────────────────────────────┘"
-      ]
-     },
-     "execution_count": 9,
-     "metadata": {},
-     "output_type": "execute_result"
-    }
-   ],
-   "source": [
-    "table = tdm.TimeSeriesTable(\n",
-    "    tdm.Frequency.PT1H,\n",
-    "    timezone=\"Europe/Oslo\",\n",
-    "    timestamps=timestamps,\n",
-    "    values=np.column_stack([\n",
-    "        5.0 + rng.normal(0, 2, 24),\n",
-    "        2.0 + rng.normal(0, 3, 24),\n",
-    "        -8.0 + rng.normal(0, 4, 24),\n",
-    "    ]),\n",
-    "    names=[\"Oslo\", \"Bergen\", \"Tromsø\"],\n",
-    "    units=[\"°C\", \"°C\", \"°C\"],\n",
-    "    locations=[oslo, bergen, tromsoe],\n",
-    "    data_types=[tdm.DataType.MEASUREMENT],\n",
-    ")\n",
-    "table"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "table = tdm.TimeSeriesTable(\n    tdm.Frequency.PT1H,\n    timezone=\"Europe/Oslo\",\n    timestamps=timestamps,\n    values=np.column_stack([\n        5.0 + rng.normal(0, 2, 24),\n        2.0 + rng.normal(0, 3, 24),\n        -8.0 + rng.normal(0, 4, 24),\n    ]),\n    names=[\"Oslo\", \"Bergen\", \"Tromsø\"],\n    units=[\"°C\", \"°C\", \"°C\"],\n    locations=[oslo, bergen, tromsoe],\n    data_types=[tdm.DataType.MEASUREMENT],\n)\ntable"
   },
   {
    "cell_type": "code",
-   "execution_count": 10,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.963885Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.963830Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.965481Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.965130Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Oslo      GeoLocation(latitude=59.91, longitude=10.75)\n",
-      "Bergen    GeoLocation(latitude=60.39, longitude=5.32)\n",
-      "Tromsø    GeoLocation(latitude=69.65, longitude=18.96)\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "for i, name in enumerate(table.column_names):\n",
     "    loc = table.locations[i] if len(table.locations) > 1 else table.locations[0]\n",
@@ -502,27 +161,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 11,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.966326Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.966272Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.967948Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.967676Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Pairwise distances (km):\n",
-      "  Oslo     ↔ Tromsø     1148.4 km\n",
-      "  Bergen   ↔ Oslo        305.1 km\n",
-      "  Bergen   ↔ Tromsø     1206.5 km\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "stations = {\"Oslo\": oslo, \"Bergen\": bergen, \"Tromsø\": tromsoe}\n",
     "\n",
@@ -549,46 +190,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 12,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.968922Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.968856Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.990326Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.990041Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Area name: Southern Norway\n",
-      "Bounds:    (4.5, 57.5, 12.5, 63.0)\n",
-      "Centroid:  GeoLocation(latitude=60.25, longitude=8.5)\n"
-     ]
-    }
-   ],
-   "source": [
-    "try:\n",
-    "    southern_norway = tdm.GeoArea.from_coordinates(\n",
-    "        [\n",
-    "            (57.5, 4.5),\n",
-    "            (57.5, 12.5),\n",
-    "            (63.0, 12.5),\n",
-    "            (63.0, 4.5),\n",
-    "            (57.5, 4.5),\n",
-    "        ],\n",
-    "        name=\"Southern Norway\",\n",
-    "    )\n",
-    "\n",
-    "    print(f\"Area name: {southern_norway.name}\")\n",
-    "    print(f\"Bounds:    {southern_norway.bounds}\")\n",
-    "    print(f\"Centroid:  {southern_norway.centroid}\")\n",
-    "except ImportError:\n",
-    "    southern_norway = None\n",
-    "    print(\"shapely not installed — skip this cell or: pip install timedatamodel[geo]\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "try:\n    southern_norway = tdm.GeoArea.from_coordinates(\n        [\n            (57.5, 4.5),\n            (57.5, 12.5),\n            (63.0, 12.5),\n            (63.0, 4.5),\n            (57.5, 4.5),\n        ],\n        name=\"Southern Norway\",\n    )\n\n    print(f\"Area name: {southern_norway.name}\")\n    print(f\"Bounds:    {southern_norway.bounds}\")\n    print(f\"Centroid:  {southern_norway.centroid}\")\nexcept ImportError:\n    southern_norway = None\n    print(\"shapely not installed — skip this cell or: pip install timedatamodel[geo]\")"
   },
   {
    "cell_type": "markdown",
@@ -601,36 +206,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.991330Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.991243Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.993107Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.992770Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Area: Oslo 50km\n",
-      "Bounds: (9.853172269304775, 59.46033919704064, 11.646827730695227, 60.35966080295936)\n",
-      "Centroid: GeoLocation(latitude=59.91, longitude=10.75)\n"
-     ]
-    }
-   ],
-   "source": [
-    "try:\n",
-    "    oslo_region = tdm.GeoArea.bounding_box(oslo, radius_km=50, name=\"Oslo 50km\")\n",
-    "    print(f\"Area: {oslo_region.name}\")\n",
-    "    print(f\"Bounds: {oslo_region.bounds}\")\n",
-    "    print(f\"Centroid: {oslo_region.centroid}\")\n",
-    "except ImportError:\n",
-    "    oslo_region = None\n",
-    "    print(\"shapely not installed — skipping\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "try:\n    oslo_region = tdm.GeoArea.bounding_box(oslo, radius_km=50, name=\"Oslo 50km\")\n    print(f\"Area: {oslo_region.name}\")\n    print(f\"Bounds: {oslo_region.bounds}\")\n    print(f\"Centroid: {oslo_region.centroid}\")\nexcept ImportError:\n    oslo_region = None\n    print(\"shapely not installed — skipping\")"
   },
   {
    "cell_type": "markdown",
@@ -644,26 +223,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 14,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.993960Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.993909Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.996508Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.996127Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Oslo     in Southern Norway? True  (is_within: True)\n",
-      "Bergen   in Southern Norway? True  (is_within: True)\n",
-      "Tromsø   in Southern Norway? False  (is_within: False)\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "try:\n",
     "    if southern_norway is not None:\n",
@@ -677,25 +239,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 15,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:07.997312Z",
-     "iopub.status.busy": "2026-03-01T12:49:07.997263Z",
-     "iopub.status.idle": "2026-03-01T12:49:07.999372Z",
-     "shell.execute_reply": "2026-03-01T12:49:07.999103Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Southern Norway contains Oslo 50km region? True\n",
-      "Oslo 50km region overlaps Southern Norway?  True\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "try:\n",
     "    if southern_norway is not None and oslo_region is not None:\n",
@@ -716,32 +262,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 16,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:08.000372Z",
-     "iopub.status.busy": "2026-03-01T12:49:08.000314Z",
-     "iopub.status.idle": "2026-03-01T12:49:08.002042Z",
-     "shell.execute_reply": "2026-03-01T12:49:08.001699Z"
-    }
-   },
+   "execution_count": null,
+   "metadata": {},
    "outputs": [],
-   "source": [
-    "try:\n",
-    "    if southern_norway is not None:\n",
-    "        ts_area = tdm.TimeSeries(\n",
-    "            tdm.Frequency.PT1H,\n",
-    "            timestamps=timestamps,\n",
-    "            values=(120 + rng.normal(0, 15, 24)).tolist(),\n",
-    "            name=\"wind_south\",\n",
-    "            unit=\"MW\",\n",
-    "            description=\"Aggregated wind production in southern Norway\",\n",
-    "            location=southern_norway,\n",
-    "        )\n",
-    "        ts_area\n",
-    "except ImportError:\n",
-    "    print(\"shapely not installed — skipping\")"
-   ]
+   "source": "try:\n    if southern_norway is not None:\n        ts_area = tdm.TimeSeries(\n            tdm.Frequency.PT1H,\n            timestamps=timestamps,\n            values=(120 + rng.normal(0, 15, 24)).tolist(),\n            name=\"wind_south\",\n            unit=\"MW\",\n            description=\"Aggregated wind production in southern Norway\",\n            location=southern_norway,\n        )\n        ts_area\nexcept ImportError:\n    print(\"shapely not installed — skipping\")"
   },
   {
    "cell_type": "markdown",
@@ -755,25 +279,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 17,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:08.002861Z",
-     "iopub.status.busy": "2026-03-01T12:49:08.002813Z",
-     "iopub.status.idle": "2026-03-01T12:49:08.004555Z",
-     "shell.execute_reply": "2026-03-01T12:49:08.004182Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Southern Norway → Oslo (contained):  0.0 km\n",
-      "Southern Norway → Tromsø (outside):  1151.7 km\n"
-     ]
-    }
-   ],
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
    "source": [
     "try:\n",
     "    if southern_norway is not None:\n",
@@ -795,34 +303,10 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 18,
-   "metadata": {
-    "execution": {
-     "iopub.execute_input": "2026-03-01T12:49:08.005408Z",
-     "iopub.status.busy": "2026-03-01T12:49:08.005348Z",
-     "iopub.status.idle": "2026-03-01T12:49:08.006998Z",
-     "shell.execute_reply": "2026-03-01T12:49:08.006651Z"
-    }
-   },
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "Name:     temperature\n",
-      "Location: GeoLocation(latitude=59.91, longitude=10.75)\n",
-      "Match:    True\n"
-     ]
-    }
-   ],
-   "source": [
-    "json_str = ts_oslo.to_json()\n",
-    "ts_back = tdm.TimeSeries.from_json(json_str, location=oslo)\n",
-    "\n",
-    "print(f\"Name:     {ts_back.name}\")\n",
-    "print(f\"Location: {ts_back.location}\")\n",
-    "print(f\"Match:    {ts_back.location == oslo}\")"
-   ]
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "json_str = ts_oslo.to_json()\nts_back = tdm.TimeSeries.from_json(json_str, location=oslo)\n\nprint(f\"Name:     {ts_back.name}\")\nprint(f\"Location: {ts_back.location}\")\nprint(f\"Match:    {ts_back.location == oslo}\")"
   },
   {
    "cell_type": "markdown",
@@ -853,16 +337,8 @@
    "name": "python3"
   },
   "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
    "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.14.2"
+   "version": "3.11.0"
   }
  },
  "nbformat": 4,

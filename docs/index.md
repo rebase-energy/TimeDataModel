@@ -52,14 +52,23 @@ ts_doubled = ts * 2
 ```
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 :caption: Tutorials
 
-tutorials/index
+tutorials/getting_started
+tutorials/numpy_and_pandas_transforms
+tutorials/unit_handling_and_validation
+tutorials/timeseries_operations
+tutorials/multivariate_timeseries
+tutorials/cubes_and_collections
+tutorials/data_quality_and_coverage
+tutorials/io_and_interoperability
+tutorials/geographical_support
+tutorials/hierarchical_timeseries
 ```
 
 ```{toctree}
-:maxdepth: 2
+:maxdepth: 1
 :caption: API Reference
 
 api

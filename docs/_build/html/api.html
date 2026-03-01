@@ -45,86 +45,314 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/getting_started.html">Getting Started with TimeDataModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/unit_handling_and_validation.html">Unit Handling and Validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/multivariate_timeseries.html">Multivariate Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/data_quality_and_coverage.html">Data Quality and Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/io_and_interoperability.html">I/O and Interoperability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/geographical_support.html">Geographical Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/hierarchical_timeseries.html">Hierarchical Time Series</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#core">Core</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#timeseries">TimeSeries</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries"><code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#timeseriestable">TimeSeriesTable</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#timeseriescube">TimeSeriesCube</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#dimension">Dimension</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Dimension"><code class="docutils literal notranslate"><span class="pre">Dimension</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#timeseriescollection">TimeSeriesCollection</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#datapoint">DataPoint</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.DataPoint"><code class="docutils literal notranslate"><span class="pre">DataPoint</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataPoint.timestamp"><code class="docutils literal notranslate"><span class="pre">DataPoint.timestamp</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataPoint.value"><code class="docutils literal notranslate"><span class="pre">DataPoint.value</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#enums">Enums</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#frequency">Frequency</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency"><code class="docutils literal notranslate"><span class="pre">Frequency</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timeseries">TimeSeries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.TimeSeries"><code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.frequency"><code class="docutils literal notranslate"><span class="pre">TimeSeries.frequency</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.timezone"><code class="docutils literal notranslate"><span class="pre">TimeSeries.timezone</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.name"><code class="docutils literal notranslate"><span class="pre">TimeSeries.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.unit"><code class="docutils literal notranslate"><span class="pre">TimeSeries.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.description"><code class="docutils literal notranslate"><span class="pre">TimeSeries.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.data_type"><code class="docutils literal notranslate"><span class="pre">TimeSeries.data_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.location"><code class="docutils literal notranslate"><span class="pre">TimeSeries.location</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.timeseries_type"><code class="docutils literal notranslate"><span class="pre">TimeSeries.timeseries_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.attributes"><code class="docutils literal notranslate"><span class="pre">TimeSeries.attributes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.values"><code class="docutils literal notranslate"><span class="pre">TimeSeries.values</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.column_names"><code class="docutils literal notranslate"><span class="pre">TimeSeries.column_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.has_missing"><code class="docutils literal notranslate"><span class="pre">TimeSeries.has_missing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.coverage_bar"><code class="docutils literal notranslate"><span class="pre">TimeSeries.coverage_bar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.pint_unit"><code class="docutils literal notranslate"><span class="pre">TimeSeries.pint_unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.convert_unit"><code class="docutils literal notranslate"><span class="pre">TimeSeries.convert_unit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.equals"><code class="docutils literal notranslate"><span class="pre">TimeSeries.equals()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.head"><code class="docutils literal notranslate"><span class="pre">TimeSeries.head()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.tail"><code class="docutils literal notranslate"><span class="pre">TimeSeries.tail()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.copy"><code class="docutils literal notranslate"><span class="pre">TimeSeries.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.arr"><code class="docutils literal notranslate"><span class="pre">TimeSeries.arr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.df"><code class="docutils literal notranslate"><span class="pre">TimeSeries.df</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.to_numpy"><code class="docutils literal notranslate"><span class="pre">TimeSeries.to_numpy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.to_pandas_dataframe"><code class="docutils literal notranslate"><span class="pre">TimeSeries.to_pandas_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.to_pd_df"><code class="docutils literal notranslate"><span class="pre">TimeSeries.to_pd_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.to_pl_df"><code class="docutils literal notranslate"><span class="pre">TimeSeries.to_pl_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.to_polars_dataframe"><code class="docutils literal notranslate"><span class="pre">TimeSeries.to_polars_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.from_pandas"><code class="docutils literal notranslate"><span class="pre">TimeSeries.from_pandas()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.from_polars"><code class="docutils literal notranslate"><span class="pre">TimeSeries.from_polars()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.update_from_pandas"><code class="docutils literal notranslate"><span class="pre">TimeSeries.update_from_pandas()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.update_df"><code class="docutils literal notranslate"><span class="pre">TimeSeries.update_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.update_arr"><code class="docutils literal notranslate"><span class="pre">TimeSeries.update_arr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.to_json"><code class="docutils literal notranslate"><span class="pre">TimeSeries.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.from_json"><code class="docutils literal notranslate"><span class="pre">TimeSeries.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.to_csv"><code class="docutils literal notranslate"><span class="pre">TimeSeries.to_csv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.from_csv"><code class="docutils literal notranslate"><span class="pre">TimeSeries.from_csv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.validate"><code class="docutils literal notranslate"><span class="pre">TimeSeries.validate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.apply_pandas"><code class="docutils literal notranslate"><span class="pre">TimeSeries.apply_pandas()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.apply_numpy"><code class="docutils literal notranslate"><span class="pre">TimeSeries.apply_numpy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeries.merge"><code class="docutils literal notranslate"><span class="pre">TimeSeries.merge()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#datatype">DataType</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataType"><code class="docutils literal notranslate"><span class="pre">DataType</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#timeseriestype">TimeSeriesType</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesType"><code class="docutils literal notranslate"><span class="pre">TimeSeriesType</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timeseriestable">TimeSeriesTable</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.TimeSeriesTable"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.frequency"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.frequency</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.timezone"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.timezone</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.names"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.units"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.units</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.descriptions"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.descriptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.data_types"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.data_types</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.locations"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.locations</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.timeseries_types"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.timeseries_types</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.attributes"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.attributes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.values"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.values</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.n_columns"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.n_columns</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.column_names"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.column_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.has_missing"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.has_missing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.coverage_bar"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.coverage_bar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.convert_unit"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.convert_unit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.filter_columns_by_location"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.filter_columns_by_location()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.filter_columns_by_area"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.filter_columns_by_area()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.nearest_columns"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.nearest_columns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.equals"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.equals()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.select_column"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.select_column()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.to_univariate_list"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.to_univariate_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.head"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.head()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.tail"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.tail()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.copy"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.arr"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.arr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.df"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.df</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.to_numpy"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.to_numpy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.to_pandas_dataframe"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.to_pandas_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.to_pd_df"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.to_pd_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.to_pl_df"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.to_pl_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.to_polars_dataframe"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.to_polars_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.from_pandas"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.from_pandas()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.update_df"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.update_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.update_arr"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.update_arr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.to_json"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.to_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.from_json"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.from_json()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.to_csv"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.to_csv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.from_csv"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.from_csv()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.validate"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.validate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.apply_pandas"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.apply_pandas()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesTable.apply_numpy"><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable.apply_numpy()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#location">Location</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#geolocation">GeoLocation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoLocation"><code class="docutils literal notranslate"><span class="pre">GeoLocation</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timeseriescube">TimeSeriesCube</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.TimeSeriesCube"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.frequency"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.frequency</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.timezone"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.timezone</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.name"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.unit"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.description"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.data_type"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.data_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.attributes"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.attributes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.dimensions"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.dimensions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.shape"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.shape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.ndim"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.ndim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.dim_names"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.dim_names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.coords"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.coords</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.primary_time_dim"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.primary_time_dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.begin"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.begin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.end"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.end</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.has_missing"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.has_missing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.sel"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.sel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.isel"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.isel()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.to_timeseries"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.to_timeseries()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.to_table"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.to_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.to_numpy"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.to_numpy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.to_pandas_dataframe"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.to_pandas_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.from_numpy"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.from_numpy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.from_timeseries_list"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.from_timeseries_list()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.coverage_bar"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.coverage_bar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCube.equals"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCube.equals()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#geoarea">GeoArea</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea"><code class="docutils literal notranslate"><span class="pre">GeoArea</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#dimension">Dimension</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.Dimension"><code class="docutils literal notranslate"><span class="pre">Dimension</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Dimension.name"><code class="docutils literal notranslate"><span class="pre">Dimension.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Dimension.labels"><code class="docutils literal notranslate"><span class="pre">Dimension.labels</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#hierarchy">Hierarchy</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#aggregationmethod">AggregationMethod</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.AggregationMethod"><code class="docutils literal notranslate"><span class="pre">AggregationMethod</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timeseriescollection">TimeSeriesCollection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.name"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.description"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.names"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.names</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.series_count"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.series_count</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.keys"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.keys()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.values"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.items"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.add"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.remove"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.remove()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.filter_by_location"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.filter_by_location()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.filter_by_area"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.filter_by_area()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.nearest"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.nearest()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.to_pandas_dataframe"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.to_pandas_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.to_pd_df"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.to_pd_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.df"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.df</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.to_polars_dataframe"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.to_polars_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.to_pl_df"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.to_pl_df()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.to_numpy"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.to_numpy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.arr"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.arr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesCollection.coverage_bar"><code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection.coverage_bar()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarchynode">HierarchyNode</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode"><code class="docutils literal notranslate"><span class="pre">HierarchyNode</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarchytree">HierarchyTree</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyTree"><code class="docutils literal notranslate"><span class="pre">HierarchyTree</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#frequency">Frequency</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.Frequency"><code class="docutils literal notranslate"><span class="pre">Frequency</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.P1Y"><code class="docutils literal notranslate"><span class="pre">Frequency.P1Y</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.P3M"><code class="docutils literal notranslate"><span class="pre">Frequency.P3M</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.P1M"><code class="docutils literal notranslate"><span class="pre">Frequency.P1M</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.P1W"><code class="docutils literal notranslate"><span class="pre">Frequency.P1W</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.P1D"><code class="docutils literal notranslate"><span class="pre">Frequency.P1D</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.PT1H"><code class="docutils literal notranslate"><span class="pre">Frequency.PT1H</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.PT30M"><code class="docutils literal notranslate"><span class="pre">Frequency.PT30M</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.PT15M"><code class="docutils literal notranslate"><span class="pre">Frequency.PT15M</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.PT10M"><code class="docutils literal notranslate"><span class="pre">Frequency.PT10M</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.PT5M"><code class="docutils literal notranslate"><span class="pre">Frequency.PT5M</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.PT1M"><code class="docutils literal notranslate"><span class="pre">Frequency.PT1M</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.PT1S"><code class="docutils literal notranslate"><span class="pre">Frequency.PT1S</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.NONE"><code class="docutils literal notranslate"><span class="pre">Frequency.NONE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.is_calendar_based"><code class="docutils literal notranslate"><span class="pre">Frequency.is_calendar_based</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.Frequency.to_timedelta"><code class="docutils literal notranslate"><span class="pre">Frequency.to_timedelta()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarchicaltimeseries">HierarchicalTimeSeries</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#datatype">DataType</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.DataType"><code class="docutils literal notranslate"><span class="pre">DataType</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataType.MEASUREMENT"><code class="docutils literal notranslate"><span class="pre">DataType.MEASUREMENT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataType.ESTIMATION"><code class="docutils literal notranslate"><span class="pre">DataType.ESTIMATION</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataType.FORECAST"><code class="docutils literal notranslate"><span class="pre">DataType.FORECAST</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataType.SCENARIO"><code class="docutils literal notranslate"><span class="pre">DataType.SCENARIO</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataType.SYNTHETIC"><code class="docutils literal notranslate"><span class="pre">DataType.SYNTHETIC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataType.CLIMATE"><code class="docutils literal notranslate"><span class="pre">DataType.CLIMATE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataType.ACTUAL"><code class="docutils literal notranslate"><span class="pre">DataType.ACTUAL</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#primitives">Primitives</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#datapoint">DataPoint</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.DataPoint"><code class="docutils literal notranslate"><span class="pre">DataPoint</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timeseriestype">TimeSeriesType</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.TimeSeriesType"><code class="docutils literal notranslate"><span class="pre">TimeSeriesType</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesType.FLAT"><code class="docutils literal notranslate"><span class="pre">TimeSeriesType.FLAT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.TimeSeriesType.OVERLAPPING"><code class="docutils literal notranslate"><span class="pre">TimeSeriesType.OVERLAPPING</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#coveragebar">CoverageBar</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.CoverageBar"><code class="docutils literal notranslate"><span class="pre">CoverageBar</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#geolocation">GeoLocation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.GeoLocation"><code class="docutils literal notranslate"><span class="pre">GeoLocation</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoLocation.latitude"><code class="docutils literal notranslate"><span class="pre">GeoLocation.latitude</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoLocation.longitude"><code class="docutils literal notranslate"><span class="pre">GeoLocation.longitude</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoLocation.distance_to"><code class="docutils literal notranslate"><span class="pre">GeoLocation.distance_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoLocation.bearing_to"><code class="docutils literal notranslate"><span class="pre">GeoLocation.bearing_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoLocation.midpoint"><code class="docutils literal notranslate"><span class="pre">GeoLocation.midpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoLocation.offset"><code class="docutils literal notranslate"><span class="pre">GeoLocation.offset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoLocation.is_within"><code class="docutils literal notranslate"><span class="pre">GeoLocation.is_within()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#geoarea">GeoArea</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.GeoArea"><code class="docutils literal notranslate"><span class="pre">GeoArea</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.polygon"><code class="docutils literal notranslate"><span class="pre">GeoArea.polygon</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.name"><code class="docutils literal notranslate"><span class="pre">GeoArea.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.bounds"><code class="docutils literal notranslate"><span class="pre">GeoArea.bounds</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.centroid"><code class="docutils literal notranslate"><span class="pre">GeoArea.centroid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.from_coordinates"><code class="docutils literal notranslate"><span class="pre">GeoArea.from_coordinates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.contains_point"><code class="docutils literal notranslate"><span class="pre">GeoArea.contains_point()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.contains_area"><code class="docutils literal notranslate"><span class="pre">GeoArea.contains_area()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.overlaps"><code class="docutils literal notranslate"><span class="pre">GeoArea.overlaps()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.distance_to"><code class="docutils literal notranslate"><span class="pre">GeoArea.distance_to()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.GeoArea.bounding_box"><code class="docutils literal notranslate"><span class="pre">GeoArea.bounding_box()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#aggregationmethod">AggregationMethod</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.AggregationMethod"><code class="docutils literal notranslate"><span class="pre">AggregationMethod</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.AggregationMethod.SUM"><code class="docutils literal notranslate"><span class="pre">AggregationMethod.SUM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.AggregationMethod.MEAN"><code class="docutils literal notranslate"><span class="pre">AggregationMethod.MEAN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.AggregationMethod.MIN"><code class="docutils literal notranslate"><span class="pre">AggregationMethod.MIN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.AggregationMethod.MAX"><code class="docutils literal notranslate"><span class="pre">AggregationMethod.MAX</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hierarchynode">HierarchyNode</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.HierarchyNode"><code class="docutils literal notranslate"><span class="pre">HierarchyNode</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.key"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.key</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.level"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.children"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.children</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.timeseries"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.timeseries</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.location"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.location</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.is_leaf"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.is_leaf</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.parent"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.parent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.siblings"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.siblings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.depth"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.depth</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.path"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchyNode.leaf_count"><code class="docutils literal notranslate"><span class="pre">HierarchyNode.leaf_count</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hierarchytree">HierarchyTree</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.HierarchyTree"><code class="docutils literal notranslate"><span class="pre">HierarchyTree</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#hierarchicaltimeseries">HierarchicalTimeSeries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.from_dict"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.from_dataframe"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.from_dataframe()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.root"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.root</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.name"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.description"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.description</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.levels"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.levels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.n_levels"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.n_levels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.n_leaves"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.n_leaves</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.n_nodes"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.n_nodes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.frequency"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.frequency</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.timezone"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.timezone</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.unit"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.begin"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.begin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.end"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.end</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.get_node"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.get_node()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.get_level"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.get_level()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.leaves"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.leaves()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.walk"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.walk()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.subtree"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.subtree()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.aggregate"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.aggregate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.aggregate_level"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.aggregate_level()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.to_collection"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.to_collection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.to_table"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.to_table()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timedatamodel.HierarchicalTimeSeries.tree"><code class="docutils literal notranslate"><span class="pre">HierarchicalTimeSeries.tree()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -159,10 +387,36 @@
              
   <section id="api-reference">
 <h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
-<section id="core">
-<h2>Core<a class="headerlink" href="#core" title="Link to this heading"></a></h2>
+<section id="datapoint">
+<h2>DataPoint<a class="headerlink" href="#datapoint" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="timedatamodel.DataPoint">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">DataPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/datapoint.html#DataPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.DataPoint" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>timestamp</strong> (<a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><em>datetime</em></a>)</p></li>
+<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="timedatamodel.DataPoint.timestamp">
+<span class="sig-name descname"><span class="pre">timestamp</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><span class="pre">datetime</span></a></span><a class="headerlink" href="#timedatamodel.DataPoint.timestamp" title="Link to this definition"></a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="timedatamodel.DataPoint.value">
+<span class="sig-name descname"><span class="pre">value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#timedatamodel.DataPoint.value" title="Link to this definition"></a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 <section id="timeseries">
-<h3>TimeSeries<a class="headerlink" href="#timeseries" title="Link to this heading"></a></h3>
+<h2>TimeSeries<a class="headerlink" href="#timeseries" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.TimeSeries">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">TimeSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">timezone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UTC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeseries_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">TimeSeriesType.FLAT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/timeseries.html#TimeSeries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.TimeSeries" title="Link to this definition"></a></dt>
@@ -253,7 +507,7 @@
 <dd><p>Return a displayable coverage bar.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#timedatamodel.CoverageBar" title="timedatamodel.coverage.CoverageBar"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoverageBar</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoverageBar</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -626,7 +880,7 @@ the current instance is mutated and <code class="docutils literal notranslate"><
 
 </section>
 <section id="timeseriestable">
-<h3>TimeSeriesTable<a class="headerlink" href="#timeseriestable" title="Link to this heading"></a></h3>
+<h2>TimeSeriesTable<a class="headerlink" href="#timeseriestable" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.TimeSeriesTable">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">TimeSeriesTable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">timezone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UTC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestamps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">descriptions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeseries_types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/table.html#TimeSeriesTable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.TimeSeriesTable" title="Link to this definition"></a></dt>
@@ -721,7 +975,7 @@ the current instance is mutated and <code class="docutils literal notranslate"><
 <dd><p>Return a displayable coverage bar.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#timedatamodel.CoverageBar" title="timedatamodel.coverage.CoverageBar"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoverageBar</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoverageBar</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1098,7 +1352,7 @@ specified column (by index or name).</p></li>
 
 </section>
 <section id="timeseriescube">
-<h3>TimeSeriesCube<a class="headerlink" href="#timeseriescube" title="Link to this heading"></a></h3>
+<h2>TimeSeriesCube<a class="headerlink" href="#timeseriescube" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.TimeSeriesCube">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">TimeSeriesCube</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">timezone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'UTC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attributes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/cube.html#TimeSeriesCube"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.TimeSeriesCube" title="Link to this definition"></a></dt>
@@ -1309,7 +1563,7 @@ specified column (by index or name).</p></li>
 <span class="sig-name descname"><span class="pre">coverage_bar</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/cube.html#TimeSeriesCube.coverage_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.TimeSeriesCube.coverage_bar" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#timedatamodel.CoverageBar" title="timedatamodel.coverage.CoverageBar"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoverageBar</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoverageBar</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1331,7 +1585,7 @@ specified column (by index or name).</p></li>
 
 </section>
 <section id="dimension">
-<h3>Dimension<a class="headerlink" href="#dimension" title="Link to this heading"></a></h3>
+<h2>Dimension<a class="headerlink" href="#dimension" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.Dimension">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">Dimension</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/cube.html#Dimension"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.Dimension" title="Link to this definition"></a></dt>
@@ -1357,7 +1611,7 @@ specified column (by index or name).</p></li>
 
 </section>
 <section id="timeseriescollection">
-<h3>TimeSeriesCollection<a class="headerlink" href="#timeseriescollection" title="Link to this heading"></a></h3>
+<h2>TimeSeriesCollection<a class="headerlink" href="#timeseriescollection" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.TimeSeriesCollection">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">TimeSeriesCollection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/collection.html#TimeSeriesCollection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.TimeSeriesCollection" title="Link to this definition"></a></dt>
@@ -1549,7 +1803,7 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 <dd><p>Return a multi-row CoverageBar spanning the global time range.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#timedatamodel.CoverageBar" title="timedatamodel.coverage.CoverageBar"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoverageBar</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">CoverageBar</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1557,11 +1811,8 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 </dd></dl>
 
 </section>
-</section>
-<section id="enums">
-<h2>Enums<a class="headerlink" href="#enums" title="Link to this heading"></a></h2>
 <section id="frequency">
-<h3>Frequency<a class="headerlink" href="#frequency" title="Link to this heading"></a></h3>
+<h2>Frequency<a class="headerlink" href="#frequency" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.Frequency">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">Frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/enums.html#Frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.Frequency" title="Link to this definition"></a></dt>
@@ -1649,7 +1900,7 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 
 </section>
 <section id="datatype">
-<h3>DataType<a class="headerlink" href="#datatype" title="Link to this heading"></a></h3>
+<h2>DataType<a class="headerlink" href="#datatype" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.DataType">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">DataType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/enums.html#DataType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.DataType" title="Link to this definition"></a></dt>
@@ -1692,7 +1943,7 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 
 </section>
 <section id="timeseriestype">
-<h3>TimeSeriesType<a class="headerlink" href="#timeseriestype" title="Link to this heading"></a></h3>
+<h2>TimeSeriesType<a class="headerlink" href="#timeseriestype" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.TimeSeriesType">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">TimeSeriesType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/enums.html#TimeSeriesType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.TimeSeriesType" title="Link to this definition"></a></dt>
@@ -1709,11 +1960,8 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 </dd></dl>
 
 </section>
-</section>
-<section id="location">
-<h2>Location<a class="headerlink" href="#location" title="Link to this heading"></a></h2>
 <section id="geolocation">
-<h3>GeoLocation<a class="headerlink" href="#geolocation" title="Link to this heading"></a></h3>
+<h2>GeoLocation<a class="headerlink" href="#geolocation" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.GeoLocation">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">GeoLocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latitude</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longitude</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/location.html#GeoLocation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.GeoLocation" title="Link to this definition"></a></dt>
@@ -1815,7 +2063,7 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 
 </section>
 <section id="geoarea">
-<h3>GeoArea<a class="headerlink" href="#geoarea" title="Link to this heading"></a></h3>
+<h2>GeoArea<a class="headerlink" href="#geoarea" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.GeoArea">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">GeoArea</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">polygon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/location.html#GeoArea"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.GeoArea" title="Link to this definition"></a></dt>
@@ -1941,13 +2189,9 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 
 </dd></dl>
 
-<p><code class="docutils literal notranslate"><span class="pre">Location</span></code> is a type alias: <code class="docutils literal notranslate"><span class="pre">GeoLocation</span> <span class="pre">|</span> <span class="pre">GeoArea</span></code>.</p>
 </section>
-</section>
-<section id="hierarchy">
-<h2>Hierarchy<a class="headerlink" href="#hierarchy" title="Link to this heading"></a></h2>
 <section id="aggregationmethod">
-<h3>AggregationMethod<a class="headerlink" href="#aggregationmethod" title="Link to this heading"></a></h3>
+<h2>AggregationMethod<a class="headerlink" href="#aggregationmethod" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.AggregationMethod">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">AggregationMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/hierarchy.html#AggregationMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.AggregationMethod" title="Link to this definition"></a></dt>
@@ -1975,7 +2219,7 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 
 </section>
 <section id="hierarchynode">
-<h3>HierarchyNode<a class="headerlink" href="#hierarchynode" title="Link to this heading"></a></h3>
+<h2>HierarchyNode<a class="headerlink" href="#hierarchynode" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.HierarchyNode">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">HierarchyNode</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">children</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeseries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_parent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/hierarchy.html#HierarchyNode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.HierarchyNode" title="Link to this definition"></a></dt>
@@ -2050,7 +2294,7 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 
 </section>
 <section id="hierarchytree">
-<h3>HierarchyTree<a class="headerlink" href="#hierarchytree" title="Link to this heading"></a></h3>
+<h2>HierarchyTree<a class="headerlink" href="#hierarchytree" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.HierarchyTree">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">HierarchyTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/hierarchy.html#HierarchyTree"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.HierarchyTree" title="Link to this definition"></a></dt>
@@ -2064,7 +2308,7 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 
 </section>
 <section id="hierarchicaltimeseries">
-<h3>HierarchicalTimeSeries<a class="headerlink" href="#hierarchicaltimeseries" title="Link to this heading"></a></h3>
+<h2>HierarchicalTimeSeries<a class="headerlink" href="#hierarchicaltimeseries" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="timedatamodel.HierarchicalTimeSeries">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">HierarchicalTimeSeries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">AggregationMethod.SUM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/hierarchy.html#HierarchicalTimeSeries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.HierarchicalTimeSeries" title="Link to this definition"></a></dt>
@@ -2333,56 +2577,6 @@ union of all timestamps (outer join), with <code class="docutils literal notrans
 
 </dd></dl>
 
-</section>
-</section>
-<section id="primitives">
-<h2>Primitives<a class="headerlink" href="#primitives" title="Link to this heading"></a></h2>
-<section id="datapoint">
-<h3>DataPoint<a class="headerlink" href="#datapoint" title="Link to this heading"></a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="timedatamodel.DataPoint">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">DataPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timestamp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/datapoint.html#DataPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.DataPoint" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>timestamp</strong> (<a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><em>datetime</em></a>)</p></li>
-<li><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em> | </em><em>None</em>)</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="timedatamodel.DataPoint.timestamp">
-<span class="sig-name descname"><span class="pre">timestamp</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><span class="pre">datetime</span></a></span><a class="headerlink" href="#timedatamodel.DataPoint.timestamp" title="Link to this definition"></a></dt>
-<dd><p>Alias for field number 0</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="timedatamodel.DataPoint.value">
-<span class="sig-name descname"><span class="pre">value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#timedatamodel.DataPoint.value" title="Link to this definition"></a></dt>
-<dd><p>Alias for field number 1</p>
-</dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="coveragebar">
-<h3>CoverageBar<a class="headerlink" href="#coveragebar" title="Link to this heading"></a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="timedatamodel.CoverageBar">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timedatamodel.</span></span><span class="sig-name descname"><span class="pre">CoverageBar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">masks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">begin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/timedatamodel/coverage.html#CoverageBar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timedatamodel.CoverageBar" title="Link to this definition"></a></dt>
-<dd><p>Displayable coverage bar for TimeSeries objects.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>masks</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>]</em><em>]</em><em>]</em>)</p></li>
-<li><p><strong>begin</strong> (<em>datetime</em><em> | </em><em>None</em>)</p></li>
-<li><p><strong>end</strong> (<em>datetime</em><em> | </em><em>None</em>)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
 </section>
 </section>
 

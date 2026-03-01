@@ -1,6 +1,41 @@
 """Sphinx configuration for timedatamodel."""
 
+import json
+import re
+from pathlib import Path
+
 import timedatamodel as tdm
+
+_REPO_ROOT = Path(__file__).parent.parent
+_EXAMPLES_DIR = _REPO_ROOT / "examples"
+_TUTORIALS_DIR = Path(__file__).parent / "tutorials"
+_NB_PREFIX = re.compile(r"^nb_\d+_(.+\.ipynb)$")
+
+
+def _strip_outputs(nb: dict) -> dict:
+    """Return a deep-copied notebook dict with all cell outputs cleared."""
+    nb = json.loads(json.dumps(nb))
+    for cell in nb.get("cells", []):
+        if cell.get("cell_type") == "code":
+            cell["outputs"] = []
+            cell["execution_count"] = None
+    return nb
+
+
+def _copy_notebooks(app) -> None:
+    """Copy example notebooks into docs/tutorials/, stripping the nb_XX_ prefix."""
+    _TUTORIALS_DIR.mkdir(parents=True, exist_ok=True)
+    for src in sorted(_EXAMPLES_DIR.glob("*.ipynb")):
+        m = _NB_PREFIX.match(src.name)
+        dest_name = m.group(1) if m else src.name
+        with src.open(encoding="utf-8") as f:
+            nb = json.load(f)
+        with (_TUTORIALS_DIR / dest_name).open("w", encoding="utf-8") as f:
+            json.dump(_strip_outputs(nb), f, indent=1, ensure_ascii=False)
+
+
+def setup(app) -> None:
+    app.connect("builder-inited", _copy_notebooks)
 
 project = "timedatamodel"
 author = "Rebase Energy"
@@ -19,7 +54,7 @@ extensions = [
 ]
 
 # -- nbsphinx settings -----------------------------------------------------
-nbsphinx_execute = "never"
+nbsphinx_execute = "auto"
 
 # -- MyST settings ----------------------------------------------------------
 myst_enable_extensions = ["colon_fence"]
