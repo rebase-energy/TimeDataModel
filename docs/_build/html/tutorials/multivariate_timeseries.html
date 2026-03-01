@@ -1,0 +1,646 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multivariate Time Series &mdash; timedatamodel</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=bed8cb9f" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Cubes and Collections" href="cubes_and_collections.html" />
+    <link rel="prev" title="TimeSeries Operations" href="timeseries_operations.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            timedatamodel
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html">Getting Started with TimeDataModel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unit_handling_and_validation.html">Unit Handling and Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Multivariate Time Series</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Creating-a-TimeSeriesTable">Creating a TimeSeriesTable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Inspecting-table-properties">Inspecting table properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Selecting-a-single-column">Selecting a single column</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Merging-univariate-series-into-a-table">Merging univariate series into a table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Decomposing-a-table-back-to-univariate-series">Decomposing a table back to univariate series</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Table-arithmetic">Table arithmetic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Iteration-and-indexing">Iteration and indexing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Conversion-to-pandas-DataFrame">Conversion to pandas DataFrame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data_quality_and_coverage.html">Data Quality and Coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="io_and_interoperability.html">I/O and Interoperability</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geographical_support.html">Geographical Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hierarchical_timeseries.html">Hierarchical Time Series</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">timedatamodel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Multivariate Time Series</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/multivariate_timeseries.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Multivariate-Time-Series">
+<h1>Multivariate Time Series<a class="headerlink" href="#Multivariate-Time-Series" title="Link to this heading"></a></h1>
+<p>When you have multiple signals that share the same timestamps — like wind, solar, and hydro power — use <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> (also aliased as <code class="docutils literal notranslate"><span class="pre">MultivariateTimeSeries</span></code>). It stores per-column metadata and a 2D numpy array of values.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
+
+<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<section id="Creating-a-TimeSeriesTable">
+<h2>Creating a TimeSeriesTable<a class="headerlink" href="#Creating-a-TimeSeriesTable" title="Link to this heading"></a></h2>
+<p>Pass a 2D array (rows = timestamps, columns = variables) along with per-column metadata.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="n">wind</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">+</span> <span class="mi">40</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+<span class="n">solar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">24</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+<span class="n">solar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">solar</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">hydro</span> <span class="o">=</span> <span class="mi">50</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+
+<span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">wind</span><span class="p">,</span> <span class="n">solar</span><span class="p">,</span> <span class="n">hydro</span><span class="p">])</span>
+
+<span class="n">table</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesTable</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">,</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;wind&quot;</span><span class="p">,</span> <span class="s2">&quot;solar&quot;</span><span class="p">,</span> <span class="s2">&quot;hydro&quot;</span><span class="p">],</span>
+    <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">],</span>
+    <span class="n">data_types</span><span class="o">=</span><span class="p">[</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">MEASUREMENT</span><span class="p">,</span> <span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">MEASUREMENT</span><span class="p">,</span> <span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">MEASUREMENT</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">table</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
+.ts-repr .ts-meta table { border-collapse: collapse; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; width: 100%; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Shape</td><td>(24, 3)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th>timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00:00+00:00</td><td>81.5236</td><td>0.0</td><td>52.0367</td></tr>
+<tr><td>2024-01-15 01:00:00+00:00</td><td>85.592</td><td>0.0</td><td>50.2027</td></tr>
+<tr><td>2024-01-15 02:00:00+00:00</td><td>104.536</td><td>1.06462</td><td>50.8674</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00:00+00:00</td><td>55.812</td><td>0.437377</td><td>49.4261</td></tr>
+<tr><td>2024-01-15 22:00:00+00:00</td><td>75.3208</td><td>1.74286</td><td>46.1729</td></tr>
+<tr><td>2024-01-15 23:00:00+00:00</td><td>79.2274</td><td>0.447191</td><td>46.6001</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="Inspecting-table-properties">
+<h2>Inspecting table properties<a class="headerlink" href="#Inspecting-table-properties" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns:     </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape:       (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">n_columns</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Begin:       </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">begin</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;End:         </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">end</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has missing: </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">has_missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Columns:     (&#39;wind&#39;, &#39;solar&#39;, &#39;hydro&#39;)
+Shape:       (24, 3)
+Begin:       2024-01-15 00:00:00+00:00
+End:         2024-01-15 23:00:00+00:00
+Has missing: False
+</pre></div></div>
+</div>
+</section>
+<section id="Selecting-a-single-column">
+<h2>Selecting a single column<a class="headerlink" href="#Selecting-a-single-column" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">select_column()</span></code> extracts one column as a univariate <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code>, carrying over its metadata.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_wind</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">select_column</span><span class="p">(</span><span class="s2">&quot;wind&quot;</span><span class="p">)</span>
+<span class="n">ts_wind</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
+.ts-repr .ts-meta table { border-collapse: collapse; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; width: 100%; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeries</div>
+<div class="ts-meta"><table>
+<tr><td>Columns</td><td>wind</td></tr>
+<tr><td>Shape</td><td>(24,)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>MEASUREMENT</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th>timestamp</th><th>wind</th></tr>
+<tr><td>2024-01-15 00:00:00+00:00</td><td>81.5236</td></tr>
+<tr><td>2024-01-15 01:00:00+00:00</td><td>85.592</td></tr>
+<tr><td>2024-01-15 02:00:00+00:00</td><td>104.536</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00:00+00:00</td><td>55.812</td></tr>
+<tr><td>2024-01-15 22:00:00+00:00</td><td>75.3208</td></tr>
+<tr><td>2024-01-15 23:00:00+00:00</td><td>79.2274</td></tr>
+</table></div>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_solar</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">select_column</span><span class="p">(</span><span class="s2">&quot;solar&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name: </span><span class="si">{</span><span class="n">ts_solar</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, Unit: </span><span class="si">{</span><span class="n">ts_solar</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">, Data type: </span><span class="si">{</span><span class="n">ts_solar</span><span class="o">.</span><span class="n">data_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Name: solar, Unit: MW, Data type: MEASUREMENT
+</pre></div></div>
+</div>
+</section>
+<section id="Merging-univariate-series-into-a-table">
+<h2>Merging univariate series into a table<a class="headerlink" href="#Merging-univariate-series-into-a-table" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">TimeSeries.merge()</span></code> is the reverse operation — combine several univariate series that share the same timestamps.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_a</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">wind</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wind&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ts_b</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">solar</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;solar&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ts_c</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">hydro</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;hydro&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">merged</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">ts_a</span><span class="p">,</span> <span class="n">ts_b</span><span class="p">,</span> <span class="n">ts_c</span><span class="p">])</span>
+<span class="n">merged</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
+.ts-repr .ts-meta table { border-collapse: collapse; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; width: 100%; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Shape</td><td>(24, 3)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th>timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00:00+00:00</td><td>81.5236</td><td>0.0</td><td>52.0367</td></tr>
+<tr><td>2024-01-15 01:00:00+00:00</td><td>85.592</td><td>0.0</td><td>50.2027</td></tr>
+<tr><td>2024-01-15 02:00:00+00:00</td><td>104.536</td><td>1.06462</td><td>50.8674</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00:00+00:00</td><td>55.812</td><td>0.437377</td><td>49.4261</td></tr>
+<tr><td>2024-01-15 22:00:00+00:00</td><td>75.3208</td><td>1.74286</td><td>46.1729</td></tr>
+<tr><td>2024-01-15 23:00:00+00:00</td><td>79.2274</td><td>0.447191</td><td>46.6001</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="Decomposing-a-table-back-to-univariate-series">
+<h2>Decomposing a table back to univariate series<a class="headerlink" href="#Decomposing-a-table-back-to-univariate-series" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">univariate_list</span> <span class="o">=</span> <span class="n">merged</span><span class="o">.</span><span class="n">to_univariate_list</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">univariate_list</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="si">}</span><span class="s2"> points, unit=</span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+wind: 24 points, unit=MW
+solar: 24 points, unit=MW
+hydro: 24 points, unit=MW
+</pre></div></div>
+</div>
+</section>
+<section id="Table-arithmetic">
+<h2>Table arithmetic<a class="headerlink" href="#Table-arithmetic" title="Link to this heading"></a></h2>
+<p>Scalar arithmetic works on all columns simultaneously.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table_gw</span> <span class="o">=</span> <span class="n">table</span> <span class="o">*</span> <span class="mf">0.001</span>
+<span class="n">table_gw</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
+.ts-repr .ts-meta table { border-collapse: collapse; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; width: 100%; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Shape</td><td>(5, 3)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th>timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00:00+00:00</td><td>0.0815236</td><td>0.0</td><td>0.0520367</td></tr>
+<tr><td>2024-01-15 01:00:00+00:00</td><td>0.085592</td><td>0.0</td><td>0.0502027</td></tr>
+<tr><td>2024-01-15 02:00:00+00:00</td><td>0.104536</td><td>0.00106462</td><td>0.0508674</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="Iteration-and-indexing">
+<h2>Iteration and indexing<a class="headerlink" href="#Iteration-and-indexing" title="Link to this heading"></a></h2>
+<p>Each row is a <code class="docutils literal notranslate"><span class="pre">(timestamp,</span> <span class="pre">[values...])</span></code> tuple.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_val</span><span class="p">,</span> <span class="n">row_vals</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timestamp: </span><span class="si">{</span><span class="n">ts_val</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Values:    </span><span class="si">{</span><span class="n">row_vals</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Timestamp: 2024-01-15 00:00:00+00:00
+Values:    [81.52358539877216, 0.0, 52.036740689215684]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">ts_val</span><span class="p">,</span> <span class="n">row_vals</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">wind_mw</span><span class="p">,</span> <span class="n">solar_mw</span><span class="p">,</span> <span class="n">hydro_mw</span> <span class="o">=</span> <span class="n">row_vals</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ts_val</span><span class="si">:</span><span class="s2">%Y-%m-%d %H:%M</span><span class="si">}</span><span class="s2">  wind=</span><span class="si">{</span><span class="n">wind_mw</span><span class="si">:</span><span class="s2">6.1f</span><span class="si">}</span><span class="s2">  solar=</span><span class="si">{</span><span class="n">solar_mw</span><span class="si">:</span><span class="s2">5.1f</span><span class="si">}</span><span class="s2">  hydro=</span><span class="si">{</span><span class="n">hydro_mw</span><span class="si">:</span><span class="s2">5.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+2024-01-15 00:00  wind=  81.5  solar=  0.0  hydro= 52.0
+2024-01-15 01:00  wind=  85.6  solar=  0.0  hydro= 50.2
+2024-01-15 02:00  wind= 104.5  solar=  1.1  hydro= 50.9
+2024-01-15 03:00  wind= 113.9  solar=  3.1  hydro= 51.9
+</pre></div></div>
+</div>
+</section>
+<section id="Conversion-to-pandas-DataFrame">
+<h2>Conversion to pandas DataFrame<a class="headerlink" href="#Conversion-to-pandas-DataFrame" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pandas_dataframe</span><span class="p">()</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>wind</th>
+      <th>solar</th>
+      <th>hydro</th>
+    </tr>
+    <tr>
+      <th>timestamp</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2024-01-15 00:00:00+00:00</th>
+      <td>81.523585</td>
+      <td>0.000000</td>
+      <td>52.036741</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 01:00:00+00:00</th>
+      <td>85.591950</td>
+      <td>0.000000</td>
+      <td>50.202737</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 02:00:00+00:00</th>
+      <td>104.535614</td>
+      <td>1.064618</td>
+      <td>50.867358</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 03:00:00+00:00</th>
+      <td>113.936262</td>
+      <td>3.142702</td>
+      <td>51.893865</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 04:00:00+00:00</th>
+      <td>105.760233</td>
+      <td>13.935461</td>
+      <td>45.628533</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="Summary">
+<h2>Summary<a class="headerlink" href="#Summary" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> stores multiple aligned columns with per-column metadata</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">select_column()</span></code> extracts a single column as a <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TimeSeries.merge()</span></code> combines univariate series into a table</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">to_univariate_list()</span></code> decomposes a table back to individual series</p></li>
+<li><p>Scalar arithmetic applies across all columns</p></li>
+</ul>
+<p>Next up: <strong>nb_06</strong> covers <code class="docutils literal notranslate"><span class="pre">TimeSeriesCube</span></code> and <code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code> for higher-dimensional data.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="timeseries_operations.html" class="btn btn-neutral float-left" title="TimeSeries Operations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cubes_and_collections.html" class="btn btn-neutral float-right" title="Cubes and Collections" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Rebase Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

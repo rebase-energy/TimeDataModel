@@ -84,6 +84,38 @@
 
 `Location` is a type alias: `GeoLocation | GeoArea`.
 
+## Hierarchy
+
+### AggregationMethod
+
+```{eval-rst}
+.. autoclass:: timedatamodel.AggregationMethod
+   :members:
+   :undoc-members:
+```
+
+### HierarchyNode
+
+```{eval-rst}
+.. autoclass:: timedatamodel.HierarchyNode
+   :members:
+```
+
+### HierarchyTree
+
+```{eval-rst}
+.. autoclass:: timedatamodel.HierarchyTree
+   :members:
+```
+
+### HierarchicalTimeSeries
+
+```{eval-rst}
+.. autoclass:: timedatamodel.HierarchicalTimeSeries
+   :members:
+   :show-inheritance:
+```
+
 ## Primitives
 
 ### DataPoint
