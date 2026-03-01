@@ -14,6 +14,7 @@ from ._base import (
     _MAX_PREVIEW,
     _TimeSeriesBase,
     _build_repr_html,
+    _convert_unit_values,
     _import_pandas,
 )
 from .coverage import CoverageBar
@@ -161,6 +162,70 @@ class TimeSeriesTable(_TimeSeriesBase):
             timestamps=timestamps,
             values=values,
             **self._list_meta_kwargs(),
+        )
+
+    def convert_unit(
+        self, target_unit: str, column: int | str | None = None
+    ) -> TimeSeriesTable:
+        """Return a new table with values converted to *target_unit*.
+
+        Parameters
+        ----------
+        target_unit : str
+            The unit to convert to.
+        column : int, str, or None
+            If None, convert all columns.  Otherwise convert only the
+            specified column (by index or name).
+        """
+        if column is not None:
+            if isinstance(column, str):
+                names = self.column_names
+                if column not in names:
+                    raise KeyError(f"Column '{column}' not found. Available: {names}")
+                column = names.index(column)
+            src_unit = self._get_attr(self.units, column)
+            if src_unit is None:
+                raise ValueError(
+                    f"cannot convert units: source unit is None for column {column}"
+                )
+            new_vals = self._values.copy()
+            new_vals[:, column] = _convert_unit_values(
+                new_vals[:, column], src_unit, target_unit
+            )
+            new_units = [
+                self._get_attr(self.units, i) for i in range(self.n_columns)
+            ]
+            new_units[column] = target_unit
+            kwargs = self._list_meta_kwargs()
+            kwargs["units"] = new_units
+            return TimeSeriesTable(
+                self.frequency,
+                timezone=self.timezone,
+                timestamps=list(self._timestamps),
+                values=new_vals,
+                **kwargs,
+            )
+        # Convert all columns
+        new_vals = self._values.copy()
+        new_units: list[str | None] = []
+        for col in range(self.n_columns):
+            src_unit = self._get_attr(self.units, col)
+            if src_unit is None:
+                raise ValueError(
+                    f"cannot convert units: source unit is None for column {col}"
+                )
+            new_vals[:, col] = _convert_unit_values(
+                new_vals[:, col], src_unit, target_unit
+            )
+            new_units.append(target_unit)
+        kwargs = self._list_meta_kwargs()
+        kwargs["units"] = new_units
+        return TimeSeriesTable(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=list(self._timestamps),
+            values=new_vals,
+            **kwargs,
         )
 
     # ---- column selection by indices -------------------------------------
@@ -337,46 +402,167 @@ class TimeSeriesTable(_TimeSeriesBase):
             list(self._timestamps), self._values.copy()
         )
 
-    # ---- scalar arithmetic -----------------------------------------------
+    # ---- arithmetic --------------------------------------------------------
 
     def _apply_scalar(self, func) -> TimeSeriesTable:
         arr = self._values.astype(np.float64, copy=True)
         return self._clone_with(list(self._timestamps), func(arr))
 
-    def __add__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v + scalar)
+    # ---- table+table / table+series helpers ------------------------------
 
-    def __radd__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: scalar + v)
+    def _validate_table_alignment(self, other: TimeSeriesTable) -> None:
+        """Raise ValueError if timezone, frequency, or timestamps differ."""
+        if self.timezone != other.timezone:
+            raise ValueError(
+                f"timezone mismatch: {self.timezone!r} vs {other.timezone!r}"
+            )
+        if self.frequency != other.frequency:
+            raise ValueError(
+                f"frequency mismatch: {self.frequency} vs {other.frequency}"
+            )
+        if self._timestamps != other._timestamps:
+            raise ValueError("timestamps do not match")
 
-    def __sub__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v - scalar)
+    def _convert_other_table_values(self, other: TimeSeriesTable) -> np.ndarray:
+        """Return *other*'s values converted to self's units per column."""
+        if self.n_columns != other.n_columns:
+            raise ValueError(
+                f"column count mismatch: {self.n_columns} vs {other.n_columns}"
+            )
+        arr = other._values.astype(np.float64, copy=True)
+        for col in range(self.n_columns):
+            self_unit = self._get_attr(self.units, col)
+            other_unit = other._get_attr(other.units, col)
+            has_self = self_unit is not None
+            has_other = other_unit is not None
+            if has_self != has_other:
+                raise ValueError(
+                    f"unit mismatch in column {col}: one operand has "
+                    f"unit={self_unit!r} and the other has unit={other_unit!r}"
+                )
+            if has_self and has_other and self_unit != other_unit:
+                arr[:, col] = _convert_unit_values(arr[:, col], other_unit, self_unit)
+        return arr
 
-    def __rsub__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: scalar - v)
+    def _convert_series_values(self, series) -> np.ndarray:
+        """Broadcast a TimeSeries across all columns with per-column unit conversion."""
+        from .timeseries import TimeSeries
+        arr = series._to_float_array()  # (n_rows,)
+        result = np.empty_like(self._values)
+        for col in range(self.n_columns):
+            col_arr = arr.copy()
+            self_unit = self._get_attr(self.units, col)
+            has_self = self_unit is not None
+            has_other = series.unit is not None
+            if has_self != has_other:
+                raise ValueError(
+                    f"unit mismatch in column {col}: table has "
+                    f"unit={self_unit!r} and series has unit={series.unit!r}"
+                )
+            if has_self and has_other and self_unit != series.unit:
+                col_arr = _convert_unit_values(col_arr, series.unit, self_unit)
+            result[:, col] = col_arr
+        return result
 
-    def __mul__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v * scalar)
+    def _apply_table_binary(
+        self, other: TimeSeriesTable, func
+    ) -> TimeSeriesTable:
+        """Element-wise binary op between two aligned tables."""
+        self._validate_table_alignment(other)
+        a = self._values.astype(np.float64, copy=True)
+        b = self._convert_other_table_values(other)
+        return self._clone_with(list(self._timestamps), func(a, b))
 
-    def __rmul__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: scalar * v)
+    def _apply_series_binary(self, series, func) -> TimeSeriesTable:
+        """Binary op: table (op) series, broadcasting the series."""
+        from .timeseries import TimeSeries
+        if self.timezone != series.timezone:
+            raise ValueError(
+                f"timezone mismatch: {self.timezone!r} vs {series.timezone!r}"
+            )
+        if self.frequency != series.frequency:
+            raise ValueError(
+                f"frequency mismatch: {self.frequency} vs {series.frequency}"
+            )
+        if self._timestamps != series._timestamps:
+            raise ValueError("timestamps do not match")
+        a = self._values.astype(np.float64, copy=True)
+        b = self._convert_series_values(series)
+        return self._clone_with(list(self._timestamps), func(a, b))
 
-    def __truediv__(self, scalar: float) -> TimeSeriesTable:
-        if not isinstance(scalar, (int, float)):
-            return NotImplemented
-        return self._apply_scalar(lambda v: v / scalar)
+    # ---- operators -------------------------------------------------------
+
+    def __add__(self, other) -> TimeSeriesTable:
+        from .timeseries import TimeSeries
+        if isinstance(other, TimeSeriesTable):
+            return self._apply_table_binary(other, lambda a, b: a + b)
+        if isinstance(other, TimeSeries):
+            return self._apply_series_binary(other, lambda a, b: a + b)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: v + other)
+        return NotImplemented
+
+    def __radd__(self, other) -> TimeSeriesTable:
+        from .timeseries import TimeSeries
+        if isinstance(other, TimeSeries):
+            return self._apply_series_binary(other, lambda a, b: b + a)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: other + v)
+        return NotImplemented
+
+    def __sub__(self, other) -> TimeSeriesTable:
+        from .timeseries import TimeSeries
+        if isinstance(other, TimeSeriesTable):
+            return self._apply_table_binary(other, lambda a, b: a - b)
+        if isinstance(other, TimeSeries):
+            return self._apply_series_binary(other, lambda a, b: a - b)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: v - other)
+        return NotImplemented
+
+    def __rsub__(self, other) -> TimeSeriesTable:
+        from .timeseries import TimeSeries
+        if isinstance(other, TimeSeries):
+            return self._apply_series_binary(other, lambda a, b: b - a)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: other - v)
+        return NotImplemented
+
+    def __mul__(self, other) -> TimeSeriesTable:
+        from .timeseries import TimeSeries
+        if isinstance(other, TimeSeriesTable):
+            return self._apply_table_binary(other, lambda a, b: a * b)
+        if isinstance(other, TimeSeries):
+            return self._apply_series_binary(other, lambda a, b: a * b)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: v * other)
+        return NotImplemented
+
+    def __rmul__(self, other) -> TimeSeriesTable:
+        from .timeseries import TimeSeries
+        if isinstance(other, TimeSeries):
+            return self._apply_series_binary(other, lambda a, b: b * a)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: other * v)
+        return NotImplemented
+
+    def __truediv__(self, other) -> TimeSeriesTable:
+        from .timeseries import TimeSeries
+        if isinstance(other, TimeSeriesTable):
+            return self._apply_table_binary(other, lambda a, b: a / b)
+        if isinstance(other, TimeSeries):
+            return self._apply_series_binary(other, lambda a, b: a / b)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: v / other)
+        return NotImplemented
+
+    def __rtruediv__(self, other) -> TimeSeriesTable:
+        from .timeseries import TimeSeries
+        if isinstance(other, TimeSeries):
+            return self._apply_series_binary(other, lambda a, b: b / a)
+        if isinstance(other, (int, float)):
+            return self._apply_scalar(lambda v: other / v)
+        return NotImplemented
 
     def __neg__(self) -> TimeSeriesTable:
         return self._apply_scalar(lambda v: -v)

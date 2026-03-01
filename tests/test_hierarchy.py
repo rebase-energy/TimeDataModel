@@ -6,6 +6,7 @@ from timedatamodel import (
     Frequency,
     HierarchicalTimeSeries,
     HierarchyNode,
+    HierarchyTree,
     TimeSeries,
     TimeSeriesCollection,
     TimeSeriesTable,
@@ -144,6 +145,30 @@ class TestProperties:
 
     def test_n_levels(self, two_country_hierarchy):
         assert two_country_hierarchy.n_levels == 3
+
+    def test_frequency(self, norway_hierarchy):
+        assert norway_hierarchy.frequency == Frequency.P1D
+
+    def test_timezone(self, norway_hierarchy):
+        assert norway_hierarchy.timezone == "UTC"
+
+    def test_unit(self, norway_hierarchy):
+        assert norway_hierarchy.unit is None
+
+    def test_begin(self, norway_hierarchy):
+        assert norway_hierarchy.begin == datetime(2024, 1, 1)
+
+    def test_end(self, norway_hierarchy):
+        assert norway_hierarchy.end == datetime(2024, 1, 3)
+
+    def test_no_leaves_defaults(self):
+        root = HierarchyNode(key="empty", level="root")
+        h = HierarchicalTimeSeries(root, levels=["root"])
+        assert h.frequency == Frequency.NONE
+        assert h.timezone == "UTC"
+        assert h.unit is None
+        assert h.begin is None
+        assert h.end is None
 
 
 # ---- node properties -------------------------------------------------------
@@ -327,18 +352,80 @@ class TestConversion:
 # ---- display ---------------------------------------------------------------
 
 
+class TestValidation:
+    def test_mismatched_frequency_raises(self):
+        ts_a = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A")
+        ts_b = TimeSeries(Frequency.PT1H, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
+        a = HierarchyNode(key="A", level="leaf", timeseries=ts_a)
+        b = HierarchyNode(key="B", level="leaf", timeseries=ts_b)
+        root = HierarchyNode(key="Root", level="root", children=[a, b])
+        with pytest.raises(ValueError, match="frequency mismatch"):
+            HierarchicalTimeSeries(root, levels=["root", "leaf"])
+
+    def test_mismatched_timezone_raises(self):
+        ts_a = TimeSeries(Frequency.P1D, timezone="UTC", timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A")
+        ts_b = TimeSeries(Frequency.P1D, timezone="CET", timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
+        a = HierarchyNode(key="A", level="leaf", timeseries=ts_a)
+        b = HierarchyNode(key="B", level="leaf", timeseries=ts_b)
+        root = HierarchyNode(key="Root", level="root", children=[a, b])
+        with pytest.raises(ValueError, match="timezone mismatch"):
+            HierarchicalTimeSeries(root, levels=["root", "leaf"])
+
+    def test_compatible_units_auto_convert(self):
+        """MWh vs GWh are compatible — should auto-convert to first leaf's unit."""
+        ts_a = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
+        ts_b = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B", unit="GWh")
+        a = HierarchyNode(key="A", level="leaf", timeseries=ts_a)
+        b = HierarchyNode(key="B", level="leaf", timeseries=ts_b)
+        root = HierarchyNode(key="Root", level="root", children=[a, b])
+        h = HierarchicalTimeSeries(root, levels=["root", "leaf"])
+        assert h.unit == "MWh"
+        # b's 2 GWh should be converted to 2000 MWh
+        b_node = h.get_node("Root", "B")
+        assert b_node.timeseries.values[0] == pytest.approx(2000.0)
+        assert b_node.timeseries.unit == "MWh"
+
+
 class TestDisplay:
     def test_repr(self, norway_hierarchy):
         r = repr(norway_hierarchy)
-        assert "Norway" in r
+        assert "HierarchicalTimeSeries" in r
+        assert "\u250c" in r  # box top-left
+        assert "Name:" in r
+        assert "Norway Energy" in r
+        assert "Levels:" in r
+        assert "Frequency:" in r
+        assert "P1D" in r
+        assert "Timezone:" in r
+        assert "Aggregation:" in r
         assert "Oslo" in r
-        assert len(r) > 0
+        assert "Bergen" in r
+        assert "Trondheim" in r
 
     def test_repr_html(self, norway_hierarchy):
         html = norway_hierarchy._repr_html_()
-        assert "<" in html
+        assert "tsh-repr" in html
+        assert "tsh-header" in html
+        assert "tsh-meta" in html
+        assert "tsh-leaves" in html
+        assert "Norway Energy" in html
+        assert "Oslo" in html
+
+    def test_tree_repr(self, norway_hierarchy):
+        tree = norway_hierarchy.tree()
+        assert isinstance(tree, HierarchyTree)
+        r = repr(tree)
+        assert "\u2514" in r or "\u251c" in r  # tree connectors
+        assert "Norway" in r
+        assert "Oslo" in r
+
+    def test_tree_repr_html(self, norway_hierarchy):
+        tree = norway_hierarchy.tree()
+        html = tree._repr_html_()
+        assert "<details" in html
+        assert "<summary>" in html
+        assert "tsh-tree" in html
         assert "Norway" in html
-        assert len(html) > 0
 
 
 # ---- sequence protocol ----------------------------------------------------
@@ -391,3 +478,59 @@ class TestEdgeCases:
         h = HierarchicalTimeSeries(root)
         with pytest.raises(ValueError, match="no timeseries"):
             h.aggregate()
+
+
+# ---- unit auto-conversion ------------------------------------------------
+
+
+class TestUnitAutoConversion:
+    def test_compatible_units_converted(self):
+        """kWh leaves auto-convert to MWh (first leaf's unit)."""
+        ts_a = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
+        ts_b = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[5000.0], name="B", unit="kWh")
+        a = HierarchyNode(key="A", level="leaf", timeseries=ts_a)
+        b = HierarchyNode(key="B", level="leaf", timeseries=ts_b)
+        root = HierarchyNode(key="Root", level="root", children=[a, b])
+        h = HierarchicalTimeSeries(root, levels=["root", "leaf"])
+        assert h.unit == "MWh"
+        b_node = h.get_node("Root", "B")
+        assert b_node.timeseries.values[0] == pytest.approx(5.0)
+        assert b_node.timeseries.unit == "MWh"
+
+    def test_incompatible_units_raises(self):
+        ts_a = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
+        ts_b = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B", unit="m")
+        a = HierarchyNode(key="A", level="leaf", timeseries=ts_a)
+        b = HierarchyNode(key="B", level="leaf", timeseries=ts_b)
+        root = HierarchyNode(key="Root", level="root", children=[a, b])
+        with pytest.raises(ValueError, match="cannot convert.*incompatible"):
+            HierarchicalTimeSeries(root, levels=["root", "leaf"])
+
+    def test_mixed_none_raises(self):
+        ts_a = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
+        ts_b = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
+        a = HierarchyNode(key="A", level="leaf", timeseries=ts_a)
+        b = HierarchyNode(key="B", level="leaf", timeseries=ts_b)
+        root = HierarchyNode(key="Root", level="root", children=[a, b])
+        with pytest.raises(ValueError, match="unit mismatch"):
+            HierarchicalTimeSeries(root, levels=["root", "leaf"])
+
+    def test_all_none_ok(self):
+        ts_a = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A")
+        ts_b = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
+        a = HierarchyNode(key="A", level="leaf", timeseries=ts_a)
+        b = HierarchyNode(key="B", level="leaf", timeseries=ts_b)
+        root = HierarchyNode(key="Root", level="root", children=[a, b])
+        h = HierarchicalTimeSeries(root, levels=["root", "leaf"])
+        assert h.unit is None
+
+    def test_same_units_no_conversion(self):
+        ts_a = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MW")
+        ts_b = TimeSeries(Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B", unit="MW")
+        a = HierarchyNode(key="A", level="leaf", timeseries=ts_a)
+        b = HierarchyNode(key="B", level="leaf", timeseries=ts_b)
+        root = HierarchyNode(key="Root", level="root", children=[a, b])
+        h = HierarchicalTimeSeries(root, levels=["root", "leaf"])
+        assert h.unit == "MW"
+        b_node = h.get_node("Root", "B")
+        assert b_node.timeseries.values[0] == 2.0

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import StrEnum
 from html import escape
 from typing import TYPE_CHECKING, Iterator
 
 import numpy as np
 
+from ._base import _convert_unit_values, _fmt_short_date
+from .enums import Frequency
 from .location import Location
 from .timeseries import TimeSeries
 
@@ -91,7 +94,10 @@ def _set_parents(node: HierarchyNode, parent: HierarchyNode | None) -> None:
 class HierarchicalTimeSeries:
     """A tree of time series organised into named hierarchy levels."""
 
-    __slots__ = ("_root", "_name", "_description", "_aggregation", "_levels")
+    __slots__ = (
+        "_root", "_name", "_description", "_aggregation", "_levels",
+        "_frequency", "_timezone", "_unit", "_begin", "_end",
+    )
 
     def __init__(
         self,
@@ -111,6 +117,76 @@ class HierarchicalTimeSeries:
             self._levels = list(levels)
         else:
             self._levels = self._infer_levels()
+
+        # Validate and derive properties from leaf series
+        self._frequency, self._timezone, self._unit, self._begin, self._end = (
+            self._validate_leaves()
+        )
+
+    def _validate_leaves(
+        self,
+    ) -> tuple[Frequency, str, str | None, datetime | None, datetime | None]:
+        """Validate that all leaf series share frequency/timezone.
+
+        For units: auto-convert all leaves to the first leaf's unit when
+        the units are dimensionally compatible.  Raises ``ValueError`` if
+        one leaf has a unit and another has ``None``, or if units are
+        dimensionally incompatible.
+        """
+        leaf_nodes: list[HierarchyNode] = [
+            n for n in self._walk_pre(self._root)
+            if n.is_leaf and n.timeseries is not None
+        ]
+        if not leaf_nodes:
+            return Frequency.NONE, "UTC", None, None, None
+
+        leaf_series = [n.timeseries for n in leaf_nodes]
+
+        freq = leaf_series[0].frequency
+        tz = leaf_series[0].timezone
+        target_unit = leaf_series[0].unit
+
+        for ts in leaf_series[1:]:
+            if ts.frequency != freq:
+                raise ValueError(
+                    f"frequency mismatch: expected {freq!r}, "
+                    f"got {ts.frequency!r} in series {ts.name!r}"
+                )
+            if ts.timezone != tz:
+                raise ValueError(
+                    f"timezone mismatch: expected {tz!r}, "
+                    f"got {ts.timezone!r} in series {ts.name!r}"
+                )
+
+        # Unit handling: auto-convert compatible, reject None mismatch
+        for i, node in enumerate(leaf_nodes[1:], 1):
+            ts = node.timeseries
+            has_target = target_unit is not None
+            has_current = ts.unit is not None
+            if has_target != has_current:
+                raise ValueError(
+                    f"unit mismatch: expected {target_unit!r}, "
+                    f"got {ts.unit!r} in series {ts.name!r}"
+                )
+            if has_target and has_current and ts.unit != target_unit:
+                # Auto-convert — _convert_unit_values raises ValueError
+                # if dimensions are incompatible
+                converted_arr = _convert_unit_values(
+                    ts._to_float_array(), ts.unit, target_unit
+                )
+                node.timeseries = TimeSeries(
+                    ts.frequency,
+                    timezone=ts.timezone,
+                    timestamps=list(ts._timestamps),
+                    values=ts._from_float_array(converted_arr),
+                    **{**ts._meta_kwargs(), "unit": target_unit},
+                )
+
+        begins = [ts.begin for ts in leaf_series if ts.begin is not None]
+        ends = [ts.end for ts in leaf_series if ts.end is not None]
+        begin = min(begins) if begins else None
+        end = max(ends) if ends else None
+        return freq, tz, target_unit, begin, end
 
     def _infer_levels(self) -> list[str]:
         """Collect unique level names in BFS order."""
@@ -308,6 +384,26 @@ class HierarchicalTimeSeries:
     def n_nodes(self) -> int:
         return sum(1 for _ in self.walk())
 
+    @property
+    def frequency(self) -> Frequency:
+        return self._frequency
+
+    @property
+    def timezone(self) -> str:
+        return self._timezone
+
+    @property
+    def unit(self) -> str | None:
+        return self._unit
+
+    @property
+    def begin(self) -> datetime | None:
+        return self._begin
+
+    @property
+    def end(self) -> datetime | None:
+        return self._end
+
     # ---- traversal --------------------------------------------------------
 
     def get_node(self, *path: str) -> HierarchyNode:
@@ -491,17 +587,181 @@ class HierarchicalTimeSeries:
 
     # ---- display ----------------------------------------------------------
 
+    _MAX_LEAF_ROWS = 7
+
+    def _leaf_summary_rows(self) -> list[dict[str, str]]:
+        """Build summary rows for leaf nodes."""
+        leaf_nodes = self.leaves()
+        rows: list[dict[str, str]] = []
+        for node in leaf_nodes:
+            ts = node.timeseries
+            length = str(len(ts)) if ts is not None else "0"
+            begin = _fmt_short_date(ts.begin) if ts and ts.begin else "-"
+            end = _fmt_short_date(ts.end) if ts and ts.end else "-"
+            rows.append({
+                "name": node.key,
+                "level": node.level,
+                "length": length,
+                "begin": begin,
+                "end": end,
+            })
+        return rows
+
     def __repr__(self) -> str:
+        class_name = type(self).__name__
+        label_w = 18
+
+        # Meta lines
+        meta_lines: list[str] = []
+        if self._name:
+            meta_lines.append(f"{'Name:':<{label_w}}{self._name}")
+        meta_lines.append(f"{'Levels:':<{label_w}}{', '.join(self._levels)}")
+        meta_lines.append(
+            f"{'Nodes:':<{label_w}}{self.n_nodes} ({self.n_leaves} leaves)"
+        )
+        meta_lines.append(f"{'Frequency:':<{label_w}}{self._frequency}")
+        meta_lines.append(f"{'Timezone:':<{label_w}}{self._timezone}")
+        if self._unit:
+            meta_lines.append(f"{'Unit:':<{label_w}}{self._unit}")
+        meta_lines.append(f"{'Aggregation:':<{label_w}}{self._aggregation}")
+
+        # Leaf table
+        rows = self._leaf_summary_rows()
+        headers = ["name", "level", "length", "begin", "end"]
+        col_widths = {h: len(h) for h in headers}
+        for row in rows:
+            for h in headers:
+                col_widths[h] = max(col_widths[h], len(row[h]))
+
+        def _fmt_row(vals: dict[str, str]) -> str:
+            return "  ".join(f"{vals[h]:<{col_widths[h]}}" for h in headers)
+
+        header_line = _fmt_row({h: h for h in headers})
+
+        # Truncate if too many leaves
+        max_rows = self._MAX_LEAF_ROWS
+        if len(rows) <= max_rows:
+            data_lines = [_fmt_row(r) for r in rows]
+        else:
+            head = rows[:3]
+            tail = rows[-3:]
+            data_lines = [_fmt_row(r) for r in head]
+            data_lines.append(
+                "  ".join(f"{'...':<{col_widths[h]}}" for h in headers)
+            )
+            data_lines.extend(_fmt_row(r) for r in tail)
+
+        # Combine all content lines
+        content_lines: list[str | None] = []
+        for ml in meta_lines:
+            content_lines.append(ml)
+        content_lines.append(None)  # separator
+        content_lines.append(header_line)
+        content_lines.append(None)  # separator
+        for dl in data_lines:
+            content_lines.append(dl)
+
+        # Compute box width
+        padding = 2
+        max_content_w = max(
+            (len(line) for line in content_lines if line is not None),
+            default=0,
+        )
+        box_inner = max_content_w + padding * 2
+
+        # Build output
+        lines: list[str] = [class_name]
+        top = "\u250c" + "\u2500" * box_inner + "\u2510"
+        bot = "\u2514" + "\u2500" * box_inner + "\u2518"
+        sep = "\u251c" + "\u2500" * box_inner + "\u2524"
+        lines.append(top)
+        for cl in content_lines:
+            if cl is None:
+                lines.append(sep)
+            else:
+                lines.append(
+                    "\u2502"
+                    + " " * padding
+                    + cl.ljust(max_content_w)
+                    + " " * padding
+                    + "\u2502"
+                )
+        lines.append(bot)
+        return "\n".join(lines)
+
+    def _repr_html_(self) -> str:
         class_name = type(self).__name__
         title = class_name
         if self._name:
-            title = f"{class_name}: {self._name}"
+            title = f"{class_name}: {escape(self._name)}"
 
-        lines: list[str] = [title]
-        self._repr_tree(self._root, "", True, lines)
-        info = f"{self.n_nodes} nodes, {self.n_leaves} leaves, {self.n_levels} levels"
-        lines.append(f"({info})")
-        return "\n".join(lines)
+        css = """\
+<style>
+.tsh-repr { font-family: monospace; font-size: 13px; max-width: 720px; }
+.tsh-repr .tsh-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.tsh-repr .tsh-meta { padding: 6px 10px; background: #fafafa; }
+.tsh-repr .tsh-meta table { border-collapse: collapse; }
+.tsh-repr .tsh-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.tsh-repr .tsh-meta td:first-child { color: #666; font-weight: 600; }
+.tsh-repr table.tsh-leaves { border-collapse: collapse; width: 100%; }
+.tsh-repr .tsh-leaves th {
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.tsh-repr .tsh-leaves td { padding: 2px 10px; }
+.tsh-repr .tsh-leaves tr:hover { background: #f5f5f5; }
+</style>"""
+
+        # Meta table
+        meta_rows: list[tuple[str, str]] = []
+        if self._name:
+            meta_rows.append(("Name", escape(self._name)))
+        meta_rows.append(("Levels", escape(", ".join(self._levels))))
+        meta_rows.append(("Nodes", f"{self.n_nodes} ({self.n_leaves} leaves)"))
+        meta_rows.append(("Frequency", escape(str(self._frequency))))
+        meta_rows.append(("Timezone", escape(self._timezone)))
+        if self._unit:
+            meta_rows.append(("Unit", escape(self._unit)))
+        meta_rows.append(("Aggregation", escape(str(self._aggregation))))
+
+        html = [css, '<div class="tsh-repr">']
+        html.append(f'<div class="tsh-header">{escape(title)}</div>')
+        html.append('<div class="tsh-meta"><table>')
+        for label, value in meta_rows:
+            html.append(f"<tr><td>{escape(label)}</td><td>{value}</td></tr>")
+        html.append("</table></div>")
+
+        # Leaf table
+        headers = ["name", "level", "length", "begin", "end"]
+        rows = self._leaf_summary_rows()
+
+        html.append('<table class="tsh-leaves">')
+        html.append(
+            "<tr>" + "".join(f"<th>{escape(h)}</th>" for h in headers) + "</tr>"
+        )
+        max_rows = self._MAX_LEAF_ROWS
+        if len(rows) <= max_rows:
+            display_rows = rows
+        else:
+            display_rows = rows[:3] + [
+                {h: "\u2026" for h in headers}
+            ] + rows[-3:]
+        for row in display_rows:
+            html.append(
+                "<tr>"
+                + "".join(f"<td>{escape(row[h])}</td>" for h in headers)
+                + "</tr>"
+            )
+        html.append("</table></div>")
+        return "\n".join(html)
+
+    def tree(self) -> HierarchyTree:
+        """Return a displayable tree visualization."""
+        return HierarchyTree(self._root)
 
     @staticmethod
     def _repr_tree(
@@ -524,20 +784,49 @@ class HierarchicalTimeSeries:
                 child, new_prefix, i == len(node.children) - 1, lines
             )
 
-    def _repr_html_(self) -> str:
-        title = type(self).__name__
-        if self._name:
-            title = f"{title}: {escape(self._name)}"
-        info = f"{self.n_nodes} nodes, {self.n_leaves} leaves, {self.n_levels} levels"
 
-        html = [
-            '<div style="font-family: monospace; font-size: 13px;">',
-            f"<b>{escape(title)}</b><br>",
-            self._html_node(self._root),
-            f"<i>{escape(info)}</i>",
-            "</div>",
-        ]
-        return "\n".join(html)
+class HierarchyTree:
+    """Displayable tree visualization for a HierarchicalTimeSeries."""
+
+    __slots__ = ("_root",)
+
+    def __init__(self, root: HierarchyNode) -> None:
+        self._root = root
+
+    def __repr__(self) -> str:
+        lines: list[str] = []
+        self._build_tree(self._root, "", True, lines)
+        return "\n".join(lines)
+
+    @staticmethod
+    def _build_tree(
+        node: HierarchyNode,
+        prefix: str,
+        is_last: bool,
+        lines: list[str],
+    ) -> None:
+        connector = "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
+        label = node.key
+        if node.is_leaf and node.timeseries is not None:
+            label += f" [{len(node.timeseries)} pts]"
+        elif not node.is_leaf:
+            label += f" ({node.level})"
+        lines.append(f"{prefix}{connector}{label}")
+        new_prefix = prefix + ("    " if is_last else "\u2502   ")
+        for i, child in enumerate(node.children):
+            HierarchyTree._build_tree(
+                child, new_prefix, i == len(node.children) - 1, lines
+            )
+
+    def _repr_html_(self) -> str:
+        css = """\
+<style>
+.tsh-tree { font-family: monospace; font-size: 13px; }
+.tsh-tree details { margin-left: 16px; }
+.tsh-tree summary { cursor: pointer; padding: 1px 0; }
+.tsh-tree .tsh-leaf { margin-left: 16px; padding: 1px 0; }
+</style>"""
+        return css + '\n<div class="tsh-tree">\n' + self._html_node(self._root) + "</div>"
 
     @staticmethod
     def _html_node(node: HierarchyNode) -> str:
@@ -545,13 +834,13 @@ class HierarchicalTimeSeries:
             label = escape(node.key)
             if node.timeseries is not None:
                 label += f" [{len(node.timeseries)} pts]"
-            return f"<div style='margin-left:16px'>{label}</div>\n"
+            return f'<div class="tsh-leaf">{label}</div>\n'
         label = f"{escape(node.key)} ({escape(node.level)})"
         children_html = "".join(
-            HierarchicalTimeSeries._html_node(c) for c in node.children
+            HierarchyTree._html_node(c) for c in node.children
         )
         return (
-            f"<details open style='margin-left:16px'>"
+            f"<details open>"
             f"<summary>{label}</summary>\n"
             f"{children_html}"
             f"</details>\n"
