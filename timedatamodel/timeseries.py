@@ -17,11 +17,18 @@ from ._base import (
     _convert_unit_values,
     _get_pint_registry,
     _import_pandas,
+    _validate_timestamp_sequence,
 )
 from .coverage import CoverageBar
 from .datapoint import DataPoint
 from .enums import DataType, Frequency, TimeSeriesType
-from .location import GeoArea, GeoLocation, Location
+from .location import (
+    GeoArea,
+    GeoLocation,
+    Location,
+    _location_from_json,
+    _location_to_json,
+)
 
 
 @dataclass(slots=True, repr=False, eq=False)
@@ -79,6 +86,13 @@ class TimeSeries(_TimeSeriesBase):
         else:
             self._timestamps = timestamps or []
             self._values = values if values is not None else []
+
+        _validate_timestamp_sequence(self._timestamps)
+        if len(self._timestamps) != len(self._values):
+            raise ValueError(
+                f"length mismatch: {len(self._timestamps)} timestamps "
+                f"vs {len(self._values)} values"
+            )
 
     # ---- properties ------------------------------------------------------
 
@@ -786,6 +800,8 @@ class TimeSeries(_TimeSeriesBase):
             payload["timeseries_type"] = str(self.timeseries_type)
         if self.attributes:
             payload["attributes"] = self.attributes
+        if self.location is not None:
+            payload["location"] = _location_to_json(self.location)
         return json.dumps(payload)
 
     @classmethod
@@ -838,6 +854,9 @@ class TimeSeries(_TimeSeriesBase):
             TimeSeriesType(data["timeseries_type"]) if "timeseries_type" in data else TimeSeriesType.FLAT
         )
         attrs = attributes if attributes is not None else data.get("attributes")
+        loc = location if location is not None else _location_from_json(
+            data.get("location")
+        )
 
         return cls(
             freq,
@@ -848,7 +867,7 @@ class TimeSeries(_TimeSeriesBase):
             unit=un,
             description=desc,
             data_type=dt_,
-            location=location,
+            location=loc,
             timeseries_type=tst,
             attributes=attrs,
             index_names=index_names,

@@ -170,3 +170,58 @@ class GeoArea:
 
 
 Location = GeoLocation | GeoArea
+
+
+def _location_to_json(location: Location | None) -> dict | None:
+    """Serialize a location object to a JSON-safe dict."""
+    if location is None:
+        return None
+
+    if isinstance(location, GeoLocation):
+        return {
+            "type": "GeoLocation",
+            "latitude": location.latitude,
+            "longitude": location.longitude,
+        }
+
+    if isinstance(location, GeoArea):
+        coords = [
+            [lat, lon] for lon, lat in list(location.polygon.exterior.coords)
+        ]
+        return {
+            "type": "GeoArea",
+            "name": location.name,
+            "coordinates": coords,
+        }
+
+    raise TypeError(f"unsupported location type: {type(location).__name__}")
+
+
+def _location_from_json(payload: dict | None) -> Location | None:
+    """Deserialize a location dict produced by _location_to_json()."""
+    if payload is None:
+        return None
+
+    if not isinstance(payload, dict):
+        raise TypeError(
+            f"location payload must be a dict or None, got {type(payload).__name__}"
+        )
+
+    kind = payload.get("type")
+    if kind == "GeoLocation":
+        return GeoLocation(
+            latitude=float(payload["latitude"]),
+            longitude=float(payload["longitude"]),
+        )
+
+    if kind == "GeoArea":
+        raw_coords = payload.get("coordinates")
+        if not isinstance(raw_coords, list) or len(raw_coords) < 3:
+            raise ValueError(
+                "GeoArea payload must contain at least 3 coordinate pairs"
+            )
+        coords = [(float(lat), float(lon)) for lat, lon in raw_coords]
+        name = payload.get("name")
+        return GeoArea.from_coordinates(coords, name=name)
+
+    raise ValueError(f"unknown location type: {kind!r}")

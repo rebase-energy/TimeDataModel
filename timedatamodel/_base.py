@@ -400,3 +400,53 @@ class _TimeSeriesBase:
             else fallback_freq
         )
         return (new_freq, new_tz)
+
+
+def _validate_timestamp_sequence(
+    timestamps: list[datetime] | list[tuple[datetime, ...]],
+) -> None:
+    """Validate timestamp container shape and element types."""
+    if not timestamps:
+        return
+
+    first = timestamps[0]
+
+    if isinstance(first, tuple):
+        tuple_len = len(first)
+        if tuple_len == 0:
+            raise ValueError("multi-index timestamp tuples must not be empty")
+
+        for i, ts in enumerate(timestamps):
+            if not isinstance(ts, tuple):
+                raise TypeError(
+                    "timestamps must be homogeneous: all datetime values "
+                    "or all tuples of datetime values"
+                )
+            if len(ts) != tuple_len:
+                raise ValueError(
+                    f"inconsistent multi-index tuple length at index {i}: "
+                    f"expected {tuple_len}, got {len(ts)}"
+                )
+            for j, dt in enumerate(ts):
+                if not isinstance(dt, datetime):
+                    raise TypeError(
+                        f"timestamp tuple element at index {i}[{j}] must be datetime, "
+                        f"got {type(dt).__name__}"
+                    )
+        return
+
+    if not isinstance(first, datetime):
+        raise TypeError(
+            f"timestamp at index 0 must be datetime, got {type(first).__name__}"
+        )
+
+    for i, ts in enumerate(timestamps):
+        if isinstance(ts, tuple):
+            raise TypeError(
+                "timestamps must be homogeneous: all datetime values "
+                "or all tuples of datetime values"
+            )
+        if not isinstance(ts, datetime):
+            raise TypeError(
+                f"timestamp at index {i} must be datetime, got {type(ts).__name__}"
+            )
