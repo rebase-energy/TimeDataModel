@@ -8,9 +8,11 @@ from .timeseries import TimeSeries
 from .table import TimeSeriesTable, MultivariateTimeSeries, MultiTimeSeries
 from .collection import TimeSeriesCollection
 from .cube import Dimension, NDTimeSeries, TimeSeriesCube
+from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode
 
 __version__ = version("timedatamodel")
 __all__ = [
+    "AggregationMethod",
     "CoverageBar",
     "DataPoint",
     "DataType",
@@ -18,6 +20,8 @@ __all__ = [
     "Frequency",
     "GeoArea",
     "GeoLocation",
+    "HierarchicalTimeSeries",
+    "HierarchyNode",
     "Location",
     "MultiTimeSeries",
     "MultivariateTimeSeries",

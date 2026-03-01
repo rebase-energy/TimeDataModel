@@ -163,6 +163,80 @@ class TimeSeriesTable(_TimeSeriesBase):
             **self._list_meta_kwargs(),
         )
 
+    # ---- column selection by indices -------------------------------------
+
+    def _select_columns(self, indices: list[int]) -> TimeSeriesTable:
+        """Return a new table keeping only the given column indices."""
+        if not indices:
+            return TimeSeriesTable(
+                self.frequency,
+                timezone=self.timezone,
+                timestamps=list(self._timestamps),
+                values=np.empty((len(self._timestamps), 0)),
+                names=[None],
+                index_names=self._index_names,
+            )
+        new_values = self._values[:, indices]
+
+        def _pick(attr_list: list, idxs: list[int]) -> list:
+            if len(attr_list) == 1:
+                return list(attr_list)
+            return [attr_list[i] for i in idxs]
+
+        return TimeSeriesTable(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=list(self._timestamps),
+            values=new_values,
+            names=_pick(self.names, indices),
+            units=_pick(self.units, indices),
+            descriptions=_pick(self.descriptions, indices),
+            data_types=_pick(self.data_types, indices),
+            locations=_pick(self.locations, indices),
+            timeseries_types=_pick(self.timeseries_types, indices),
+            attributes=_pick(self.attributes, indices),
+            index_names=self._index_names,
+        )
+
+    # ---- spatial filtering -----------------------------------------------
+
+    def filter_columns_by_location(
+        self, center: GeoLocation, radius_km: float
+    ) -> TimeSeriesTable:
+        """Keep only columns within *radius_km* of *center*."""
+        keep: list[int] = []
+        for i in range(self.n_columns):
+            loc = self._get_attr(self.locations, i)
+            if isinstance(loc, GeoLocation) and loc.distance_to(center) <= radius_km:
+                keep.append(i)
+        return self._select_columns(keep)
+
+    def filter_columns_by_area(self, area: GeoArea) -> TimeSeriesTable:
+        """Keep only columns inside *area*."""
+        keep: list[int] = []
+        for i in range(self.n_columns):
+            loc = self._get_attr(self.locations, i)
+            if isinstance(loc, GeoLocation) and loc.is_within(area):
+                keep.append(i)
+            elif isinstance(loc, GeoArea) and area.contains_area(loc):
+                keep.append(i)
+        return self._select_columns(keep)
+
+    def nearest_columns(
+        self, target: GeoLocation, n: int = 1
+    ) -> TimeSeriesTable:
+        """Keep the *n* nearest columns to *target*."""
+        dists: list[tuple[float, int]] = []
+        for i in range(self.n_columns):
+            loc = self._get_attr(self.locations, i)
+            if isinstance(loc, GeoLocation):
+                dists.append((loc.distance_to(target), i))
+            elif isinstance(loc, GeoArea):
+                dists.append((loc.centroid.distance_to(target), i))
+        dists.sort(key=lambda x: x[0])
+        keep = [idx for _, idx in dists[:n]]
+        return self._select_columns(keep)
+
     # ---- equality --------------------------------------------------------
 
     def equals(self, other: object) -> bool:

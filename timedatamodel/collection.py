@@ -6,6 +6,7 @@ from typing import Iterator
 
 from ._base import _fmt_short_date
 from .coverage import CoverageBar
+from .location import GeoArea, GeoLocation
 from .table import TimeSeriesTable
 from .timeseries import TimeSeries
 
@@ -128,6 +129,112 @@ class TimeSeriesCollection:
 
     def remove(self, name: str) -> TimeSeriesCollection:
         new_series = {k: v for k, v in self._series.items() if k != name}
+        return TimeSeriesCollection(
+            new_series, name=self._name, description=self._description
+        )
+
+    # ---- spatial filtering -------------------------------------------------
+
+    @staticmethod
+    def _item_distance(
+        item: TimeSeries | TimeSeriesTable, target: GeoLocation
+    ) -> float | None:
+        """Return the minimum distance from *item* to *target*, or None if no location."""
+        if isinstance(item, TimeSeries):
+            loc = item.location
+            if isinstance(loc, GeoLocation):
+                return loc.distance_to(target)
+            if isinstance(loc, GeoArea):
+                return loc.centroid.distance_to(target)
+            return None
+        # TimeSeriesTable — take min across columns
+        dists: list[float] = []
+        for i in range(item.n_columns):
+            loc = item._get_attr(item.locations, i)
+            if isinstance(loc, GeoLocation):
+                dists.append(loc.distance_to(target))
+            elif isinstance(loc, GeoArea):
+                dists.append(loc.centroid.distance_to(target))
+        return min(dists) if dists else None
+
+    @staticmethod
+    def _item_in_radius(
+        item: TimeSeries | TimeSeriesTable,
+        center: GeoLocation,
+        radius_km: float,
+    ) -> bool:
+        """True if any location on *item* is within *radius_km* of *center*."""
+        if isinstance(item, TimeSeries):
+            loc = item.location
+            if isinstance(loc, GeoLocation):
+                return loc.distance_to(center) <= radius_km
+            if isinstance(loc, GeoArea):
+                return loc.centroid.distance_to(center) <= radius_km
+            return False
+        for i in range(item.n_columns):
+            loc = item._get_attr(item.locations, i)
+            if isinstance(loc, GeoLocation) and loc.distance_to(center) <= radius_km:
+                return True
+            if isinstance(loc, GeoArea) and loc.centroid.distance_to(center) <= radius_km:
+                return True
+        return False
+
+    @staticmethod
+    def _item_in_area(
+        item: TimeSeries | TimeSeriesTable, area: GeoArea
+    ) -> bool:
+        """True if any location on *item* is inside *area*."""
+        if isinstance(item, TimeSeries):
+            loc = item.location
+            if isinstance(loc, GeoLocation):
+                return loc.is_within(area)
+            if isinstance(loc, GeoArea):
+                return area.contains_area(loc)
+            return False
+        for i in range(item.n_columns):
+            loc = item._get_attr(item.locations, i)
+            if isinstance(loc, GeoLocation) and loc.is_within(area):
+                return True
+            if isinstance(loc, GeoArea) and area.contains_area(loc):
+                return True
+        return False
+
+    def filter_by_location(
+        self, center: GeoLocation, radius_km: float
+    ) -> TimeSeriesCollection:
+        """Keep series within *radius_km* of *center*."""
+        new_series = {
+            k: v
+            for k, v in self._series.items()
+            if self._item_in_radius(v, center, radius_km)
+        }
+        return TimeSeriesCollection(
+            new_series, name=self._name, description=self._description
+        )
+
+    def filter_by_area(self, area: GeoArea) -> TimeSeriesCollection:
+        """Keep series inside *area*."""
+        new_series = {
+            k: v
+            for k, v in self._series.items()
+            if self._item_in_area(v, area)
+        }
+        return TimeSeriesCollection(
+            new_series, name=self._name, description=self._description
+        )
+
+    def nearest(
+        self, target: GeoLocation, n: int = 1
+    ) -> TimeSeriesCollection:
+        """Keep the *n* nearest series to *target*."""
+        scored: list[tuple[float, str]] = []
+        for key, item in self._series.items():
+            d = self._item_distance(item, target)
+            if d is not None:
+                scored.append((d, key))
+        scored.sort(key=lambda x: x[0])
+        keep_keys = {key for _, key in scored[:n]}
+        new_series = {k: v for k, v in self._series.items() if k in keep_keys}
         return TimeSeriesCollection(
             new_series, name=self._name, description=self._description
         )
