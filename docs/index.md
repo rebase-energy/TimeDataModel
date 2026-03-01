@@ -10,6 +10,7 @@ A lightweight data model for time series data with pandas, numpy, and polars sup
 - **TimeSeriesCollection** -- heterogeneous container for series that don't share an index
 - Built-in conversions to/from **pandas**, **numpy**, and **polars**
 - Enum-based frequency (ISO 8601 durations) and data-type annotations
+- **Hierarchical time series** -- define aggregation trees and reconcile forecasts
 - Optional **pint** unit support and **shapely** geo-location metadata
 
 ## Installation
@@ -52,7 +53,14 @@ ts_doubled = ts * 2
 
 ```{toctree}
 :maxdepth: 2
-:caption: Contents
+:caption: Tutorials
+
+tutorials/index
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: API Reference
 
 api
 ```

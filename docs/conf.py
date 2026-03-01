@@ -15,7 +15,11 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_autodoc_typehints",
     "myst_parser",
+    "nbsphinx",
 ]
+
+# -- nbsphinx settings -----------------------------------------------------
+nbsphinx_execute = "never"
 
 # -- MyST settings ----------------------------------------------------------
 myst_enable_extensions = ["colon_fence"]
@@ -70,7 +74,7 @@ intersphinx_mapping = {
 }
 
 # -- Theme -------------------------------------------------------------------
-html_theme = "furo"
+html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 html_title = "timedatamodel"
