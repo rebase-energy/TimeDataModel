@@ -47,7 +47,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
@@ -115,112 +120,18 @@
 <section id="TimeSeriesCube">
 <h2>TimeSeriesCube<a class="headerlink" href="#TimeSeriesCube" title="Link to this heading"></a></h2>
 <p>A cube stores an N-dimensional array with named <code class="docutils literal notranslate"><span class="pre">Dimension</span></code> objects. Common use cases include ensemble forecasts, scenario analysis, and region-by-time grids.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from datetime import datetime, timedelta, timezone
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+import numpy as np
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
+import timedatamodel as tdm
 
-<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-<span class="n">hours</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
-</pre></div>
-</div>
-</div>
-<section id="Building-a-cube-from-scratch">
-<h3>Building a cube from scratch<a class="headerlink" href="#Building-a-cube-from-scratch" title="Link to this heading"></a></h3>
-<p>Create a 3-scenario x 24-hour cube representing price forecasts under different assumptions.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
-<span class="n">base_prices</span> <span class="o">=</span> <span class="mi">50</span> <span class="o">+</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span>
-
-<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
-    <span class="n">base_prices</span> <span class="o">*</span> <span class="mf">0.8</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>  <span class="c1"># low scenario</span>
-    <span class="n">base_prices</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>          <span class="c1"># base scenario</span>
-    <span class="n">base_prices</span> <span class="o">*</span> <span class="mf">1.3</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>   <span class="c1"># high scenario</span>
-<span class="p">])</span>
-
-<span class="n">cube</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesCube</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;price_forecast&quot;</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;EUR/MWh&quot;</span><span class="p">,</span>
-    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">FORECAST</span><span class="p">,</span>
-    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span>
-        <span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;scenario&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;base&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">]),</span>
-        <span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;valid_time&quot;</span><span class="p">,</span> <span class="n">hours</span><span class="p">),</span>
-    <span class="p">],</span>
-    <span class="n">values</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">cube</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeriesCube</div>
-<div class="ts-meta"><table>
-<tr><td>Dimensions</td><td>scenario: 3, valid_time: 24</td></tr>
-<tr><td>Shape</td><td>(3, 24)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-<tr><td>Name</td><td>price_forecast</td></tr>
-<tr><td>Unit</td><td>EUR/MWh</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>scenario</th><th>2024-01-15 00:00:00+00:00</th><th>2024-01-15 01:00:00+00:00</th><th>2024-01-15 02:00:00+00:00</th><th>2024-01-15 03:00:00+00:00</th><th>2024-01-15 04:00:00+00:00</th><th>2024-01-15 05:00:00+00:00</th><th>2024-01-15 06:00:00+00:00</th><th>2024-01-15 07:00:00+00:00</th><th>2024-01-15 08:00:00+00:00</th><th>2024-01-15 09:00:00+00:00</th><th>2024-01-15 10:00:00+00:00</th><th>2024-01-15 11:00:00+00:00</th><th>2024-01-15 12:00:00+00:00</th><th>2024-01-15 13:00:00+00:00</th><th>2024-01-15 14:00:00+00:00</th><th>2024-01-15 15:00:00+00:00</th><th>2024-01-15 16:00:00+00:00</th><th>2024-01-15 17:00:00+00:00</th><th>2024-01-15 18:00:00+00:00</th><th>2024-01-15 19:00:00+00:00</th><th>2024-01-15 20:00:00+00:00</th><th>2024-01-15 21:00:00+00:00</th><th>2024-01-15 22:00:00+00:00</th><th>2024-01-15 23:00:00+00:00</th></tr>
-<tr><td>low</td><td>40.6094</td><td>42.2368</td><td>49.8142</td><td>53.5745</td><td>50.3041</td><td>53.061</td><td>56.2184</td><td>54.4437</td><td>53.0379</td><td>48.3913</td><td>48.1332</td><td>43.7343</td><td>37.9534</td><td>35.8801</td><td>30.8376</td><td>25.2099</td><td>25.6613</td><td>22.1195</td><td>26.0916</td><td>25.694</td><td>27.9369</td><td>30.3248</td><td>38.1283</td><td>39.6909</td></tr>
-<tr><td>base</td><td>49.1433</td><td>54.6917</td><td>61.4563</td><td>65.3476</td><td>68.5832</td><td>70.4433</td><td>74.2367</td><td>68.0324</td><td>65.3149</td><td>60.9942</td><td>59.2</td><td>54.9813</td><td>47.0488</td><td>40.3517</td><td>35.7293</td><td>34.9618</td><td>32.6413</td><td>31.1329</td><td>29.0873</td><td>32.7066</td><td>35.6167</td><td>40.0457</td><td>46.3469</td><td>50.4472</td></tr>
-<tr><td>high</td><td>67.0367</td><td>72.2175</td><td>79.3765</td><td>85.8956</td><td>83.7135</td><td>89.4972</td><td>89.5283</td><td>87.5822</td><td>85.4158</td><td>85.8931</td><td>72.7609</td><td>71.4452</td><td>56.4111</td><td>53.6369</td><td>49.08</td><td>45.5174</td><td>42.6349</td><td>41.4407</td><td>38.4976</td><td>40.5279</td><td>48.5722</td><td>50.9169</td><td>54.1582</td><td>61.6001</td></tr>
-</table></div>
-</div></div>
-</div>
-</section>
-<section id="Cube-properties">
-<h3>Cube properties<a class="headerlink" href="#Cube-properties" title="Link to this heading"></a></h3>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape:      </span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dimensions: </span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">dim_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Begin:      </span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">begin</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;End:        </span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">end</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has missing:</span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">has_missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+base = datetime(2024, 1, 15, tzinfo=timezone.utc)
+hours = [base + timedelta(hours=i) for i in range(24)]
 </pre></div>
 </div>
 </div>
@@ -229,11 +140,109 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Shape:      (3, 24)
-Dimensions: (&#39;scenario&#39;, &#39;valid_time&#39;)
-Begin:      2024-01-15 00:00:00+00:00
-End:        2024-01-15 23:00:00+00:00
-Has missing:False
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[1]</span><span class="ansi-green-fg">, line 5</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">datetime</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">import</span> datetime, timedelta, timezone
+<span class="ansi-green-fg">      3</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">numpy</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">np</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">5</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">timedatamodel</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">tdm</span>
+<span class="ansi-green-fg">      7</span> base = datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, tzinfo=timezone.utc)
+<span class="ansi-green-fg">      8</span> hours = [base + timedelta(hours=i) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">24</span>)]
+
+<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;timedatamodel&#39;
+</pre></div></div>
+</div>
+<section id="Building-a-cube-from-scratch">
+<h3>Building a cube from scratch<a class="headerlink" href="#Building-a-cube-from-scratch" title="Link to this heading"></a></h3>
+<p>Create a 3-scenario x 24-hour cube representing price forecasts under different assumptions.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rng = np.random.default_rng(42)
+base_prices = 50 + 20 * np.sin(np.linspace(0, 2 * np.pi, 24))
+
+data = np.array([
+    base_prices * 0.8 + rng.normal(0, 2, 24),  # low scenario
+    base_prices + rng.normal(0, 2, 24),          # base scenario
+    base_prices * 1.3 + rng.normal(0, 3, 24),   # high scenario
+])
+
+cube = tdm.TimeSeriesCube(
+    tdm.Frequency.PT1H,
+    timezone=&quot;UTC&quot;,
+    name=&quot;price_forecast&quot;,
+    unit=&quot;EUR/MWh&quot;,
+    data_type=tdm.DataType.FORECAST,
+    dimensions=[
+        tdm.Dimension(&quot;scenario&quot;, [&quot;low&quot;, &quot;base&quot;, &quot;high&quot;]),
+        tdm.Dimension(&quot;valid_time&quot;, hours),
+    ],
+    values=data,
+)
+cube
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[2]</span><span class="ansi-green-fg">, line 10</span>
+<span class="ansi-green-fg">      2</span> base_prices = <span class="ansi-green-fg">50</span> + <span class="ansi-green-fg">20</span> * np.sin(np.linspace(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">2</span> * np.pi, <span class="ansi-green-fg">24</span>))
+<span class="ansi-green-fg">      4</span> data = np.array([
+<span class="ansi-green-fg">      5</span>     base_prices * <span class="ansi-green-fg">0.8</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">2</span>, <span class="ansi-green-fg">24</span>),  <span style="color: rgb(95,135,135)"># low scenario</span>
+<span class="ansi-green-fg">      6</span>     base_prices + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">2</span>, <span class="ansi-green-fg">24</span>),          <span style="color: rgb(95,135,135)"># base scenario</span>
+<span class="ansi-green-fg">      7</span>     base_prices * <span class="ansi-green-fg">1.3</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">3</span>, <span class="ansi-green-fg">24</span>),   <span style="color: rgb(95,135,135)"># high scenario</span>
+<span class="ansi-green-fg">      8</span> ])
+<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">10</span> cube = <span class="ansi-yellow-bg">tdm</span>.TimeSeriesCube(
+<span class="ansi-green-fg">     11</span>     tdm.Frequency.PT1H,
+<span class="ansi-green-fg">     12</span>     timezone=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">UTC</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">     13</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">price_forecast</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">     14</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">EUR/MWh</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">     15</span>     data_type=tdm.DataType.FORECAST,
+<span class="ansi-green-fg">     16</span>     dimensions=[
+<span class="ansi-green-fg">     17</span>         tdm.Dimension(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">scenario</span><span class="ansi-yellow-fg">&#34;</span>, [<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">low</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">base</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">high</span><span class="ansi-yellow-fg">&#34;</span>]),
+<span class="ansi-green-fg">     18</span>         tdm.Dimension(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">valid_time</span><span class="ansi-yellow-fg">&#34;</span>, hours),
+<span class="ansi-green-fg">     19</span>     ],
+<span class="ansi-green-fg">     20</span>     values=data,
+<span class="ansi-green-fg">     21</span> )
+<span class="ansi-green-fg">     22</span> cube
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+</pre></div></div>
+</div>
+</section>
+<section id="Cube-properties">
+<h3>Cube properties<a class="headerlink" href="#Cube-properties" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(f&quot;Shape:      {cube.shape}&quot;)
+print(f&quot;Dimensions: {cube.dim_names}&quot;)
+print(f&quot;Begin:      {cube.begin}&quot;)
+print(f&quot;End:        {cube.end}&quot;)
+print(f&quot;Has missing:{cube.has_missing}&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[3]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Shape:      </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span class="ansi-yellow-bg">cube</span>.shape<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Dimensions: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>cube.dim_names<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Begin:      </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>cube.begin<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;cube&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -244,61 +253,24 @@ Has missing:False
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">base_scenario</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">scenario</span><span class="o">=</span><span class="s2">&quot;base&quot;</span><span class="p">)</span>
-<span class="n">base_scenario</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>base_scenario = cube.sel(scenario=&quot;base&quot;)
+base_scenario
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeries</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>price_forecast</td></tr>
-<tr><td>Shape</td><td>(24,)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-<tr><td>Unit</td><td>EUR/MWh</td></tr>
-<tr><td>Data type</td><td>FORECAST</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>price_forecast</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>49.1433</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>54.6917</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>61.4563</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>40.0457</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>46.3469</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>50.4472</td></tr>
-</table></div>
-</div></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[4]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> base_scenario = <span class="ansi-yellow-bg">cube</span>.sel(scenario=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">base</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      2</span> base_scenario
+
+<span class="ansi-red-fg">NameError</span>: name &#39;cube&#39; is not defined
+</pre></div></div>
 </div>
 </section>
 <section id="Selecting-with-isel()-—-index-based">
@@ -308,61 +280,24 @@ Has missing:False
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">first_scenario</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">scenario</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">first_scenario</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>first_scenario = cube.isel(scenario=0)
+first_scenario
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeries</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>price_forecast</td></tr>
-<tr><td>Shape</td><td>(24,)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-<tr><td>Unit</td><td>EUR/MWh</td></tr>
-<tr><td>Data type</td><td>FORECAST</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>price_forecast</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>40.6094</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>42.2368</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>49.8142</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>30.3248</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>38.1283</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>39.6909</td></tr>
-</table></div>
-</div></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[5]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> first_scenario = <span class="ansi-yellow-bg">cube</span>.isel(scenario=<span class="ansi-green-fg">0</span>)
+<span class="ansi-green-fg">      2</span> first_scenario
+
+<span class="ansi-red-fg">NameError</span>: name &#39;cube&#39; is not defined
+</pre></div></div>
 </div>
 </section>
 <section id="Slicing-a-dimension">
@@ -372,9 +307,9 @@ Has missing:False
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">two_scenarios</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">scenario</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;base&quot;</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type:  </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">two_scenarios</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">two_scenarios</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>two_scenarios = cube.sel(scenario=slice(&quot;low&quot;, &quot;base&quot;))
+print(f&quot;Type:  {type(two_scenarios).__name__}&quot;)
+print(two_scenarios)
 </pre></div>
 </div>
 </div>
@@ -383,23 +318,14 @@ Has missing:False
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Type:  TimeSeriesTable
-TimeSeriesTable
-┌───────────────────────────────────────────────┐
-│  Columns:          low, base                  │
-│  Shape:            (24, 2)                    │
-│  Frequency:        PT1H                       │
-│  Timezone:         UTC                        │
-├───────────────────────────────────────────────┤
-│                                 low     base  │
-│  2024-01-15 00:00:00+00:00  40.6094  49.1433  │
-│  2024-01-15 01:00:00+00:00  42.2368  54.6917  │
-│  2024-01-15 02:00:00+00:00  49.8142  61.4563  │
-│  ...                            ...      ...  │
-│  2024-01-15 21:00:00+00:00  30.3248  40.0457  │
-│  2024-01-15 22:00:00+00:00  38.1283  46.3469  │
-│  2024-01-15 23:00:00+00:00  39.6909  50.4472  │
-└───────────────────────────────────────────────┘
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[6]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> two_scenarios = <span class="ansi-yellow-bg">cube</span>.sel(scenario=<span style="color: rgb(0,135,0)">slice</span>(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">low</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">base</span><span class="ansi-yellow-fg">&#34;</span>))
+<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Type:  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">type</span>(two_scenarios).<span class="ansi-blue-fg">__name__</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(two_scenarios)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;cube&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -410,68 +336,26 @@ TimeSeriesTable
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table_view</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">to_table</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">table_view</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="n">table_view</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table_view = cube.to_table()
+print(f&quot;Type: {type(table_view).__name__}&quot;)
+table_view
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
+<div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Type: TimeSeriesTable
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[7]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> table_view = <span class="ansi-yellow-bg">cube</span>.to_table()
+<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Type: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">type</span>(table_view).<span class="ansi-blue-fg">__name__</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      3</span> table_view
+
+<span class="ansi-red-fg">NameError</span>: name &#39;cube&#39; is not defined
 </pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeriesTable</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>low, base, high</td></tr>
-<tr><td>Shape</td><td>(24, 3)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>low</th><th>base</th><th>high</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>40.6094</td><td>49.1433</td><td>67.0367</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>42.2368</td><td>54.6917</td><td>72.2175</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>49.8142</td><td>61.4563</td><td>79.3765</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>30.3248</td><td>40.0457</td><td>50.9169</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>38.1283</td><td>46.3469</td><td>54.1582</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>39.6909</td><td>50.4472</td><td>61.6001</td></tr>
-</table></div>
-</div></div>
 </div>
 </section>
 <section id="Building-a-cube-from-a-list-of-TimeSeries">
@@ -481,72 +365,53 @@ Type: TimeSeriesTable
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">series_list</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-        <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-        <span class="n">timestamps</span><span class="o">=</span><span class="n">hours</span><span class="p">,</span>
-        <span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="n">base_prices</span> <span class="o">*</span> <span class="n">factor</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
-        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;price&quot;</span><span class="p">,</span>
-        <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;EUR/MWh&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="k">for</span> <span class="n">factor</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.15</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">]</span>
-<span class="p">]</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>series_list = [
+    tdm.TimeSeries(
+        tdm.Frequency.PT1H,
+        timestamps=hours,
+        values=(base_prices * factor + rng.normal(0, 2, 24)).tolist(),
+        name=&quot;price&quot;,
+        unit=&quot;EUR/MWh&quot;,
+    )
+    for factor in [0.7, 0.85, 1.0, 1.15, 1.3]
+]
 
-<span class="n">ensemble</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesCube</span><span class="o">.</span><span class="n">from_timeseries_list</span><span class="p">(</span>
-    <span class="n">series_list</span><span class="p">,</span>
-    <span class="n">dimension</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;percentile&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;p10&quot;</span><span class="p">,</span> <span class="s2">&quot;p25&quot;</span><span class="p">,</span> <span class="s2">&quot;p50&quot;</span><span class="p">,</span> <span class="s2">&quot;p75&quot;</span><span class="p">,</span> <span class="s2">&quot;p90&quot;</span><span class="p">]),</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;price_ensemble&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">ensemble</span>
+ensemble = tdm.TimeSeriesCube.from_timeseries_list(
+    series_list,
+    dimension=tdm.Dimension(&quot;percentile&quot;, [&quot;p10&quot;, &quot;p25&quot;, &quot;p50&quot;, &quot;p75&quot;, &quot;p90&quot;]),
+    name=&quot;price_ensemble&quot;,
+)
+ensemble
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeriesCube</div>
-<div class="ts-meta"><table>
-<tr><td>Dimensions</td><td>percentile: 5, valid_time: 24</td></tr>
-<tr><td>Shape</td><td>(5, 24)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-<tr><td>Name</td><td>price_ensemble</td></tr>
-<tr><td>Unit</td><td>EUR/MWh</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>percentile</th><th>2024-01-15 00:00:00+00:00</th><th>2024-01-15 01:00:00+00:00</th><th>2024-01-15 02:00:00+00:00</th><th>2024-01-15 03:00:00+00:00</th><th>2024-01-15 04:00:00+00:00</th><th>2024-01-15 05:00:00+00:00</th><th>2024-01-15 06:00:00+00:00</th><th>2024-01-15 07:00:00+00:00</th><th>2024-01-15 08:00:00+00:00</th><th>2024-01-15 09:00:00+00:00</th><th>2024-01-15 10:00:00+00:00</th><th>2024-01-15 11:00:00+00:00</th><th>2024-01-15 12:00:00+00:00</th><th>2024-01-15 13:00:00+00:00</th><th>2024-01-15 14:00:00+00:00</th><th>2024-01-15 15:00:00+00:00</th><th>2024-01-15 16:00:00+00:00</th><th>2024-01-15 17:00:00+00:00</th><th>2024-01-15 18:00:00+00:00</th><th>2024-01-15 19:00:00+00:00</th><th>2024-01-15 20:00:00+00:00</th><th>2024-01-15 21:00:00+00:00</th><th>2024-01-15 22:00:00+00:00</th><th>2024-01-15 23:00:00+00:00</th></tr>
-<tr><td>p10</td><td>33.1611</td><td>39.7715</td><td>42.559</td><td>46.6127</td><td>46.5759</td><td>49.0243</td><td>50.2185</td><td>47.573</td><td>47.3511</td><td>42.5114</td><td>39.8515</td><td>36.1429</td><td>30.702</td><td>30.3963</td><td>25.226</td><td>23.5874</td><td>22.7698</td><td>21.9257</td><td>22.6236</td><td>22.3726</td><td>23.9217</td><td>27.5664</td><td>27.8482</td><td>32.1058</td></tr>
-<tr><td>p25</td><td>39.8546</td><td>45.0921</td><td>52.1325</td><td>53.1133</td><td>56.8377</td><td>61.7429</td><td>58.7478</td><td>59.9935</td><td>54.5213</td><td>52.8176</td><td>47.3728</td><td>44.1368</td><td>41.8658</td><td>32.2725</td><td>32.6404</td><td>29.087</td><td>25.2933</td><td>22.6475</td><td>25.9998</td><td>26.347</td><td>30.5411</td><td>33.7108</td><td>41.117</td><td>42.0213</td></tr>
-<tr><td>p50</td><td>47.953</td><td>55.7545</td><td>60.8317</td><td>67.3351</td><td>69.4279</td><td>70.2954</td><td>72.88</td><td>66.4677</td><td>65.0599</td><td>60.7686</td><td>57.1884</td><td>49.97</td><td>48.547</td><td>41.5875</td><td>34.4366</td><td>31.6294</td><td>31.7818</td><td>31.7229</td><td>34.4118</td><td>38.07</td><td>36.2121</td><td>37.6292</td><td>40.34</td><td>50.5354</td></tr>
-</table></div>
-</div></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[8]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> series_list = [
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
+<span class="ansi-green-fg">      3</span>         tdm.Frequency.PT1H,
+<span class="ansi-green-fg">      4</span>         timestamps=hours,
+<span class="ansi-green-fg">      5</span>         values=(base_prices * factor + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">2</span>, <span class="ansi-green-fg">24</span>)).tolist(),
+<span class="ansi-green-fg">      6</span>         name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">price</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      7</span>         unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">EUR/MWh</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      8</span>     )
+<span class="ansi-green-fg">      9</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> factor <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> [<span class="ansi-green-fg">0.7</span>, <span class="ansi-green-fg">0.85</span>, <span class="ansi-green-fg">1.0</span>, <span class="ansi-green-fg">1.15</span>, <span class="ansi-green-fg">1.3</span>]
+<span class="ansi-green-fg">     10</span> ]
+<span class="ansi-green-fg">     12</span> ensemble = tdm.TimeSeriesCube.from_timeseries_list(
+<span class="ansi-green-fg">     13</span>     series_list,
+<span class="ansi-green-fg">     14</span>     dimension=tdm.Dimension(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">percentile</span><span class="ansi-yellow-fg">&#34;</span>, [<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">p10</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">p25</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">p50</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">p75</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">p90</span><span class="ansi-yellow-fg">&#34;</span>]),
+<span class="ansi-green-fg">     15</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">price_ensemble</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">     16</span> )
+<span class="ansi-green-fg">     17</span> ensemble
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+</pre></div></div>
 </div>
 </section>
 </section>
@@ -554,37 +419,67 @@ Type: TimeSeriesTable
 <section id="TimeSeriesCollection">
 <h2>TimeSeriesCollection<a class="headerlink" href="#TimeSeriesCollection" title="Link to this heading"></a></h2>
 <p>A <code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code> groups time series that may have different frequencies, time ranges, or numbers of points. Think of it as a named bag of <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> and <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> objects.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">daily_base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>daily_base = datetime(2024, 1, 1, tzinfo=timezone.utc)
 
-<span class="n">ts_hourly</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-    <span class="n">timestamps</span><span class="o">=</span><span class="n">hours</span><span class="p">,</span>
-    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">100.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wind_hourly&quot;</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
-<span class="p">)</span>
+ts_hourly = tdm.TimeSeries(
+    tdm.Frequency.PT1H,
+    timestamps=hours,
+    values=[100.0 + rng.normal(0, 10) for _ in range(24)],
+    name=&quot;wind_hourly&quot;,
+    unit=&quot;MW&quot;,
+)
 
-<span class="n">ts_daily</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">P1D</span><span class="p">,</span>
-    <span class="n">timestamps</span><span class="o">=</span><span class="p">[</span><span class="n">daily_base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">)],</span>
-    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">2400.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">)],</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wind_daily_energy&quot;</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MWh&quot;</span><span class="p">,</span>
-<span class="p">)</span>
+ts_daily = tdm.TimeSeries(
+    tdm.Frequency.P1D,
+    timestamps=[daily_base + timedelta(days=d) for d in range(30)],
+    values=[2400.0 + rng.normal(0, 200) for _ in range(30)],
+    name=&quot;wind_daily_energy&quot;,
+    unit=&quot;MWh&quot;,
+)
 
-<span class="n">ts_15min</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT15M</span><span class="p">,</span>
-    <span class="n">timestamps</span><span class="o">=</span><span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">15</span> <span class="o">*</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">96</span><span class="p">)],</span>
-    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">50.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">96</span><span class="p">)],</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;solar_15min&quot;</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
-<span class="p">)</span>
+ts_15min = tdm.TimeSeries(
+    tdm.Frequency.PT15M,
+    timestamps=[base + timedelta(minutes=15 * i) for i in range(96)],
+    values=[50.0 + rng.normal(0, 5) for _ in range(96)],
+    name=&quot;solar_15min&quot;,
+    unit=&quot;MW&quot;,
+)
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[9]</span><span class="ansi-green-fg">, line 3</span>
+<span class="ansi-green-fg">      1</span> daily_base = datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">1</span>, tzinfo=timezone.utc)
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">3</span> ts_hourly = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
+<span class="ansi-green-fg">      4</span>     tdm.Frequency.PT1H,
+<span class="ansi-green-fg">      5</span>     timestamps=hours,
+<span class="ansi-green-fg">      6</span>     values=[<span class="ansi-green-fg">100.0</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">10</span>) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> _ <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">24</span>)],
+<span class="ansi-green-fg">      7</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">wind_hourly</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      8</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      9</span> )
+<span class="ansi-green-fg">     11</span> ts_daily = tdm.TimeSeries(
+<span class="ansi-green-fg">     12</span>     tdm.Frequency.P1D,
+<span class="ansi-green-fg">     13</span>     timestamps=[daily_base + timedelta(days=d) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> d <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">30</span>)],
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">     16</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MWh</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">     17</span> )
+<span class="ansi-green-fg">     19</span> ts_15min = tdm.TimeSeries(
+<span class="ansi-green-fg">     20</span>     tdm.Frequency.PT15M,
+<span class="ansi-green-fg">     21</span>     timestamps=[base + timedelta(minutes=<span class="ansi-green-fg">15</span> * i) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">96</span>)],
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">     24</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">     25</span> )
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+</pre></div></div>
 </div>
 <section id="Creating-a-collection">
 <h3>Creating a collection<a class="headerlink" href="#Creating-a-collection" title="Link to this heading"></a></h3>
@@ -592,43 +487,32 @@ Type: TimeSeriesTable
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">collection</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesCollection</span><span class="p">(</span>
-    <span class="p">[</span><span class="n">ts_hourly</span><span class="p">,</span> <span class="n">ts_daily</span><span class="p">,</span> <span class="n">ts_15min</span><span class="p">],</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plant overview&quot;</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mixed-frequency data for a single plant&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">collection</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>collection = tdm.TimeSeriesCollection(
+    [ts_hourly, ts_daily, ts_15min],
+    name=&quot;Plant overview&quot;,
+    description=&quot;Mixed-frequency data for a single plant&quot;,
+)
+collection
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area rendered_html docutils container">
-<style>
-.tsc-repr { font-family: monospace; font-size: 13px; max-width: 720px; }
-.tsc-repr .tsc-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.tsc-repr table { border-collapse: collapse; width: 100%; }
-.tsc-repr th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.tsc-repr td { padding: 2px 10px; }
-.tsc-repr tr:hover { background: #f5f5f5; }
-</style>
-<div class="tsc-repr">
-<div class="tsc-header">TimeSeriesCollection: Plant overview</div>
-<table>
-<tr><th>name</th><th>type</th><th>freq</th><th>tz</th><th>length</th><th>begin</th><th>end</th></tr>
-<tr><td>wind_hourly</td><td>TimeSeries</td><td>PT1H</td><td>UTC</td><td>24</td><td>2024-01-15</td><td>2024-01-15 23:00</td></tr>
-<tr><td>wind_daily_energy</td><td>TimeSeries</td><td>P1D</td><td>UTC</td><td>30</td><td>2024-01-01</td><td>2024-01-30</td></tr>
-<tr><td>solar_15min</td><td>TimeSeries</td><td>PT15M</td><td>UTC</td><td>96</td><td>2024-01-15</td><td>2024-01-15 23:45</td></tr>
-</table></div></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[10]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> collection = <span class="ansi-yellow-bg">tdm</span>.TimeSeriesCollection(
+<span class="ansi-green-fg">      2</span>     [ts_hourly, ts_daily, ts_15min],
+<span class="ansi-green-fg">      3</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Plant overview</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      4</span>     description=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Mixed-frequency data for a single plant</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      5</span> )
+<span class="ansi-green-fg">      6</span> collection
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+</pre></div></div>
 </div>
 </section>
 <section id="Dictionary-like-access">
@@ -637,71 +521,27 @@ Type: TimeSeriesTable
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Names: </span><span class="si">{</span><span class="n">collection</span><span class="o">.</span><span class="n">names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Count: </span><span class="si">{</span><span class="n">collection</span><span class="o">.</span><span class="n">series_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(f&quot;Names: {collection.names}&quot;)
+print(f&quot;Count: {collection.series_count}&quot;)
 
-<span class="n">collection</span><span class="p">[</span><span class="s2">&quot;wind_hourly&quot;</span><span class="p">]</span>
+collection[&quot;wind_hourly&quot;]
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
+<div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Names: [&#39;wind_hourly&#39;, &#39;wind_daily_energy&#39;, &#39;solar_15min&#39;]
-Count: 3
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[11]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Names: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span class="ansi-yellow-bg">collection</span>.names<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Count: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>collection.series_count<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      4</span> collection[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">wind_hourly</span><span class="ansi-yellow-fg">&#34;</span>]
+
+<span class="ansi-red-fg">NameError</span>: name &#39;collection&#39; is not defined
 </pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeries</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>wind_hourly</td></tr>
-<tr><td>Shape</td><td>(24,)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-<tr><td>Unit</td><td>MW</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>wind_hourly</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>96.1681</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>114.614</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>88.9295</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>95.1583</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>96.7233</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>110.028</td></tr>
-</table></div>
-</div></div>
 </div>
 </section>
 <section id="Adding-and-removing-series">
@@ -711,17 +551,17 @@ Count: 3
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_price</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-    <span class="n">timestamps</span><span class="o">=</span><span class="n">hours</span><span class="p">,</span>
-    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">45.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;spot_price&quot;</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;EUR/MWh&quot;</span><span class="p">,</span>
-<span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_price = tdm.TimeSeries(
+    tdm.Frequency.PT1H,
+    timestamps=hours,
+    values=[45.0 + rng.normal(0, 8) for _ in range(24)],
+    name=&quot;spot_price&quot;,
+    unit=&quot;EUR/MWh&quot;,
+)
 
-<span class="n">extended</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ts_price</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original: </span><span class="si">{</span><span class="n">collection</span><span class="o">.</span><span class="n">names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extended: </span><span class="si">{</span><span class="n">extended</span><span class="o">.</span><span class="n">names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+extended = collection.add(ts_price)
+print(f&quot;Original: {collection.names}&quot;)
+print(f&quot;Extended: {extended.names}&quot;)
 </pre></div>
 </div>
 </div>
@@ -730,16 +570,28 @@ Count: 3
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Original: [&#39;wind_hourly&#39;, &#39;wind_daily_energy&#39;, &#39;solar_15min&#39;]
-Extended: [&#39;wind_hourly&#39;, &#39;wind_daily_energy&#39;, &#39;solar_15min&#39;, &#39;spot_price&#39;]
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[12]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_price = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
+<span class="ansi-green-fg">      2</span>     tdm.Frequency.PT1H,
+<span class="ansi-green-fg">      3</span>     timestamps=hours,
+<span class="ansi-green-fg">      4</span>     values=[<span class="ansi-green-fg">45.0</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">8</span>) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> _ <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">24</span>)],
+<span class="ansi-green-fg">      5</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">spot_price</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      6</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">EUR/MWh</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      7</span> )
+<span class="ansi-green-fg">      9</span> extended = collection.add(ts_price)
+<span class="ansi-green-fg">     10</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Original: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>collection.names<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">reduced</span> <span class="o">=</span> <span class="n">extended</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;wind_daily_energy&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reduced: </span><span class="si">{</span><span class="n">reduced</span><span class="o">.</span><span class="n">names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>reduced = extended.remove(&quot;wind_daily_energy&quot;)
+print(f&quot;Reduced: {reduced.names}&quot;)
 </pre></div>
 </div>
 </div>
@@ -748,7 +600,13 @@ Extended: [&#39;wind_hourly&#39;, &#39;wind_daily_energy&#39;, &#39;solar_15min&
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Reduced: [&#39;wind_hourly&#39;, &#39;solar_15min&#39;, &#39;spot_price&#39;]
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[13]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> reduced = <span class="ansi-yellow-bg">extended</span>.remove(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">wind_daily_energy</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Reduced: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>reduced.names<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;extended&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -758,8 +616,8 @@ Reduced: [&#39;wind_hourly&#39;, &#39;solar_15min&#39;, &#39;spot_price&#39;]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">collection</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2">  freq=</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">frequency</span><span class="p">)</span><span class="si">:</span><span class="s2">5s</span><span class="si">}</span><span class="s2">  len=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">series</span><span class="p">)</span><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2">  begin=</span><span class="si">{</span><span class="n">series</span><span class="o">.</span><span class="n">begin</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for name, series in collection.items():
+    print(f&quot;{name:20s}  freq={str(series.frequency):5s}  len={len(series):3d}  begin={series.begin}&quot;)
 </pre></div>
 </div>
 </div>
@@ -768,9 +626,13 @@ Reduced: [&#39;wind_hourly&#39;, &#39;solar_15min&#39;, &#39;spot_price&#39;]
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-wind_hourly           freq=PT1H   len= 24  begin=2024-01-15 00:00:00+00:00
-wind_daily_energy     freq=P1D    len= 30  begin=2024-01-01 00:00:00+00:00
-solar_15min           freq=PT15M  len= 96  begin=2024-01-15 00:00:00+00:00
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[14]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> name, series <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span class="ansi-yellow-bg">collection</span>.items():
+<span class="ansi-green-fg">      2</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>name<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">20s</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">  freq=</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">str</span>(series.frequency)<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">5s</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">  len=</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">len</span>(series)<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">3d</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">  begin=</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>series.begin<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;collection&#39; is not defined
 </pre></div></div>
 </div>
 </section>

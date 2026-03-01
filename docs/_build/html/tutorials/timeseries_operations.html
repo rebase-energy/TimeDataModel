@@ -47,7 +47,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
@@ -101,122 +106,44 @@
   <section id="TimeSeries-Operations">
 <h1>TimeSeries Operations<a class="headerlink" href="#TimeSeries-Operations" title="Link to this heading"></a></h1>
 <p>A <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> is not just a data container — it supports arithmetic, comparisons, and transformations. This notebook demonstrates how to manipulate time series data without dropping down to raw arrays.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from datetime import datetime, timedelta, timezone
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
+import timedatamodel as tdm
 
-<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-<span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
+base = datetime(2024, 1, 15, tzinfo=timezone.utc)
+timestamps = [base + timedelta(hours=i) for i in range(24)]
 
-<span class="n">generation</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
-    <span class="n">values</span><span class="o">=</span><span class="p">[</span>
-        <span class="mf">120.0</span><span class="p">,</span> <span class="mf">115.0</span><span class="p">,</span> <span class="mf">108.0</span><span class="p">,</span> <span class="mf">105.0</span><span class="p">,</span> <span class="mf">102.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span>
-        <span class="mf">110.0</span><span class="p">,</span> <span class="mf">135.0</span><span class="p">,</span> <span class="mf">160.0</span><span class="p">,</span> <span class="mf">175.0</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">,</span> <span class="mf">178.0</span><span class="p">,</span>
-        <span class="mf">172.0</span><span class="p">,</span> <span class="mf">170.0</span><span class="p">,</span> <span class="mf">168.0</span><span class="p">,</span> <span class="mf">165.0</span><span class="p">,</span> <span class="mf">175.0</span><span class="p">,</span> <span class="mf">190.0</span><span class="p">,</span>
-        <span class="mf">200.0</span><span class="p">,</span> <span class="mf">195.0</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">,</span> <span class="mf">165.0</span><span class="p">,</span> <span class="mf">145.0</span><span class="p">,</span> <span class="mf">130.0</span><span class="p">,</span>
-    <span class="p">],</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;generation&quot;</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
-    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">MEASUREMENT</span><span class="p">,</span>
-<span class="p">)</span>
+generation = tdm.TimeSeries(
+    tdm.Frequency.PT1H,
+    timestamps=timestamps,
+    values=[
+        120.0, 115.0, 108.0, 105.0, 102.0, 100.0,
+        110.0, 135.0, 160.0, 175.0, 180.0, 178.0,
+        172.0, 170.0, 168.0, 165.0, 175.0, 190.0,
+        200.0, 195.0, 180.0, 165.0, 145.0, 130.0,
+    ],
+    name=&quot;generation&quot;,
+    unit=&quot;MW&quot;,
+    data_type=tdm.DataType.MEASUREMENT,
+)
 
-<span class="n">consumption</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
-    <span class="n">values</span><span class="o">=</span><span class="p">[</span>
-        <span class="mf">90.0</span><span class="p">,</span> <span class="mf">85.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span> <span class="mf">78.0</span><span class="p">,</span> <span class="mf">77.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span>
-        <span class="mf">95.0</span><span class="p">,</span> <span class="mf">120.0</span><span class="p">,</span> <span class="mf">145.0</span><span class="p">,</span> <span class="mf">155.0</span><span class="p">,</span> <span class="mf">160.0</span><span class="p">,</span> <span class="mf">158.0</span><span class="p">,</span>
-        <span class="mf">155.0</span><span class="p">,</span> <span class="mf">150.0</span><span class="p">,</span> <span class="mf">148.0</span><span class="p">,</span> <span class="mf">150.0</span><span class="p">,</span> <span class="mf">160.0</span><span class="p">,</span> <span class="mf">170.0</span><span class="p">,</span>
-        <span class="mf">165.0</span><span class="p">,</span> <span class="mf">155.0</span><span class="p">,</span> <span class="mf">140.0</span><span class="p">,</span> <span class="mf">120.0</span><span class="p">,</span> <span class="mf">105.0</span><span class="p">,</span> <span class="mf">95.0</span><span class="p">,</span>
-    <span class="p">],</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;consumption&quot;</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
-    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">MEASUREMENT</span><span class="p">,</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<section id="Scalar-arithmetic">
-<h2>Scalar arithmetic<a class="headerlink" href="#Scalar-arithmetic" title="Link to this heading"></a></h2>
-<p>Scale, offset, negate, or round values with natural Python operators. The result is a new <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> with metadata preserved.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">generation_kw</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">*</span> <span class="mi">1000</span>
-<span class="n">generation_kw</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeries</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>generation</td></tr>
-<tr><td>Shape</td><td>(24,)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-<tr><td>Unit</td><td>MW</td></tr>
-<tr><td>Data type</td><td>MEASUREMENT</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>generation</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>120000.0</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>115000.0</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>108000.0</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>165000.0</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>145000.0</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>130000.0</td></tr>
-</table></div>
-</div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">offset</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">+</span> <span class="mf">10.0</span>
-<span class="n">negated</span> <span class="o">=</span> <span class="o">-</span><span class="n">generation</span>
-<span class="n">rounded</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">generation</span> <span class="o">/</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original first value:  </span><span class="si">{</span><span class="n">generation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;+ 10:                  </span><span class="si">{</span><span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Negated:               </span><span class="si">{</span><span class="n">negated</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Divided by 3, rounded: </span><span class="si">{</span><span class="n">rounded</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+consumption = tdm.TimeSeries(
+    tdm.Frequency.PT1H,
+    timestamps=timestamps,
+    values=[
+        90.0, 85.0, 80.0, 78.0, 77.0, 80.0,
+        95.0, 120.0, 145.0, 155.0, 160.0, 158.0,
+        155.0, 150.0, 148.0, 150.0, 160.0, 170.0,
+        165.0, 155.0, 140.0, 120.0, 105.0, 95.0,
+    ],
+    name=&quot;consumption&quot;,
+    unit=&quot;MW&quot;,
+    data_type=tdm.DataType.MEASUREMENT,
+)
 </pre></div>
 </div>
 </div>
@@ -225,10 +152,71 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Original first value:  120.0
-+ 10:                  130.0
-Negated:               -120.0
-Divided by 3, rounded: 40.0
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[1]</span><span class="ansi-green-fg">, line 3</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">datetime</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">import</span> datetime, timedelta, timezone
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">3</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">timedatamodel</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">tdm</span>
+<span class="ansi-green-fg">      5</span> base = datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, tzinfo=timezone.utc)
+<span class="ansi-green-fg">      6</span> timestamps = [base + timedelta(hours=i) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">24</span>)]
+
+<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;timedatamodel&#39;
+</pre></div></div>
+</div>
+<section id="Scalar-arithmetic">
+<h2>Scalar arithmetic<a class="headerlink" href="#Scalar-arithmetic" title="Link to this heading"></a></h2>
+<p>Scale, offset, negate, or round values with natural Python operators. The result is a new <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> with metadata preserved.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>generation_kw = generation * 1000
+generation_kw
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[2]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> generation_kw = <span class="ansi-yellow-bg">generation</span> * <span class="ansi-green-fg">1000</span>
+<span class="ansi-green-fg">      2</span> generation_kw
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>offset = generation + 10.0
+negated = -generation
+rounded = round(generation / 3, 1)
+
+print(f&quot;Original first value:  {generation[0].value}&quot;)
+print(f&quot;+ 10:                  {offset[0].value}&quot;)
+print(f&quot;Negated:               {negated[0].value}&quot;)
+print(f&quot;Divided by 3, rounded: {rounded[0].value}&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[3]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> offset = <span class="ansi-yellow-bg">generation</span> + <span class="ansi-green-fg">10.0</span>
+<span class="ansi-green-fg">      2</span> negated = -generation
+<span class="ansi-green-fg">      3</span> rounded = <span style="color: rgb(0,135,0)">round</span>(generation / <span class="ansi-green-fg">3</span>, <span class="ansi-green-fg">1</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -239,61 +227,24 @@ Divided by 3, rounded: 40.0
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">surplus</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">-</span> <span class="n">consumption</span>
-<span class="n">surplus</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>surplus = generation - consumption
+surplus
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeries</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>unnamed</td></tr>
-<tr><td>Shape</td><td>(24,)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-<tr><td>Unit</td><td>MW</td></tr>
-<tr><td>Data type</td><td>MEASUREMENT</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>value</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>30.0</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>30.0</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>28.0</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>45.0</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>40.0</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>35.0</td></tr>
-</table></div>
-</div></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[4]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> surplus = <span class="ansi-yellow-bg">generation</span> - consumption
+<span class="ansi-green-fg">      2</span> surplus
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
 </div>
 </section>
 <section id="Comparison-operators">
@@ -303,117 +254,47 @@ Divided by 3, rounded: 40.0
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">high_gen</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">&gt;</span> <span class="mf">170.0</span>
-<span class="n">high_gen</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>high_gen = generation &gt; 170.0
+high_gen
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeries</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>unnamed</td></tr>
-<tr><td>Shape</td><td>(24,)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>value</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>0.0</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>0.0</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>0.0</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>0.0</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>0.0</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>0.0</td></tr>
-</table></div>
-</div></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[5]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> high_gen = <span class="ansi-yellow-bg">generation</span> &gt; <span class="ansi-green-fg">170.0</span>
+<span class="ansi-green-fg">      2</span> high_gen
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gen_exceeds_cons</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">&gt;</span> <span class="n">consumption</span>
-<span class="n">gen_exceeds_cons</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gen_exceeds_cons = generation &gt; consumption
+gen_exceeds_cons
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeries</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>unnamed</td></tr>
-<tr><td>Shape</td><td>(24,)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>value</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>1.0</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>1.0</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>1.0</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>1.0</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>1.0</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>1.0</td></tr>
-</table></div>
-</div></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[6]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> gen_exceeds_cons = <span class="ansi-yellow-bg">generation</span> &gt; consumption
+<span class="ansi-green-fg">      2</span> gen_exceeds_cons
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
 </div>
 </section>
 <section id="abs()-—-absolute-values">
@@ -423,58 +304,26 @@ Divided by 3, rounded: 40.0
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">deviation</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">-</span> <span class="n">consumption</span>
-<span class="n">abs_deviation</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">deviation</span><span class="p">)</span>
-<span class="n">abs_deviation</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>deviation = generation - consumption
+abs_deviation = abs(deviation)
+abs_deviation.head(6)
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeries</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>unnamed</td></tr>
-<tr><td>Shape</td><td>(6,)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>UTC</td></tr>
-<tr><td>Unit</td><td>MW</td></tr>
-<tr><td>Data type</td><td>MEASUREMENT</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>value</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>30.0</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>30.0</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>28.0</td></tr>
-</table></div>
-</div></div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[7]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> deviation = <span class="ansi-yellow-bg">generation</span> - consumption
+<span class="ansi-green-fg">      2</span> abs_deviation = <span style="color: rgb(0,135,0)">abs</span>(deviation)
+<span class="ansi-green-fg">      3</span> abs_deviation.head(<span class="ansi-green-fg">6</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
 </div>
 </section>
 <section id="head(),-tail(),-and-copy()">
@@ -484,30 +333,38 @@ Divided by 3, rounded: 40.0
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First 3:&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">generation</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">timestamp</span><span class="si">:</span><span class="s2">%H:%M</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(&quot;First 3:&quot;)
+for dp in generation.head(3):
+    print(f&quot;  {dp.timestamp:%H:%M}  {dp.value:.1f} MW&quot;)
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Last 3:&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">generation</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">timestamp</span><span class="si">:</span><span class="s2">%H:%M</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+print(&quot;\nLast 3:&quot;)
+for dp in generation.tail(3):
+    print(f&quot;  {dp.timestamp:%H:%M}  {dp.value:.1f} MW&quot;)
 </pre></div>
 </div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+First 3:
+</pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-First 3:
-  00:00  120.0 MW
-  01:00  115.0 MW
-  02:00  108.0 MW
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[8]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">First 3:</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> dp <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span class="ansi-yellow-bg">generation</span>.head(<span class="ansi-green-fg">3</span>):
+<span class="ansi-green-fg">      3</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>dp.timestamp<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">%H:%M</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>dp.value<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> MW</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      5</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-bold" style="color: rgb(175,95,0)">\n</span><span class="ansi-yellow-fg">Last 3:</span><span class="ansi-yellow-fg">&#34;</span>)
 
-Last 3:
-  21:00  165.0 MW
-  22:00  145.0 MW
-  23:00  130.0 MW
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
@@ -534,17 +391,17 @@ Last 3:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_with_gaps</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">[:</span><span class="mi">6</span><span class="p">],</span>
-    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">110.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">105.0</span><span class="p">,</span> <span class="mf">108.0</span><span class="p">],</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sensor&quot;</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
-<span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_with_gaps = tdm.TimeSeries(
+    tdm.Frequency.PT1H,
+    timestamps=timestamps[:6],
+    values=[100.0, None, 110.0, None, 105.0, 108.0],
+    name=&quot;sensor&quot;,
+    unit=&quot;MW&quot;,
+)
 
-<span class="n">doubled</span> <span class="o">=</span> <span class="n">ts_with_gaps</span> <span class="o">*</span> <span class="mi">2</span>
-<span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">doubled</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">timestamp</span><span class="si">:</span><span class="s2">%H:%M</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+doubled = ts_with_gaps * 2
+for dp in doubled:
+    print(f&quot;{dp.timestamp:%H:%M}  {dp.value}&quot;)
 </pre></div>
 </div>
 </div>
@@ -553,12 +410,20 @@ Last 3:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-00:00  200.0
-01:00  None
-02:00  220.0
-03:00  None
-04:00  210.0
-05:00  216.0
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[9]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_with_gaps = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
+<span class="ansi-green-fg">      2</span>     tdm.Frequency.PT1H,
+<span class="ansi-green-fg">      3</span>     timestamps=timestamps[:<span class="ansi-green-fg">6</span>],
+<span class="ansi-green-fg">      4</span>     values=[<span class="ansi-green-fg">100.0</span>, <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>, <span class="ansi-green-fg">110.0</span>, <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>, <span class="ansi-green-fg">105.0</span>, <span class="ansi-green-fg">108.0</span>],
+<span class="ansi-green-fg">      5</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">sensor</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      6</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      7</span> )
+<span class="ansi-green-fg">      9</span> doubled = ts_with_gaps * <span class="ansi-green-fg">2</span>
+<span class="ansi-green-fg">     10</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> dp <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> doubled:
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
 </pre></div></div>
 </div>
 </section>

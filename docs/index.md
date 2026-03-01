@@ -13,42 +13,12 @@ A lightweight data model for time series data with pandas, numpy, and polars sup
 - **Hierarchical time series** -- define aggregation trees and reconcile forecasts
 - Optional **pint** unit support and **shapely** geo-location metadata
 
-## Installation
+```{toctree}
+:maxdepth: 1
+:caption: Getting Started
 
-```bash
-pip install timedatamodel
-```
-
-With optional extras:
-
-```bash
-pip install timedatamodel[pandas]       # pandas support
-pip install timedatamodel[polars]       # polars support
-pip install timedatamodel[pint]         # pint unit support
-pip install timedatamodel[geo]          # shapely geo support
-pip install timedatamodel[all]          # everything
-```
-
-## Quick start
-
-```python
-from datetime import datetime
-from timedatamodel import TimeSeries, Frequency
-
-ts = TimeSeries(
-    Frequency.PT1H,
-    timestamps=[datetime(2024, 1, 1, h) for h in range(24)],
-    values=[float(h) for h in range(24)],
-    name="temperature",
-    unit="degC",
-)
-
-# Convert to pandas / numpy
-df = ts.df
-arr = ts.arr
-
-# Arithmetic
-ts_doubled = ts * 2
+installation
+usage
 ```
 
 ```{toctree}
