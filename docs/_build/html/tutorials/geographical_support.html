@@ -47,7 +47,12 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
@@ -126,21 +131,38 @@
 </tbody>
 </table>
 <p>Both can be attached to <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> and <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> objects.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from datetime import datetime, timedelta, timezone
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+import numpy as np
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
+import timedatamodel as tdm
 
-<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
-<span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
-<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+base = datetime(2024, 1, 15, tzinfo=timezone.utc)
+timestamps = [base + timedelta(hours=i) for i in range(24)]
+rng = np.random.default_rng(42)
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[1]</span><span class="ansi-green-fg">, line 5</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">datetime</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">import</span> datetime, timedelta, timezone
+<span class="ansi-green-fg">      3</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">numpy</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">np</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">5</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">timedatamodel</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">tdm</span>
+<span class="ansi-green-fg">      7</span> base = datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, tzinfo=timezone.utc)
+<span class="ansi-green-fg">      8</span> timestamps = [base + timedelta(hours=i) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">24</span>)]
+
+<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;timedatamodel&#39;
+</pre></div></div>
 </div>
 <section id="GeoLocation-—-point-coordinates">
 <h2>GeoLocation — point coordinates<a class="headerlink" href="#GeoLocation-—-point-coordinates" title="Link to this heading"></a></h2>
@@ -149,13 +171,13 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">oslo</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">GeoLocation</span><span class="p">(</span><span class="n">latitude</span><span class="o">=</span><span class="mf">59.91</span><span class="p">,</span> <span class="n">longitude</span><span class="o">=</span><span class="mf">10.75</span><span class="p">)</span>
-<span class="n">bergen</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">GeoLocation</span><span class="p">(</span><span class="n">latitude</span><span class="o">=</span><span class="mf">60.39</span><span class="p">,</span> <span class="n">longitude</span><span class="o">=</span><span class="mf">5.32</span><span class="p">)</span>
-<span class="n">tromsoe</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">GeoLocation</span><span class="p">(</span><span class="n">latitude</span><span class="o">=</span><span class="mf">69.65</span><span class="p">,</span> <span class="n">longitude</span><span class="o">=</span><span class="mf">18.96</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>oslo = tdm.GeoLocation(latitude=59.91, longitude=10.75)
+bergen = tdm.GeoLocation(latitude=60.39, longitude=5.32)
+tromsoe = tdm.GeoLocation(latitude=69.65, longitude=18.96)
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Oslo:    </span><span class="si">{</span><span class="n">oslo</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bergen:  </span><span class="si">{</span><span class="n">bergen</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tromsø:  </span><span class="si">{</span><span class="n">tromsoe</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+print(f&quot;Oslo:    {oslo}&quot;)
+print(f&quot;Bergen:  {bergen}&quot;)
+print(f&quot;Tromsø:  {tromsoe}&quot;)
 </pre></div>
 </div>
 </div>
@@ -164,19 +186,24 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Oslo:    GeoLocation(latitude=59.91, longitude=10.75)
-Bergen:  GeoLocation(latitude=60.39, longitude=5.32)
-Tromsø:  GeoLocation(latitude=69.65, longitude=18.96)
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[2]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> oslo = <span class="ansi-yellow-bg">tdm</span>.GeoLocation(latitude=<span class="ansi-green-fg">59.91</span>, longitude=<span class="ansi-green-fg">10.75</span>)
+<span class="ansi-green-fg">      2</span> bergen = tdm.GeoLocation(latitude=<span class="ansi-green-fg">60.39</span>, longitude=<span class="ansi-green-fg">5.32</span>)
+<span class="ansi-green-fg">      3</span> tromsoe = tdm.GeoLocation(latitude=<span class="ansi-green-fg">69.65</span>, longitude=<span class="ansi-green-fg">18.96</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">bad</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">GeoLocation</span><span class="p">(</span><span class="n">latitude</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">longitude</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>try:
+    bad = tdm.GeoLocation(latitude=200, longitude=0)
+except ValueError as e:
+    print(f&quot;Validation error: {e}&quot;)
 </pre></div>
 </div>
 </div>
@@ -185,7 +212,15 @@ Tromsø:  GeoLocation(latitude=69.65, longitude=18.96)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Validation error: latitude must be between -90 and 90, got 200
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[3]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     bad = <span class="ansi-yellow-bg">tdm</span>.GeoLocation(latitude=<span class="ansi-green-fg">200</span>, longitude=<span class="ansi-green-fg">0</span>)
+<span class="ansi-green-fg">      3</span> <span class="ansi-bold" style="color: rgb(0,135,0)">except</span> <span class="ansi-bold" style="color: rgb(215,95,95)">ValueError</span> <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> e:
+<span class="ansi-green-fg">      4</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Validation error: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>e<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -196,12 +231,12 @@ Validation error: latitude must be between -90 and 90, got 200
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">d_km</span> <span class="o">=</span> <span class="n">oslo</span><span class="o">.</span><span class="n">distance_to</span><span class="p">(</span><span class="n">bergen</span><span class="p">)</span>
-<span class="n">d_mi</span> <span class="o">=</span> <span class="n">oslo</span><span class="o">.</span><span class="n">distance_to</span><span class="p">(</span><span class="n">bergen</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mi&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Oslo → Bergen: </span><span class="si">{</span><span class="n">d_km</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> km  (</span><span class="si">{</span><span class="n">d_mi</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> mi)&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>d_km = oslo.distance_to(bergen)
+d_mi = oslo.distance_to(bergen, unit=&quot;mi&quot;)
+print(f&quot;Oslo → Bergen: {d_km:.1f} km  ({d_mi:.1f} mi)&quot;)
 
-<span class="n">d_tromsoe</span> <span class="o">=</span> <span class="n">oslo</span><span class="o">.</span><span class="n">distance_to</span><span class="p">(</span><span class="n">tromsoe</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Oslo → Tromsø: </span><span class="si">{</span><span class="n">d_tromsoe</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> km&quot;</span><span class="p">)</span>
+d_tromsoe = oslo.distance_to(tromsoe)
+print(f&quot;Oslo → Tromsø: {d_tromsoe:.1f} km&quot;)
 </pre></div>
 </div>
 </div>
@@ -210,19 +245,25 @@ Validation error: latitude must be between -90 and 90, got 200
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Oslo → Bergen: 305.1 km  (189.6 mi)
-Oslo → Tromsø: 1148.4 km
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[4]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> d_km = <span class="ansi-yellow-bg">oslo</span>.distance_to(bergen)
+<span class="ansi-green-fg">      2</span> d_mi = oslo.distance_to(bergen, unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">mi</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Oslo → Bergen: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>d_km<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> km  (</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>d_mi<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> mi)</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;oslo&#39; is not defined
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bearing</span> <span class="o">=</span> <span class="n">oslo</span><span class="o">.</span><span class="n">bearing_to</span><span class="p">(</span><span class="n">bergen</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial bearing Oslo → Bergen: </span><span class="si">{</span><span class="n">bearing</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">°&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>bearing = oslo.bearing_to(bergen)
+print(f&quot;Initial bearing Oslo → Bergen: {bearing:.1f}°&quot;)
 
-<span class="n">mid</span> <span class="o">=</span> <span class="n">oslo</span><span class="o">.</span><span class="n">midpoint</span><span class="p">(</span><span class="n">bergen</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Geographic midpoint: </span><span class="si">{</span><span class="n">mid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+mid = oslo.midpoint(bergen)
+print(f&quot;Geographic midpoint: {mid}&quot;)
 </pre></div>
 </div>
 </div>
@@ -231,8 +272,14 @@ Oslo → Tromsø: 1148.4 km
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Initial bearing Oslo → Bergen: 282.4°
-Geographic midpoint: GeoLocation(latitude=60.17777046667162, longitude=8.05483245837952)
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[5]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> bearing = <span class="ansi-yellow-bg">oslo</span>.bearing_to(bergen)
+<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Initial bearing Oslo → Bergen: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>bearing<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">°</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      4</span> mid = oslo.midpoint(bergen)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;oslo&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -243,9 +290,9 @@ Geographic midpoint: GeoLocation(latitude=60.17777046667162, longitude=8.0548324
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">east_of_oslo</span> <span class="o">=</span> <span class="n">oslo</span><span class="o">.</span><span class="n">offset</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">90</span><span class="p">)</span>  <span class="c1"># 100 km due east</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;100 km east of Oslo: </span><span class="si">{</span><span class="n">east_of_oslo</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Verify distance: </span><span class="si">{</span><span class="n">oslo</span><span class="o">.</span><span class="n">distance_to</span><span class="p">(</span><span class="n">east_of_oslo</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> km&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>east_of_oslo = oslo.offset(100, 90)  # 100 km due east
+print(f&quot;100 km east of Oslo: {east_of_oslo}&quot;)
+print(f&quot;Verify distance: {oslo.distance_to(east_of_oslo):.1f} km&quot;)
 </pre></div>
 </div>
 </div>
@@ -254,8 +301,14 @@ Geographic midpoint: GeoLocation(latitude=60.17777046667162, longitude=8.0548324
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-100 km east of Oslo: GeoLocation(latitude=59.89782201387188, longitude=12.54332661133784)
-Verify distance: 100.0 km
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[6]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> east_of_oslo = <span class="ansi-yellow-bg">oslo</span>.offset(<span class="ansi-green-fg">100</span>, <span class="ansi-green-fg">90</span>)  <span style="color: rgb(95,135,135)"># 100 km due east</span>
+<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">100 km east of Oslo: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>east_of_oslo<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Verify distance: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>oslo.distance_to(east_of_oslo)<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> km</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;oslo&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -266,80 +319,18 @@ Verify distance: 100.0 km
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_oslo</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;Europe/Oslo&quot;</span><span class="p">,</span>
-    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
-    <span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="mf">5.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;temperature&quot;</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;°C&quot;</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Hourly temperature at Oslo Blindern&quot;</span><span class="p">,</span>
-    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">MEASUREMENT</span><span class="p">,</span>
-    <span class="n">location</span><span class="o">=</span><span class="n">oslo</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">ts_oslo</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeries</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>temperature</td></tr>
-<tr><td>Shape</td><td>(24,)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>Europe/Oslo</td></tr>
-<tr><td>Unit</td><td>°C</td></tr>
-<tr><td>Data type</td><td>MEASUREMENT</td></tr>
-<tr><td>Location</td><td>59.91°N, 10.75°E</td></tr>
-<tr><td>Description</td><td>Hourly temperature at Oslo Blindern</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>temperature</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>5.60943</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>2.92003</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>6.5009</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>3.63814</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>7.44508</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>4.69094</td></tr>
-</table></div>
-</div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Location: </span><span class="si">{</span><span class="n">ts_oslo</span><span class="o">.</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lat: </span><span class="si">{</span><span class="n">ts_oslo</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">latitude</span><span class="si">}</span><span class="s2">, Lon: </span><span class="si">{</span><span class="n">ts_oslo</span><span class="o">.</span><span class="n">location</span><span class="o">.</span><span class="n">longitude</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_oslo = tdm.TimeSeries(
+    tdm.Frequency.PT1H,
+    timezone=&quot;Europe/Oslo&quot;,
+    timestamps=timestamps,
+    values=(5.0 + rng.normal(0, 2, 24)).tolist(),
+    name=&quot;temperature&quot;,
+    unit=&quot;°C&quot;,
+    description=&quot;Hourly temperature at Oslo Blindern&quot;,
+    data_type=tdm.DataType.MEASUREMENT,
+    location=oslo,
+)
+ts_oslo
 </pre></div>
 </div>
 </div>
@@ -348,8 +339,46 @@ Verify distance: 100.0 km
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Location: GeoLocation(latitude=59.91, longitude=10.75)
-Lat: 59.91, Lon: 10.75
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[7]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_oslo = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
+<span class="ansi-green-fg">      2</span>     tdm.Frequency.PT1H,
+<span class="ansi-green-fg">      3</span>     timezone=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Europe/Oslo</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      4</span>     timestamps=timestamps,
+<span class="ansi-green-fg">      5</span>     values=(<span class="ansi-green-fg">5.0</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">2</span>, <span class="ansi-green-fg">24</span>)).tolist(),
+<span class="ansi-green-fg">      6</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">temperature</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      7</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">°C</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      8</span>     description=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Hourly temperature at Oslo Blindern</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      9</span>     data_type=tdm.DataType.MEASUREMENT,
+<span class="ansi-green-fg">     10</span>     location=oslo,
+<span class="ansi-green-fg">     11</span> )
+<span class="ansi-green-fg">     12</span> ts_oslo
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(f&quot;Location: {ts_oslo.location}&quot;)
+print(f&quot;Lat: {ts_oslo.location.latitude}, Lon: {ts_oslo.location.longitude}&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[8]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Location: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span class="ansi-yellow-bg">ts_oslo</span>.location<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Lat: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_oslo.location.latitude<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">, Lon: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_oslo.location.longitude<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;ts_oslo&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -360,80 +389,21 @@ Lat: 59.91, Lon: 10.75
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesTable</span><span class="p">(</span>
-    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;Europe/Oslo&quot;</span><span class="p">,</span>
-    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
-    <span class="n">values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span>
-        <span class="mf">5.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>
-        <span class="mf">2.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>
-        <span class="o">-</span><span class="mf">8.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>
-    <span class="p">]),</span>
-    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Oslo&quot;</span><span class="p">,</span> <span class="s2">&quot;Bergen&quot;</span><span class="p">,</span> <span class="s2">&quot;Tromsø&quot;</span><span class="p">],</span>
-    <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;°C&quot;</span><span class="p">,</span> <span class="s2">&quot;°C&quot;</span><span class="p">,</span> <span class="s2">&quot;°C&quot;</span><span class="p">],</span>
-    <span class="n">locations</span><span class="o">=</span><span class="p">[</span><span class="n">oslo</span><span class="p">,</span> <span class="n">bergen</span><span class="p">,</span> <span class="n">tromsoe</span><span class="p">],</span>
-    <span class="n">data_types</span><span class="o">=</span><span class="p">[</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">MEASUREMENT</span><span class="p">],</span>
-<span class="p">)</span>
-<span class="n">table</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-</style>
-<div class="ts-repr">
-<div class="ts-header">TimeSeriesTable</div>
-<div class="ts-meta"><table>
-<tr><td>Columns</td><td>Oslo, Bergen, Tromsø</td></tr>
-<tr><td>Shape</td><td>(24, 3)</td></tr>
-<tr><td>Frequency</td><td>PT1H</td></tr>
-<tr><td>Timezone</td><td>Europe/Oslo</td></tr>
-</table></div>
-<div class="ts-data"><table>
-<tr><th>timestamp</th><th>Oslo</th><th>Bergen</th><th>Tromsø</th></tr>
-<tr><td>2024-01-15 00:00:00+00:00</td><td>4.14334</td><td>4.03674</td><td>-11.6778</td></tr>
-<tr><td>2024-01-15 01:00:00+00:00</td><td>4.29573</td><td>2.20274</td><td>-6.01136</td></tr>
-<tr><td>2024-01-15 02:00:00+00:00</td><td>6.06462</td><td>2.86736</td><td>-7.4303</td></tr>
-<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
-<tr><td>2024-01-15 21:00:00+00:00</td><td>5.43738</td><td>1.42609</td><td>-8.31887</td></tr>
-<tr><td>2024-01-15 22:00:00+00:00</td><td>6.74286</td><td>-1.82706</td><td>-14.7493</td></tr>
-<tr><td>2024-01-15 23:00:00+00:00</td><td>5.44719</td><td>-1.39986</td><td>-13.7884</td></tr>
-</table></div>
-</div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">column_names</span><span class="p">):</span>
-    <span class="n">loc</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">locations</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">locations</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">table</span><span class="o">.</span><span class="n">locations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">8s</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">loc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table = tdm.TimeSeriesTable(
+    tdm.Frequency.PT1H,
+    timezone=&quot;Europe/Oslo&quot;,
+    timestamps=timestamps,
+    values=np.column_stack([
+        5.0 + rng.normal(0, 2, 24),
+        2.0 + rng.normal(0, 3, 24),
+        -8.0 + rng.normal(0, 4, 24),
+    ]),
+    names=[&quot;Oslo&quot;, &quot;Bergen&quot;, &quot;Tromsø&quot;],
+    units=[&quot;°C&quot;, &quot;°C&quot;, &quot;°C&quot;],
+    locations=[oslo, bergen, tromsoe],
+    data_types=[tdm.DataType.MEASUREMENT],
+)
+table
 </pre></div>
 </div>
 </div>
@@ -442,9 +412,51 @@ Lat: 59.91, Lon: 10.75
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Oslo      GeoLocation(latitude=59.91, longitude=10.75)
-Bergen    GeoLocation(latitude=60.39, longitude=5.32)
-Tromsø    GeoLocation(latitude=69.65, longitude=18.96)
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[9]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> table = <span class="ansi-yellow-bg">tdm</span>.TimeSeriesTable(
+<span class="ansi-green-fg">      2</span>     tdm.Frequency.PT1H,
+<span class="ansi-green-fg">      3</span>     timezone=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Europe/Oslo</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      4</span>     timestamps=timestamps,
+<span class="ansi-green-fg">      5</span>     values=np.column_stack([
+<span class="ansi-green-fg">      6</span>         <span class="ansi-green-fg">5.0</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">2</span>, <span class="ansi-green-fg">24</span>),
+<span class="ansi-green-fg">      7</span>         <span class="ansi-green-fg">2.0</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">3</span>, <span class="ansi-green-fg">24</span>),
+<span class="ansi-green-fg">      8</span>         -<span class="ansi-green-fg">8.0</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">4</span>, <span class="ansi-green-fg">24</span>),
+<span class="ansi-green-fg">      9</span>     ]),
+<span class="ansi-green-fg">     10</span>     names=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Oslo</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Bergen</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Tromsø</span><span class="ansi-yellow-fg">&#34;</span>],
+<span class="ansi-green-fg">     11</span>     units=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">°C</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">°C</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">°C</span><span class="ansi-yellow-fg">&#34;</span>],
+<span class="ansi-green-fg">     12</span>     locations=[oslo, bergen, tromsoe],
+<span class="ansi-green-fg">     13</span>     data_types=[tdm.DataType.MEASUREMENT],
+<span class="ansi-green-fg">     14</span> )
+<span class="ansi-green-fg">     15</span> table
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for i, name in enumerate(table.column_names):
+    loc = table.locations[i] if len(table.locations) &gt; 1 else table.locations[0]
+    print(f&quot;{name:8s}  {loc}&quot;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[10]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i, name <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">enumerate</span>(<span class="ansi-yellow-bg">table</span>.column_names):
+<span class="ansi-green-fg">      2</span>     loc = table.locations[i] <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span style="color: rgb(0,135,0)">len</span>(table.locations) &gt; <span class="ansi-green-fg">1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> table.locations[<span class="ansi-green-fg">0</span>]
+<span class="ansi-green-fg">      3</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>name<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">8s</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>loc<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -454,13 +466,13 @@ Tromsø    GeoLocation(latitude=69.65, longitude=18.96)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">stations</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;Oslo&quot;</span><span class="p">:</span> <span class="n">oslo</span><span class="p">,</span> <span class="s2">&quot;Bergen&quot;</span><span class="p">:</span> <span class="n">bergen</span><span class="p">,</span> <span class="s2">&quot;Tromsø&quot;</span><span class="p">:</span> <span class="n">tromsoe</span><span class="p">}</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>stations = {&quot;Oslo&quot;: oslo, &quot;Bergen&quot;: bergen, &quot;Tromsø&quot;: tromsoe}
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Pairwise distances (km):&quot;</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">a_name</span><span class="p">,</span> <span class="n">a_loc</span> <span class="ow">in</span> <span class="n">stations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="k">for</span> <span class="n">b_name</span><span class="p">,</span> <span class="n">b_loc</span> <span class="ow">in</span> <span class="n">stations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">a_name</span> <span class="o">&lt;</span> <span class="n">b_name</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">a_name</span><span class="si">:</span><span class="s2">8s</span><span class="si">}</span><span class="s2"> ↔ </span><span class="si">{</span><span class="n">b_name</span><span class="si">:</span><span class="s2">8s</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">a_loc</span><span class="o">.</span><span class="n">distance_to</span><span class="p">(</span><span class="n">b_loc</span><span class="p">)</span><span class="si">:</span><span class="s2">7.1f</span><span class="si">}</span><span class="s2"> km&quot;</span><span class="p">)</span>
+print(&quot;Pairwise distances (km):&quot;)
+for a_name, a_loc in stations.items():
+    for b_name, b_loc in stations.items():
+        if a_name &lt; b_name:
+            print(f&quot;  {a_name:8s} ↔ {b_name:8s}  {a_loc.distance_to(b_loc):7.1f} km&quot;)
 </pre></div>
 </div>
 </div>
@@ -469,10 +481,14 @@ Tromsø    GeoLocation(latitude=69.65, longitude=18.96)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Pairwise distances (km):
-  Oslo     ↔ Tromsø     1148.4 km
-  Bergen   ↔ Oslo        305.1 km
-  Bergen   ↔ Tromsø     1206.5 km
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[11]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> stations = {<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Oslo</span><span class="ansi-yellow-fg">&#34;</span>: <span class="ansi-yellow-bg">oslo</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Bergen</span><span class="ansi-yellow-fg">&#34;</span>: bergen, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Tromsø</span><span class="ansi-yellow-fg">&#34;</span>: tromsoe}
+<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Pairwise distances (km):</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      4</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> a_name, a_loc <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> stations.items():
+
+<span class="ansi-red-fg">NameError</span>: name &#39;oslo&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -489,24 +505,24 @@ Pairwise distances (km):
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">southern_norway</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">GeoArea</span><span class="o">.</span><span class="n">from_coordinates</span><span class="p">(</span>
-        <span class="p">[</span>
-            <span class="p">(</span><span class="mf">57.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">57.5</span><span class="p">,</span> <span class="mf">12.5</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">63.0</span><span class="p">,</span> <span class="mf">12.5</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">63.0</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">),</span>
-            <span class="p">(</span><span class="mf">57.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">),</span>
-        <span class="p">],</span>
-        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Southern Norway&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>try:
+    southern_norway = tdm.GeoArea.from_coordinates(
+        [
+            (57.5, 4.5),
+            (57.5, 12.5),
+            (63.0, 12.5),
+            (63.0, 4.5),
+            (57.5, 4.5),
+        ],
+        name=&quot;Southern Norway&quot;,
+    )
 
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Area name: </span><span class="si">{</span><span class="n">southern_norway</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bounds:    </span><span class="si">{</span><span class="n">southern_norway</span><span class="o">.</span><span class="n">bounds</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Centroid:  </span><span class="si">{</span><span class="n">southern_norway</span><span class="o">.</span><span class="n">centroid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="n">southern_norway</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shapely not installed — skip this cell or: pip install timedatamodel[geo]&quot;</span><span class="p">)</span>
+    print(f&quot;Area name: {southern_norway.name}&quot;)
+    print(f&quot;Bounds:    {southern_norway.bounds}&quot;)
+    print(f&quot;Centroid:  {southern_norway.centroid}&quot;)
+except ImportError:
+    southern_norway = None
+    print(&quot;shapely not installed — skip this cell or: pip install timedatamodel[geo]&quot;)
 </pre></div>
 </div>
 </div>
@@ -515,9 +531,24 @@ Pairwise distances (km):
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Area name: Southern Norway
-Bounds:    (4.5, 57.5, 12.5, 63.0)
-Centroid:  GeoLocation(latitude=60.25, longitude=8.5)
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[12]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     southern_norway = <span class="ansi-yellow-bg">tdm</span>.GeoArea.from_coordinates(
+<span class="ansi-green-fg">      3</span>         [
+<span class="ansi-green-fg">      4</span>             (<span class="ansi-green-fg">57.5</span>, <span class="ansi-green-fg">4.5</span>),
+<span class="ansi-green-fg">      5</span>             (<span class="ansi-green-fg">57.5</span>, <span class="ansi-green-fg">12.5</span>),
+<span class="ansi-green-fg">      6</span>             (<span class="ansi-green-fg">63.0</span>, <span class="ansi-green-fg">12.5</span>),
+<span class="ansi-green-fg">      7</span>             (<span class="ansi-green-fg">63.0</span>, <span class="ansi-green-fg">4.5</span>),
+<span class="ansi-green-fg">      8</span>             (<span class="ansi-green-fg">57.5</span>, <span class="ansi-green-fg">4.5</span>),
+<span class="ansi-green-fg">      9</span>         ],
+<span class="ansi-green-fg">     10</span>         name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Southern Norway</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">     11</span>     )
+<span class="ansi-green-fg">     13</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Area name: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>southern_norway.name<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">     14</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Bounds:    </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>southern_norway.bounds<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -528,14 +559,14 @@ Centroid:  GeoLocation(latitude=60.25, longitude=8.5)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">oslo_region</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">GeoArea</span><span class="o">.</span><span class="n">bounding_box</span><span class="p">(</span><span class="n">oslo</span><span class="p">,</span> <span class="n">radius_km</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Oslo 50km&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Area: </span><span class="si">{</span><span class="n">oslo_region</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bounds: </span><span class="si">{</span><span class="n">oslo_region</span><span class="o">.</span><span class="n">bounds</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Centroid: </span><span class="si">{</span><span class="n">oslo_region</span><span class="o">.</span><span class="n">centroid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="n">oslo_region</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shapely not installed — skipping&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>try:
+    oslo_region = tdm.GeoArea.bounding_box(oslo, radius_km=50, name=&quot;Oslo 50km&quot;)
+    print(f&quot;Area: {oslo_region.name}&quot;)
+    print(f&quot;Bounds: {oslo_region.bounds}&quot;)
+    print(f&quot;Centroid: {oslo_region.centroid}&quot;)
+except ImportError:
+    oslo_region = None
+    print(&quot;shapely not installed — skipping&quot;)
 </pre></div>
 </div>
 </div>
@@ -544,9 +575,15 @@ Centroid:  GeoLocation(latitude=60.25, longitude=8.5)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Area: Oslo 50km
-Bounds: (9.853172269304775, 59.46033919704064, 11.646827730695227, 60.35966080295936)
-Centroid: GeoLocation(latitude=59.91, longitude=10.75)
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[13]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     oslo_region = <span class="ansi-yellow-bg">tdm</span>.GeoArea.bounding_box(oslo, radius_km=<span class="ansi-green-fg">50</span>, name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Oslo 50km</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      3</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Area: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>oslo_region.name<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      4</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Bounds: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>oslo_region.bounds<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -560,14 +597,14 @@ Centroid: GeoLocation(latitude=59.91, longitude=10.75)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">southern_norway</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">stations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">inside</span> <span class="o">=</span> <span class="n">southern_norway</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span><span class="n">loc</span><span class="p">)</span>
-            <span class="n">also</span> <span class="o">=</span> <span class="n">loc</span><span class="o">.</span><span class="n">is_within</span><span class="p">(</span><span class="n">southern_norway</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">8s</span><span class="si">}</span><span class="s2"> in Southern Norway? </span><span class="si">{</span><span class="n">inside</span><span class="si">}</span><span class="s2">  (is_within: </span><span class="si">{</span><span class="n">also</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shapely not installed — skipping&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>try:
+    if southern_norway is not None:
+        for name, loc in stations.items():
+            inside = southern_norway.contains_point(loc)
+            also = loc.is_within(southern_norway)
+            print(f&quot;{name:8s} in Southern Norway? {inside}  (is_within: {also})&quot;)
+except ImportError:
+    print(&quot;shapely not installed — skipping&quot;)
 </pre></div>
 </div>
 </div>
@@ -576,21 +613,27 @@ Centroid: GeoLocation(latitude=59.91, longitude=10.75)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Oslo     in Southern Norway? True  (is_within: True)
-Bergen   in Southern Norway? True  (is_within: True)
-Tromsø   in Southern Norway? False  (is_within: False)
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[14]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-yellow-bg">southern_norway</span> <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">      3</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> name, loc <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> stations.items():
+<span class="ansi-green-fg">      4</span>             inside = southern_norway.contains_point(loc)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;southern_norway&#39; is not defined
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">southern_norway</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">oslo_region</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Southern Norway contains Oslo 50km region? </span><span class="si">{</span><span class="n">southern_norway</span><span class="o">.</span><span class="n">contains_area</span><span class="p">(</span><span class="n">oslo_region</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Oslo 50km region overlaps Southern Norway?  </span><span class="si">{</span><span class="n">oslo_region</span><span class="o">.</span><span class="n">overlaps</span><span class="p">(</span><span class="n">southern_norway</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shapely not installed — skipping&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>try:
+    if southern_norway is not None and oslo_region is not None:
+        print(f&quot;Southern Norway contains Oslo 50km region? {southern_norway.contains_area(oslo_region)}&quot;)
+        print(f&quot;Oslo 50km region overlaps Southern Norway?  {oslo_region.overlaps(southern_norway)}&quot;)
+except ImportError:
+    print(&quot;shapely not installed — skipping&quot;)
 </pre></div>
 </div>
 </div>
@@ -599,34 +642,61 @@ Tromsø   in Southern Norway? False  (is_within: False)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Southern Norway contains Oslo 50km region? True
-Oslo 50km region overlaps Southern Norway?  True
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[15]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-yellow-bg">southern_norway</span> <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(175,0,255)">and</span> oslo_region <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">      3</span>         <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Southern Norway contains Oslo 50km region? </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>southern_norway.contains_area(oslo_region)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      4</span>         <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Oslo 50km region overlaps Southern Norway?  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>oslo_region.overlaps(southern_norway)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;southern_norway&#39; is not defined
 </pre></div></div>
 </div>
 </section>
 <section id="Attaching-a-GeoArea-to-a-TimeSeries">
 <h2>Attaching a GeoArea to a TimeSeries<a class="headerlink" href="#Attaching-a-GeoArea-to-a-TimeSeries" title="Link to this heading"></a></h2>
 <p>Both <code class="docutils literal notranslate"><span class="pre">GeoLocation</span></code> and <code class="docutils literal notranslate"><span class="pre">GeoArea</span></code> are accepted by the <code class="docutils literal notranslate"><span class="pre">location</span></code> parameter.</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">southern_norway</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">ts_area</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
-            <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
-            <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
-            <span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="mi">120</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wind_south&quot;</span><span class="p">,</span>
-            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
-            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Aggregated wind production in southern Norway&quot;</span><span class="p">,</span>
-            <span class="n">location</span><span class="o">=</span><span class="n">southern_norway</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">ts_area</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shapely not installed — skipping&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>try:
+    if southern_norway is not None:
+        ts_area = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=(120 + rng.normal(0, 15, 24)).tolist(),
+            name=&quot;wind_south&quot;,
+            unit=&quot;MW&quot;,
+            description=&quot;Aggregated wind production in southern Norway&quot;,
+            location=southern_norway,
+        )
+        ts_area
+except ImportError:
+    print(&quot;shapely not installed — skipping&quot;)
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[16]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-yellow-bg">southern_norway</span> <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">      3</span>         ts_area = tdm.TimeSeries(
+<span class="ansi-green-fg">      4</span>             tdm.Frequency.PT1H,
+<span class="ansi-green-fg">      5</span>             timestamps=timestamps,
+<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">     10</span>             location=southern_norway,
+<span class="ansi-green-fg">     11</span>         )
+<span class="ansi-green-fg">     12</span>         ts_area
+
+<span class="ansi-red-fg">NameError</span>: name &#39;southern_norway&#39; is not defined
+</pre></div></div>
 </div>
 </section>
 <section id="Distance-between-areas-and-points">
@@ -639,12 +709,12 @@ Oslo 50km region overlaps Southern Norway?  True
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">southern_norway</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Southern Norway → Oslo (contained):  </span><span class="si">{</span><span class="n">southern_norway</span><span class="o">.</span><span class="n">distance_to</span><span class="p">(</span><span class="n">oslo</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> km&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Southern Norway → Tromsø (outside):  </span><span class="si">{</span><span class="n">southern_norway</span><span class="o">.</span><span class="n">distance_to</span><span class="p">(</span><span class="n">tromsoe</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> km&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;shapely not installed — skipping&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>try:
+    if southern_norway is not None:
+        print(f&quot;Southern Norway → Oslo (contained):  {southern_norway.distance_to(oslo):.1f} km&quot;)
+        print(f&quot;Southern Norway → Tromsø (outside):  {southern_norway.distance_to(tromsoe):.1f} km&quot;)
+except ImportError:
+    print(&quot;shapely not installed — skipping&quot;)
 </pre></div>
 </div>
 </div>
@@ -653,8 +723,15 @@ Oslo 50km region overlaps Southern Norway?  True
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Southern Norway → Oslo (contained):  0.0 km
-Southern Norway → Tromsø (outside):  1151.7 km
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[17]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-yellow-bg">southern_norway</span> <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>:
+<span class="ansi-green-fg">      3</span>         <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Southern Norway → Oslo (contained):  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>southern_norway.distance_to(oslo)<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> km</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      4</span>         <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Southern Norway → Tromsø (outside):  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>southern_norway.distance_to(tromsoe)<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> km</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;southern_norway&#39; is not defined
 </pre></div></div>
 </div>
 </section>
@@ -668,12 +745,12 @@ Southern Norway → Tromsø (outside):  1151.7 km
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">json_str</span> <span class="o">=</span> <span class="n">ts_oslo</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
-<span class="n">ts_back</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_str</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">oslo</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>json_str = ts_oslo.to_json()
+ts_back = tdm.TimeSeries.from_json(json_str, location=oslo)
 
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name:     </span><span class="si">{</span><span class="n">ts_back</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Location: </span><span class="si">{</span><span class="n">ts_back</span><span class="o">.</span><span class="n">location</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Match:    </span><span class="si">{</span><span class="n">ts_back</span><span class="o">.</span><span class="n">location</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">oslo</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+print(f&quot;Name:     {ts_back.name}&quot;)
+print(f&quot;Location: {ts_back.location}&quot;)
+print(f&quot;Match:    {ts_back.location == oslo}&quot;)
 </pre></div>
 </div>
 </div>
@@ -682,9 +759,14 @@ Southern Norway → Tromsø (outside):  1151.7 km
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Name:     temperature
-Location: GeoLocation(latitude=59.91, longitude=10.75)
-Match:    True
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[18]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> json_str = <span class="ansi-yellow-bg">ts_oslo</span>.to_json()
+<span class="ansi-green-fg">      2</span> ts_back = tdm.TimeSeries.from_json(json_str, location=oslo)
+<span class="ansi-green-fg">      4</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Name:     </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_back.name<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;ts_oslo&#39; is not defined
 </pre></div></div>
 </div>
 </section>

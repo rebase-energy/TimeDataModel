@@ -1047,7 +1047,7 @@ class TimeSeriesTable(_TimeSeriesBase):
 
     def validate(self) -> list[str]:
         """Return a list of validation warnings."""
-        warnings = super().validate()
+        warnings = _TimeSeriesBase.validate(self)
         n_values = self._values.shape[0]
         if len(self._timestamps) != n_values:
             warnings.insert(
