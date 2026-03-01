@@ -14,6 +14,7 @@ from ._base import (
     _MAX_PREVIEW,
     _TimeSeriesBase,
     _build_repr_html,
+    _convert_unit_values,
     _get_pint_registry,
     _import_pandas,
 )
@@ -133,6 +134,21 @@ class TimeSeries(_TimeSeriesBase):
             index_names=self._index_names,
         )
 
+    def convert_unit(self, target_unit: str) -> TimeSeries:
+        """Return a new TimeSeries with values converted to *target_unit*."""
+        if self.unit is None:
+            raise ValueError("cannot convert units: source unit is None")
+        arr = _convert_unit_values(self._to_float_array(), self.unit, target_unit)
+        kwargs = self._meta_kwargs()
+        kwargs["unit"] = target_unit
+        return TimeSeries(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=list(self._timestamps),
+            values=self._from_float_array(arr),
+            **kwargs,
+        )
+
     # ---- binary helpers --------------------------------------------------
 
     def _validate_alignment(self, other: TimeSeries) -> None:
@@ -151,10 +167,15 @@ class TimeSeries(_TimeSeriesBase):
     def _convert_other_values(self, other: TimeSeries) -> np.ndarray:
         """Return other's values as float64, converting units if needed."""
         arr = other._to_float_array()
-        if self.unit and other.unit and self.unit != other.unit:
-            ureg = _get_pint_registry()
-            factor = ureg.Quantity(1, other.unit).to(self.unit).magnitude
-            arr = arr * factor
+        has_self = self.unit is not None
+        has_other = other.unit is not None
+        if has_self != has_other:
+            raise ValueError(
+                f"unit mismatch: one operand has unit={self.unit!r} "
+                f"and the other has unit={other.unit!r}"
+            )
+        if has_self and has_other and self.unit != other.unit:
+            arr = _convert_unit_values(arr, other.unit, self.unit)
         return arr
 
     def _apply_binary(

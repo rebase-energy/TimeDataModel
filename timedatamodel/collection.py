@@ -239,6 +239,72 @@ class TimeSeriesCollection:
             new_series, name=self._name, description=self._description
         )
 
+    # ---- conversion --------------------------------------------------------
+
+    def to_pandas_dataframe(self) -> "pd.DataFrame":
+        """Outer-join all series into a single pandas DataFrame.
+
+        Each series becomes a column named by its key.  The index is the
+        union of all timestamps (outer join), with ``NaN`` for missing values.
+        """
+        import pandas as pd
+
+        if not self._series:
+            return pd.DataFrame()
+
+        frames: dict[str, "pd.Series"] = {}
+        for key, item in self._series.items():
+            df_item = item.to_pandas_dataframe()
+            # TimeSeries produces a single-column DataFrame; extract the Series
+            if df_item.shape[1] == 1:
+                frames[key] = df_item.iloc[:, 0]
+            else:
+                # TimeSeriesTable: each column gets a composite key
+                for col in df_item.columns:
+                    frames[f"{key}/{col}"] = df_item[col]
+
+        return pd.DataFrame(frames)
+
+    def to_pd_df(self) -> "pd.DataFrame":
+        """Alias for ``to_pandas_dataframe()``."""
+        return self.to_pandas_dataframe()
+
+    @property
+    def df(self) -> "pd.DataFrame":
+        """Shorthand for ``to_pandas_dataframe()``."""
+        return self.to_pandas_dataframe()
+
+    def to_polars_dataframe(self):
+        """Outer-join all series into a single polars DataFrame."""
+        try:
+            import polars as pl
+        except ImportError as e:
+            raise ImportError(
+                "polars is required for to_polars_dataframe(). "
+                "Install it with: pip install timedatamodel[polars]"
+            ) from e
+
+        pdf = self.to_pandas_dataframe()
+        return pl.from_pandas(pdf.reset_index())
+
+    def to_pl_df(self):
+        """Alias for ``to_polars_dataframe()``."""
+        return self.to_polars_dataframe()
+
+    def to_numpy(self) -> "dict[str, np.ndarray]":
+        """Return each series as a numpy array in a dict keyed by series name."""
+        import numpy as np
+
+        result: dict[str, np.ndarray] = {}
+        for key, item in self._series.items():
+            result[key] = item.to_numpy()
+        return result
+
+    @property
+    def arr(self) -> "dict[str, np.ndarray]":
+        """Shorthand for ``to_numpy()``."""
+        return self.to_numpy()
+
     # ---- display -----------------------------------------------------------
 
     def _item_summary(self, key: str, item: TimeSeries | TimeSeriesTable) -> dict:

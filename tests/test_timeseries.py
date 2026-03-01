@@ -1707,12 +1707,11 @@ class TestTimeSeriesArithmeticBinary:
         assert result.unit == "kW"
 
     def test_incompatible_units(self, hourly_frequency):
-        import pint
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(2)]
         a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
         b = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="m")
-        with pytest.raises(pint.errors.DimensionalityError):
+        with pytest.raises(ValueError, match="cannot convert.*incompatible"):
             a + b
 
     def test_one_unit_none(self, hourly_frequency):
@@ -1720,8 +1719,8 @@ class TestTimeSeriesArithmeticBinary:
         ts = [base + timedelta(hours=i) for i in range(2)]
         a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
         b = TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0])
-        result = a + b
-        assert result.values == [11.0, 22.0]
+        with pytest.raises(ValueError, match="unit mismatch"):
+            a + b
 
     def test_both_units_none(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
@@ -1857,3 +1856,283 @@ class TestTimeSeriesComparison:
         result = ts_a == 2.0
         assert isinstance(result, TimeSeries)
         assert result.values == [0.0, 1.0, 0.0, 0.0]
+
+
+# =============================================================================
+# TimeSeriesCollection conversion methods
+# =============================================================================
+
+class TestTimeSeriesCollectionConversions:
+    """Tests for TimeSeriesCollection.to_pandas_dataframe/to_polars_dataframe/to_numpy."""
+
+    @pytest.fixture
+    def sample_collection(self, hourly_frequency):
+        base = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        ts_a = TimeSeries(
+            hourly_frequency,
+            timestamps=[base, base + timedelta(hours=1), base + timedelta(hours=2)],
+            values=[1.0, 2.0, 3.0],
+            name="alpha",
+        )
+        ts_b = TimeSeries(
+            hourly_frequency,
+            timestamps=[base, base + timedelta(hours=1), base + timedelta(hours=2)],
+            values=[10.0, 20.0, 30.0],
+            name="beta",
+        )
+        return TimeSeriesCollection([ts_a, ts_b])
+
+    def test_collection_to_pandas_dataframe(self, sample_collection):
+        df = sample_collection.to_pandas_dataframe()
+        assert isinstance(df, pd.DataFrame)
+        assert df.shape == (3, 2)
+        assert "alpha" in df.columns
+        assert "beta" in df.columns
+        assert df["alpha"].tolist() == [1.0, 2.0, 3.0]
+        assert df["beta"].tolist() == [10.0, 20.0, 30.0]
+
+    def test_collection_to_pd_df_alias(self, sample_collection):
+        df = sample_collection.to_pd_df()
+        assert isinstance(df, pd.DataFrame)
+
+    def test_collection_df_property(self, sample_collection):
+        df = sample_collection.df
+        assert isinstance(df, pd.DataFrame)
+
+    def test_collection_to_pandas_empty(self):
+        coll = TimeSeriesCollection()
+        df = coll.to_pandas_dataframe()
+        assert isinstance(df, pd.DataFrame)
+        assert len(df) == 0
+
+    def test_collection_to_pandas_outer_join(self, hourly_frequency):
+        """Series with different timestamps produce NaN-filled outer join."""
+        base = datetime(2025, 1, 1, tzinfo=timezone.utc)
+        ts_a = TimeSeries(
+            hourly_frequency,
+            timestamps=[base, base + timedelta(hours=1)],
+            values=[1.0, 2.0],
+            name="a",
+        )
+        ts_b = TimeSeries(
+            hourly_frequency,
+            timestamps=[base + timedelta(hours=1), base + timedelta(hours=2)],
+            values=[10.0, 20.0],
+            name="b",
+        )
+        coll = TimeSeriesCollection([ts_a, ts_b])
+        df = coll.to_pandas_dataframe()
+        assert len(df) == 3  # Union of timestamps
+        assert pd.isna(df.loc[df.index[0], "b"])  # b missing at first timestamp
+        assert pd.isna(df.loc[df.index[-1], "a"])  # a missing at last timestamp
+
+    def test_collection_to_numpy(self, sample_collection):
+        result = sample_collection.to_numpy()
+        assert isinstance(result, dict)
+        assert "alpha" in result
+        assert "beta" in result
+        np.testing.assert_array_equal(result["alpha"], [1.0, 2.0, 3.0])
+        np.testing.assert_array_equal(result["beta"], [10.0, 20.0, 30.0])
+
+    def test_collection_arr_property(self, sample_collection):
+        result = sample_collection.arr
+        assert isinstance(result, dict)
+        assert "alpha" in result
+
+
+# ---- TimeSeries.convert_unit -------------------------------------------
+
+
+class TestConvertUnit:
+    @pytest.fixture
+    def ts_mw(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(3)]
+        return TimeSeries(Frequency.PT1H, timestamps=ts, values=[1.0, 2.0, 3.0], unit="MW", name="power")
+
+    def test_mw_to_kw(self, ts_mw):
+        result = ts_mw.convert_unit("kW")
+        assert result.unit == "kW"
+        assert result.values[0] == pytest.approx(1000.0)
+        assert result.values[1] == pytest.approx(2000.0)
+        assert result.values[2] == pytest.approx(3000.0)
+
+    def test_same_unit_noop(self, ts_mw):
+        result = ts_mw.convert_unit("MW")
+        assert result.unit == "MW"
+        assert result.values == ts_mw.values
+
+    def test_none_unit_raises(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = TimeSeries(Frequency.PT1H, timestamps=[base], values=[1.0])
+        with pytest.raises(ValueError, match="source unit is None"):
+            ts.convert_unit("MW")
+
+    def test_incompatible_raises(self, ts_mw):
+        with pytest.raises(ValueError, match="cannot convert.*incompatible"):
+            ts_mw.convert_unit("m")
+
+    def test_none_values_preserved(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(3)]
+        s = TimeSeries(Frequency.PT1H, timestamps=ts, values=[1.0, None, 3.0], unit="MW")
+        result = s.convert_unit("kW")
+        assert result.values[0] == pytest.approx(1000.0)
+        assert result.values[1] is None
+        assert result.values[2] == pytest.approx(3000.0)
+
+    def test_immutability(self, ts_mw):
+        result = ts_mw.convert_unit("kW")
+        assert ts_mw.unit == "MW"
+        assert ts_mw.values == [1.0, 2.0, 3.0]
+        assert result is not ts_mw
+
+
+# ---- TimeSeriesTable.convert_unit --------------------------------------
+
+
+class TestTimeSeriesTableConvertUnit:
+    @pytest.fixture
+    def table_mw(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(3)]
+        vals = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
+        return TimeSeriesTable(
+            Frequency.PT1H,
+            timestamps=ts,
+            values=vals,
+            names=["a", "b"],
+            units=["MW", "MW"],
+        )
+
+    def test_convert_all_columns(self, table_mw):
+        result = table_mw.convert_unit("kW")
+        assert result.units == ["kW", "kW"]
+        np.testing.assert_allclose(result.values[:, 0], [1000.0, 2000.0, 3000.0])
+        np.testing.assert_allclose(result.values[:, 1], [10000.0, 20000.0, 30000.0])
+
+    def test_convert_single_column_by_index(self, table_mw):
+        result = table_mw.convert_unit("kW", column=0)
+        assert result.units[0] == "kW"
+        assert result.units[1] == "MW"
+        np.testing.assert_allclose(result.values[:, 0], [1000.0, 2000.0, 3000.0])
+        np.testing.assert_allclose(result.values[:, 1], [10.0, 20.0, 30.0])
+
+    def test_convert_single_column_by_name(self, table_mw):
+        result = table_mw.convert_unit("kW", column="b")
+        assert result.units[0] == "MW"
+        assert result.units[1] == "kW"
+        np.testing.assert_allclose(result.values[:, 1], [10000.0, 20000.0, 30000.0])
+
+    def test_none_unit_raises(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(2)]
+        tbl = TimeSeriesTable(
+            Frequency.PT1H, timestamps=ts, values=np.array([[1.0], [2.0]]),
+        )
+        with pytest.raises(ValueError, match="source unit is None"):
+            tbl.convert_unit("MW")
+
+
+# ---- TimeSeriesTable binary arithmetic ---------------------------------
+
+
+class TestTimeSeriesTableArithmeticBinary:
+    @pytest.fixture
+    def base_ts(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        return [base + timedelta(hours=i) for i in range(3)]
+
+    @pytest.fixture
+    def table_a(self, base_ts):
+        vals = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
+        return TimeSeriesTable(
+            Frequency.PT1H, timestamps=base_ts, values=vals,
+            names=["x", "y"], units=["MW", "MW"],
+        )
+
+    @pytest.fixture
+    def table_b(self, base_ts):
+        vals = np.array([[4.0, 40.0], [5.0, 50.0], [6.0, 60.0]])
+        return TimeSeriesTable(
+            Frequency.PT1H, timestamps=base_ts, values=vals,
+            names=["x", "y"], units=["MW", "MW"],
+        )
+
+    def test_table_add(self, table_a, table_b):
+        result = table_a + table_b
+        np.testing.assert_allclose(result.values[:, 0], [5.0, 7.0, 9.0])
+        np.testing.assert_allclose(result.values[:, 1], [50.0, 70.0, 90.0])
+
+    def test_table_sub(self, table_a, table_b):
+        result = table_b - table_a
+        np.testing.assert_allclose(result.values[:, 0], [3.0, 3.0, 3.0])
+
+    def test_table_mul(self, table_a, table_b):
+        result = table_a * table_b
+        np.testing.assert_allclose(result.values[:, 0], [4.0, 10.0, 18.0])
+
+    def test_table_div(self, table_a, table_b):
+        result = table_b / table_a
+        np.testing.assert_allclose(result.values[:, 0], [4.0, 2.5, 2.0])
+
+    def test_unit_auto_conversion(self, base_ts):
+        a = TimeSeriesTable(
+            Frequency.PT1H, timestamps=base_ts,
+            values=np.array([[1000.0], [2000.0], [3000.0]]),
+            units=["kW"],
+        )
+        b = TimeSeriesTable(
+            Frequency.PT1H, timestamps=base_ts,
+            values=np.array([[1.0], [2.0], [3.0]]),
+            units=["MW"],
+        )
+        result = a + b
+        np.testing.assert_allclose(result.values[:, 0], [2000.0, 4000.0, 6000.0])
+        assert result.units == ["kW"]
+
+    def test_table_plus_series_broadcast(self, table_a, base_ts):
+        series = TimeSeries(
+            Frequency.PT1H, timestamps=base_ts,
+            values=[100.0, 200.0, 300.0], unit="MW",
+        )
+        result = table_a + series
+        np.testing.assert_allclose(result.values[:, 0], [101.0, 202.0, 303.0])
+        np.testing.assert_allclose(result.values[:, 1], [110.0, 220.0, 330.0])
+
+    def test_column_count_mismatch_raises(self, base_ts):
+        a = TimeSeriesTable(
+            Frequency.PT1H, timestamps=base_ts,
+            values=np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
+        )
+        b = TimeSeriesTable(
+            Frequency.PT1H, timestamps=base_ts,
+            values=np.array([[1.0], [2.0], [3.0]]),
+        )
+        with pytest.raises(ValueError, match="column count mismatch"):
+            a + b
+
+    def test_timezone_mismatch_raises(self, base_ts):
+        a = TimeSeriesTable(
+            Frequency.PT1H, timezone="UTC", timestamps=base_ts,
+            values=np.array([[1.0], [2.0], [3.0]]),
+        )
+        b = TimeSeriesTable(
+            Frequency.PT1H, timezone="CET", timestamps=base_ts,
+            values=np.array([[1.0], [2.0], [3.0]]),
+        )
+        with pytest.raises(ValueError, match="timezone mismatch"):
+            a + b
+
+    def test_one_unit_none_raises(self, base_ts):
+        a = TimeSeriesTable(
+            Frequency.PT1H, timestamps=base_ts,
+            values=np.array([[1.0], [2.0], [3.0]]),
+            units=["MW"],
+        )
+        b = TimeSeriesTable(
+            Frequency.PT1H, timestamps=base_ts,
+            values=np.array([[1.0], [2.0], [3.0]]),
+        )
+        with pytest.raises(ValueError, match="unit mismatch"):
+            a + b

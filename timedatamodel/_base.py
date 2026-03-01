@@ -55,6 +55,31 @@ def _get_pint_registry():
     return pint.UnitRegistry()
 
 
+def _convert_unit_values(values: np.ndarray, from_unit: str, to_unit: str) -> np.ndarray:
+    """Convert *values* from *from_unit* to *to_unit* using pint.
+
+    Short-circuits when units are identical.  Wraps pint dimensionality
+    errors into a plain ``ValueError`` and ``ImportError`` with install hints.
+    """
+    if from_unit == to_unit:
+        return values
+    try:
+        import pint
+    except ImportError:
+        raise ImportError(
+            "pint is required for unit conversion. "
+            "Install it with: pip install timedatamodel[pint]"
+        ) from None
+    ureg = _get_pint_registry()
+    try:
+        factor = ureg.Quantity(1, from_unit).to(to_unit).magnitude
+    except pint.errors.DimensionalityError:
+        raise ValueError(
+            f"cannot convert '{from_unit}' to '{to_unit}': incompatible dimensions"
+        ) from None
+    return values * factor
+
+
 # ---------------------------------------------------------------------------
 # Shared _repr_html_ builder
 # ---------------------------------------------------------------------------
