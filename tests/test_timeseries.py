@@ -7,23 +7,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from timedatamodel import (
-    DataPoint,
-    DataType,
-    Frequency,
-    GeoLocation,
-    MultiTimeSeries,
-    MultivariateTimeSeries,
-    TimeSeriesCollection,
-    TimeSeriesTable,
-    TimeSeriesType,
-    TimeSeries,
-)
+import timedatamodel as tdm
 
 
 @pytest.fixture
 def hourly_frequency():
-    return Frequency.PT1H
+    return tdm.Frequency.PT1H
 
 
 @pytest.fixture
@@ -31,19 +20,19 @@ def sample_ts(hourly_frequency):
     base = datetime(2024, 1, 1, tzinfo=timezone.utc)
     timestamps = [base + timedelta(hours=i) for i in range(5)]
     values = [1.0, 2.0, 3.0, None, 5.0]
-    return TimeSeries(
+    return tdm.TimeSeries(
         hourly_frequency,
         timestamps=timestamps,
         values=values,
         name="power",
         unit="MW",
-        data_type=DataType.ACTUAL,
+        data_type=tdm.DataType.ACTUAL,
     )
 
 
 class TestConstruction:
     def test_from_lists(self, hourly_frequency):
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
             values=[42.0],
@@ -52,56 +41,56 @@ class TestConstruction:
         assert ts[0].value == 42.0
 
     def test_from_data(self, hourly_frequency):
-        dp = DataPoint(datetime(2024, 1, 1, tzinfo=timezone.utc), 42.0)
-        ts = TimeSeries(hourly_frequency, data=[dp])
+        dp = tdm.DataPoint(datetime(2024, 1, 1, tzinfo=timezone.utc), 42.0)
+        ts = tdm.TimeSeries(hourly_frequency, data=[dp])
         assert len(ts) == 1
         assert ts[0] == dp
 
     def test_both_raises(self, hourly_frequency):
         with pytest.raises(ValueError, match="cannot specify both"):
-            TimeSeries(
+            tdm.TimeSeries(
                 hourly_frequency,
                 timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
                 values=[1.0],
-                data=[DataPoint(datetime(2024, 1, 1, tzinfo=timezone.utc), 1.0)],
+                data=[tdm.DataPoint(datetime(2024, 1, 1, tzinfo=timezone.utc), 1.0)],
             )
 
     def test_empty(self, hourly_frequency):
-        ts = TimeSeries(hourly_frequency)
+        ts = tdm.TimeSeries(hourly_frequency)
         assert len(ts) == 0
         assert not ts
         assert list(ts) == []
 
     def test_scalar_metadata(self, hourly_frequency):
-        loc = GeoLocation(latitude=59.91, longitude=10.75)
-        ts = TimeSeries(
+        loc = tdm.GeoLocation(latitude=59.91, longitude=10.75)
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
             values=[1.0],
             name="power",
             unit="MW",
             description="Hourly power",
-            data_type=DataType.ACTUAL,
+            data_type=tdm.DataType.ACTUAL,
             location=loc,
-            timeseries_type=TimeSeriesType.FLAT,
+            timeseries_type=tdm.TimeSeriesType.FLAT,
             attributes={"source": "test"},
         )
         assert ts.name == "power"
         assert ts.unit == "MW"
         assert ts.description == "Hourly power"
-        assert ts.data_type == DataType.ACTUAL
+        assert ts.data_type == tdm.DataType.ACTUAL
         assert ts.location == loc
-        assert ts.timeseries_type == TimeSeriesType.FLAT
+        assert ts.timeseries_type == tdm.TimeSeriesType.FLAT
         assert ts.attributes["source"] == "test"
 
     def test_defaults(self, hourly_frequency):
-        ts = TimeSeries(hourly_frequency)
+        ts = tdm.TimeSeries(hourly_frequency)
         assert ts.name is None
         assert ts.unit is None
         assert ts.description is None
         assert ts.data_type is None
         assert ts.location is None
-        assert ts.timeseries_type == TimeSeriesType.FLAT
+        assert ts.timeseries_type == tdm.TimeSeriesType.FLAT
         assert ts.attributes == {}
 
 
@@ -111,7 +100,7 @@ class TestSequenceProtocol:
 
     def test_getitem(self, sample_ts):
         dp = sample_ts[0]
-        assert isinstance(dp, DataPoint)
+        assert isinstance(dp, tdm.DataPoint)
         assert dp.value == 1.0
 
     def test_getitem_slice(self, sample_ts):
@@ -123,13 +112,13 @@ class TestSequenceProtocol:
     def test_iter(self, sample_ts):
         points = list(sample_ts)
         assert len(points) == 5
-        assert all(isinstance(p, DataPoint) for p in points)
+        assert all(isinstance(p, tdm.DataPoint) for p in points)
 
     def test_bool_true(self, sample_ts):
         assert bool(sample_ts) is True
 
     def test_bool_false(self, hourly_frequency):
-        assert bool(TimeSeries(hourly_frequency)) is False
+        assert bool(tdm.TimeSeries(hourly_frequency)) is False
 
 
 class TestBeginEnd:
@@ -139,7 +128,7 @@ class TestBeginEnd:
         assert sample_ts.end == base + timedelta(hours=4)
 
     def test_begin_end_empty(self, hourly_frequency):
-        ts = TimeSeries(hourly_frequency)
+        ts = tdm.TimeSeries(hourly_frequency)
         assert ts.begin is None
         assert ts.end is None
 
@@ -178,7 +167,7 @@ class TestPandas:
         assert pd.isna(df.iloc[3, 0])
 
     def test_default_column_name(self, hourly_frequency):
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
             values=[1.0],
@@ -188,7 +177,7 @@ class TestPandas:
 
     def test_round_trip(self, sample_ts):
         df = sample_ts.to_pandas_dataframe()
-        ts2 = TimeSeries.from_pandas(df, sample_ts.frequency)
+        ts2 = tdm.TimeSeries.from_pandas(df, sample_ts.frequency)
         assert len(ts2) == len(sample_ts)
         assert ts2[0].value == sample_ts[0].value
         assert ts2[3].value is None
@@ -206,7 +195,7 @@ class TestPolars:
 
     def test_round_trip(self, sample_ts):
         df = sample_ts.to_polars_dataframe()
-        ts2 = TimeSeries.from_polars(df, sample_ts.frequency)
+        ts2 = tdm.TimeSeries.from_polars(df, sample_ts.frequency)
         assert len(ts2) == len(sample_ts)
         assert ts2[0].value == sample_ts[0].value
         assert ts2[3].value is None
@@ -217,11 +206,11 @@ class TestTier1:
         assert sample_ts.duration == timedelta(hours=4)
 
     def test_duration_empty(self, hourly_frequency):
-        ts = TimeSeries(hourly_frequency)
+        ts = tdm.TimeSeries(hourly_frequency)
         assert ts.duration is None
 
     def test_duration_single_point(self, hourly_frequency):
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
             values=[1.0],
@@ -276,7 +265,7 @@ class TestTier1:
 
     def test_has_missing_false(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=[1.0, 2.0],
@@ -284,7 +273,7 @@ class TestTier1:
         assert ts.has_missing is False
 
     def test_has_missing_empty(self, hourly_frequency):
-        ts = TimeSeries(hourly_frequency)
+        ts = tdm.TimeSeries(hourly_frequency)
         assert ts.has_missing is False
 
     def test_contains_hit(self, sample_ts):
@@ -339,7 +328,7 @@ class TestTier5Arithmetic:
 
     def test_abs(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=[-3.0, 4.0],
@@ -350,7 +339,7 @@ class TestTier5Arithmetic:
 
     def test_round(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=[1.567, 2.345],
@@ -371,7 +360,7 @@ class TestTier5Arithmetic:
 class TestTier6IO:
     def test_json_round_trip(self, sample_ts):
         s = sample_ts.to_json()
-        ts2 = TimeSeries.from_json(s, sample_ts.frequency)
+        ts2 = tdm.TimeSeries.from_json(s, sample_ts.frequency)
         assert len(ts2) == len(sample_ts)
         for i, (orig, restored) in enumerate(zip(sample_ts, ts2)):
             assert orig.timestamp == restored.timestamp, f"timestamp mismatch at {i}"
@@ -386,13 +375,13 @@ class TestTier6IO:
 
     def test_json_preserves_none(self, sample_ts):
         s = sample_ts.to_json()
-        ts2 = TimeSeries.from_json(s, sample_ts.frequency)
+        ts2 = tdm.TimeSeries.from_json(s, sample_ts.frequency)
         assert ts2[3].value is None
 
     def test_json_empty(self, hourly_frequency):
-        ts = TimeSeries(hourly_frequency)
+        ts = tdm.TimeSeries(hourly_frequency)
         s = ts.to_json()
-        ts2 = TimeSeries.from_json(s, hourly_frequency)
+        ts2 = tdm.TimeSeries.from_json(s, hourly_frequency)
         assert len(ts2) == 0
 
     def test_csv_round_trip(self, sample_ts):
@@ -400,7 +389,7 @@ class TestTier6IO:
             path = Path(f.name)
         try:
             sample_ts.to_csv(path)
-            ts2 = TimeSeries.from_csv(path, sample_ts.frequency)
+            ts2 = tdm.TimeSeries.from_csv(path, sample_ts.frequency)
             assert len(ts2) == len(sample_ts)
             for orig, restored in zip(sample_ts, ts2):
                 assert orig.timestamp == restored.timestamp
@@ -413,7 +402,7 @@ class TestTier6IO:
             path = Path(f.name)
         try:
             sample_ts.to_csv(path)
-            ts2 = TimeSeries.from_csv(path, sample_ts.frequency)
+            ts2 = tdm.TimeSeries.from_csv(path, sample_ts.frequency)
             assert ts2[3].value is None
         finally:
             path.unlink(missing_ok=True)
@@ -423,7 +412,7 @@ class TestTier6IO:
             path = Path(f.name)
         try:
             sample_ts.to_csv(path)
-            ts2 = TimeSeries.from_csv(path, sample_ts.frequency)
+            ts2 = tdm.TimeSeries.from_csv(path, sample_ts.frequency)
             assert ts2.name == "power"
         finally:
             path.unlink(missing_ok=True)
@@ -436,41 +425,41 @@ class TestFromPandasAutoInfer:
             [base + timedelta(hours=i) for i in range(5)], freq="h"
         )
         df = pd.DataFrame({"power": [1.0, 2.0, 3.0, 4.0, 5.0]}, index=index)
-        ts = TimeSeries.from_pandas(df)
-        assert ts.frequency == Frequency.PT1H
+        ts = tdm.TimeSeries.from_pandas(df)
+        assert ts.frequency == tdm.Frequency.PT1H
         assert ts.name == "power"
         assert len(ts) == 5
 
     def test_infer_daily(self):
         index = pd.date_range("2024-01-01", periods=5, freq="D", tz="UTC")
         df = pd.DataFrame({"temp": range(5)}, index=index)
-        ts = TimeSeries.from_pandas(df)
-        assert ts.frequency == Frequency.P1D
+        ts = tdm.TimeSeries.from_pandas(df)
+        assert ts.frequency == tdm.Frequency.P1D
 
     def test_infer_from_few_points_falls_back(self):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         index = pd.DatetimeIndex([base, base + timedelta(hours=1)])
         df = pd.DataFrame({"v": [1.0, 2.0]}, index=index)
-        ts = TimeSeries.from_pandas(df)
-        assert ts.frequency == Frequency.NONE
+        ts = tdm.TimeSeries.from_pandas(df)
+        assert ts.frequency == tdm.Frequency.NONE
 
     def test_infer_timezone(self):
         index = pd.date_range("2024-01-01", periods=5, freq="h", tz="Europe/Berlin")
         df = pd.DataFrame({"v": range(5)}, index=index)
-        ts = TimeSeries.from_pandas(df)
+        ts = tdm.TimeSeries.from_pandas(df)
         assert ts.timezone == "Europe/Berlin"
 
     def test_explicit_frequency_still_works(self):
         index = pd.date_range("2024-01-01", periods=3, freq="h", tz="UTC")
         df = pd.DataFrame({"v": [1.0, 2.0, 3.0]}, index=index)
-        ts = TimeSeries.from_pandas(df, Frequency.P1D, timezone="US/Eastern")
-        assert ts.frequency == Frequency.P1D
+        ts = tdm.TimeSeries.from_pandas(df, tdm.Frequency.P1D, timezone="US/Eastern")
+        assert ts.frequency == tdm.Frequency.P1D
         assert ts.timezone == "US/Eastern"
 
     def test_no_datetime_index_raises(self):
         df = pd.DataFrame({"v": [1, 2, 3]})
         with pytest.raises(ValueError, match="DatetimeIndex"):
-            TimeSeries.from_pandas(df)
+            tdm.TimeSeries.from_pandas(df)
 
 
 class TestUpdateFromPandas:
@@ -478,10 +467,10 @@ class TestUpdateFromPandas:
         new_index = pd.date_range("2025-01-01", periods=3, freq="D", tz="UTC")
         df = pd.DataFrame({"energy": [10.0, 20.0, 30.0]}, index=new_index)
         result = sample_ts.update_from_pandas(df)
-        assert isinstance(result, TimeSeries)
+        assert isinstance(result, tdm.TimeSeries)
         assert len(result) == 3
         assert result[0].value == 10.0
-        assert result.frequency == Frequency.P1D
+        assert result.frequency == tdm.Frequency.P1D
         assert result.name == "energy"
         assert len(sample_ts) == 5
         assert sample_ts[0].value == 1.0
@@ -493,7 +482,7 @@ class TestUpdateFromPandas:
         assert result is None
         assert len(sample_ts) == 3
         assert sample_ts[0].value == 10.0
-        assert sample_ts.frequency == Frequency.P1D
+        assert sample_ts.frequency == tdm.Frequency.P1D
         assert sample_ts.name == "energy"
 
     def test_value_column(self, sample_ts):
@@ -536,7 +525,7 @@ class TestApplyPandas:
 
     def test_frequency_updated_after_resample(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.resample("2h").mean())
-        assert ts2.frequency == Frequency.PT1H
+        assert ts2.frequency == tdm.Frequency.PT1H
 
     def test_timezone_updated_after_tz_convert(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df.tz_convert("Europe/Berlin"))
@@ -627,7 +616,7 @@ class TestValidation:
 
     def test_unordered(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base + timedelta(hours=1), base],
             values=[1.0, 2.0],
@@ -637,7 +626,7 @@ class TestValidation:
 
     def test_inconsistent_frequency(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1), base + timedelta(hours=3)],
             values=[1.0, 2.0, 3.0],
@@ -648,8 +637,8 @@ class TestValidation:
 
 class TestPintUnit:
     def test_pint_unit_valid(self):
-        ts = TimeSeries(
-            Frequency.PT1H,
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
             timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
             values=[1.0],
             unit="MW",
@@ -658,13 +647,13 @@ class TestPintUnit:
         assert str(u) == "megawatt"
 
     def test_pint_unit_none(self):
-        ts = TimeSeries(Frequency.PT1H)
+        ts = tdm.TimeSeries(tdm.Frequency.PT1H)
         with pytest.raises(ValueError, match="unit is not set"):
             ts.pint_unit
 
     def test_pint_unit_invalid(self):
-        ts = TimeSeries(
-            Frequency.PT1H,
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
             timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
             values=[1.0],
             unit="not_a_real_unit_xyz",
@@ -687,7 +676,7 @@ class TestMultiIndex:
         knowledge_time = datetime(2024, 1, 2, tzinfo=timezone.utc)
         timestamps = [(vt, knowledge_time) for vt in base_times]
         values = [1.0, 2.0, 3.0, None, 5.0]
-        return TimeSeries(
+        return tdm.TimeSeries(
             hourly_frequency,
             timestamps=timestamps,
             values=values,
@@ -709,7 +698,7 @@ class TestMultiIndex:
     def test_index_names_default(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         kt = datetime(2024, 1, 2, tzinfo=timezone.utc)
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[(base, kt)],
             values=[1.0],
@@ -758,14 +747,14 @@ class TestMultiIndex:
 
     def test_from_pandas_multiindex_round_trip(self, multi_ts, hourly_frequency):
         df = multi_ts.to_pandas_dataframe()
-        ts2 = TimeSeries.from_pandas(df, hourly_frequency)
+        ts2 = tdm.TimeSeries.from_pandas(df, hourly_frequency)
         assert ts2.is_multi_index
         assert len(ts2) == len(multi_ts)
         assert ts2.values[0] == multi_ts.values[0]
 
     def test_json_round_trip(self, multi_ts, hourly_frequency):
         s = multi_ts.to_json()
-        ts2 = TimeSeries.from_json(s, hourly_frequency)
+        ts2 = tdm.TimeSeries.from_json(s, hourly_frequency)
         assert ts2.is_multi_index
         assert len(ts2) == len(multi_ts)
         assert ts2.timestamps[0] == multi_ts.timestamps[0]
@@ -776,7 +765,7 @@ class TestMultiIndex:
             path = Path(f.name)
         try:
             multi_ts.to_csv(path)
-            ts2 = TimeSeries.from_csv(path, hourly_frequency)
+            ts2 = tdm.TimeSeries.from_csv(path, hourly_frequency)
             assert ts2.is_multi_index
             assert len(ts2) == len(multi_ts)
             assert ts2.values[3] is None
@@ -805,7 +794,7 @@ class TestMultivariate:
             [np.nan, 40.0],
             [5.0, 50.0],
         ])
-        return MultivariateTimeSeries(
+        return tdm.MultivariateTimeSeries(
             hourly_frequency,
             timestamps=timestamps,
             values=values,
@@ -824,7 +813,7 @@ class TestMultivariate:
     def test_column_names_default(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0], [3.0, 4.0]])
-        ts = MultivariateTimeSeries(
+        ts = tdm.MultivariateTimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -837,7 +826,7 @@ class TestMultivariate:
     def test_has_missing_false(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0], [3.0, 4.0]])
-        ts = MultivariateTimeSeries(
+        ts = tdm.MultivariateTimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -870,38 +859,38 @@ class TestMultivariate:
 
     def test_from_pandas_multicolumn_round_trip(self, mv_ts, hourly_frequency):
         df = mv_ts.to_pandas_dataframe()
-        ts2 = MultivariateTimeSeries.from_pandas(df, hourly_frequency)
+        ts2 = tdm.MultivariateTimeSeries.from_pandas(df, hourly_frequency)
         assert ts2.n_columns == 2
         np.testing.assert_array_equal(ts2.to_numpy(), mv_ts.to_numpy())
 
     def test_json_round_trip(self, mv_ts, hourly_frequency):
         s = mv_ts.to_json()
-        ts2 = MultivariateTimeSeries.from_json(s, hourly_frequency)
+        ts2 = tdm.MultivariateTimeSeries.from_json(s, hourly_frequency)
         assert ts2.n_columns == 2
         np.testing.assert_array_equal(ts2.to_numpy(), mv_ts.to_numpy())
 
     def test_head(self, mv_ts):
         h = mv_ts.head(2)
         assert len(h) == 2
-        assert isinstance(h, MultivariateTimeSeries)
+        assert isinstance(h, tdm.MultivariateTimeSeries)
         assert h.n_columns == 2
 
     def test_tail(self, mv_ts):
         t = mv_ts.tail(2)
         assert len(t) == 2
-        assert isinstance(t, MultivariateTimeSeries)
+        assert isinstance(t, tdm.MultivariateTimeSeries)
 
     def test_copy(self, mv_ts):
         c = mv_ts.copy()
         assert len(c) == len(mv_ts)
-        assert isinstance(c, MultivariateTimeSeries)
+        assert isinstance(c, tdm.MultivariateTimeSeries)
         c._values[0, 0] = 999.0
         assert mv_ts.values[0, 0] == 1.0
 
     def test_getitem_returns_tuple(self, mv_ts):
         item = mv_ts[0]
         assert isinstance(item, tuple)
-        assert not isinstance(item, DataPoint)
+        assert not isinstance(item, tdm.DataPoint)
         assert item[1] == [1.0, 10.0]
 
     def test_iter_returns_tuples(self, mv_ts):
@@ -923,7 +912,7 @@ class TestMultivariate:
             path = Path(f.name)
         try:
             mv_ts.to_csv(path)
-            ts2 = MultivariateTimeSeries.from_csv(path, hourly_frequency)
+            ts2 = tdm.MultivariateTimeSeries.from_csv(path, hourly_frequency)
             assert ts2.n_columns == 2
             assert np.isnan(ts2.to_numpy()[3, 0])
             assert ts2.to_numpy()[0, 0] == 1.0
@@ -933,7 +922,7 @@ class TestMultivariate:
     def test_round(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.567, 2.345], [3.891, 4.123]])
-        ts = MultivariateTimeSeries(
+        ts = tdm.MultivariateTimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -951,7 +940,7 @@ class TestBroadcast:
     def test_broadcast_single_unit(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0], [3.0, 4.0]])
-        ts = MultivariateTimeSeries(
+        ts = tdm.MultivariateTimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -965,7 +954,7 @@ class TestBroadcast:
     def test_broadcast_per_column(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0], [3.0, 4.0]])
-        ts = MultivariateTimeSeries(
+        ts = tdm.MultivariateTimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -979,7 +968,7 @@ class TestBroadcast:
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
         with pytest.raises(ValueError, match="must have length 1 or 3"):
-            MultivariateTimeSeries(
+            tdm.MultivariateTimeSeries(
                 hourly_frequency,
                 timestamps=[base, base + timedelta(hours=1)],
                 values=values,
@@ -989,7 +978,7 @@ class TestBroadcast:
     def test_broadcast_default_names(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0], [3.0, 4.0]])
-        ts = MultivariateTimeSeries(
+        ts = tdm.MultivariateTimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -1003,19 +992,19 @@ class TestBroadcast:
 
 class TestMultiTimeSeriesAlias:
     def test_alias_is_same_class(self):
-        assert TimeSeriesTable is MultivariateTimeSeries is MultiTimeSeries
+        assert tdm.TimeSeriesTable is tdm.MultivariateTimeSeries is tdm.MultiTimeSeries
 
     def test_alias_construction(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0]])
-        ts = MultiTimeSeries(
+        ts = tdm.MultiTimeSeries(
             hourly_frequency,
             timestamps=[base],
             values=values,
             names=["a", "b"],
         )
-        assert isinstance(ts, TimeSeriesTable)
-        assert isinstance(ts, MultivariateTimeSeries)
+        assert isinstance(ts, tdm.TimeSeriesTable)
+        assert isinstance(ts, tdm.MultivariateTimeSeries)
         assert ts.n_columns == 2
 
 
@@ -1029,7 +1018,7 @@ class TestBackwardCompatibility:
 
     def test_datapoint_from_getitem(self, sample_ts):
         dp = sample_ts[0]
-        assert isinstance(dp, DataPoint)
+        assert isinstance(dp, tdm.DataPoint)
         assert dp.value == 1.0
         assert dp.timestamp == datetime(2024, 1, 1, tzinfo=timezone.utc)
 
@@ -1038,7 +1027,7 @@ class TestBackwardCompatibility:
 
     def test_iter_returns_datapoints(self, sample_ts):
         points = list(sample_ts)
-        assert all(isinstance(p, DataPoint) for p in points)
+        assert all(isinstance(p, tdm.DataPoint) for p in points)
 
     def test_index_names_default(self, sample_ts):
         assert sample_ts.index_names == ("timestamp",)
@@ -1059,7 +1048,7 @@ class TestMultivariateConversion:
             [np.nan, 40.0, 400.0],
             [5.0, 50.0, 500.0],
         ])
-        return MultivariateTimeSeries(
+        return tdm.MultivariateTimeSeries(
             hourly_frequency,
             timestamps=timestamps,
             values=values,
@@ -1070,7 +1059,7 @@ class TestMultivariateConversion:
 
     def test_select_column_by_index(self, mv_ts):
         ts = mv_ts.select_column(0)
-        assert isinstance(ts, TimeSeries)
+        assert isinstance(ts, tdm.TimeSeries)
         assert ts.name == "power"
         assert ts.unit == "MW"
         assert ts.description == "Power output"
@@ -1080,7 +1069,7 @@ class TestMultivariateConversion:
 
     def test_select_column_by_name(self, mv_ts):
         ts = mv_ts.select_column("temperature")
-        assert isinstance(ts, TimeSeries)
+        assert isinstance(ts, tdm.TimeSeries)
         assert ts.name == "temperature"
         assert ts.unit == "°C"
         assert len(ts) == 5
@@ -1097,7 +1086,7 @@ class TestMultivariateConversion:
     def test_to_univariate_list(self, mv_ts):
         series_list = mv_ts.to_univariate_list()
         assert len(series_list) == 3
-        assert all(isinstance(s, TimeSeries) for s in series_list)
+        assert all(isinstance(s, tdm.TimeSeries) for s in series_list)
         assert series_list[0].name == "power"
         assert series_list[1].name == "temperature"
         assert series_list[2].name == "pressure"
@@ -1110,48 +1099,48 @@ class TestMultivariateConversion:
     def test_merge_roundtrip(self, mv_ts):
         """select_column -> merge should reconstruct the original."""
         series_list = mv_ts.to_univariate_list()
-        merged = TimeSeries.merge(series_list)
-        assert isinstance(merged, MultivariateTimeSeries)
+        merged = tdm.TimeSeries.merge(series_list)
+        assert isinstance(merged, tdm.MultivariateTimeSeries)
         assert merged.n_columns == 3
         assert merged.column_names == ("power", "temperature", "pressure")
         np.testing.assert_array_equal(merged.to_numpy(), mv_ts.to_numpy())
 
     def test_merge_empty_raises(self):
         with pytest.raises(ValueError, match="empty list"):
-            TimeSeries.merge([])
+            tdm.TimeSeries.merge([])
 
     def test_merge_mismatched_timestamps_raises(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts1 = TimeSeries(
+        ts1 = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=[1.0, 2.0],
             name="a",
         )
-        ts2 = TimeSeries(
+        ts2 = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=2)],
             values=[3.0, 4.0],
             name="b",
         )
         with pytest.raises(ValueError, match="do not match"):
-            TimeSeries.merge([ts1, ts2])
+            tdm.TimeSeries.merge([ts1, ts2])
 
     def test_merge_preserves_metadata(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts1 = TimeSeries(
+        ts1 = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base],
             values=[1.0],
             name="x", unit="MW", description="desc_x",
         )
-        ts2 = TimeSeries(
+        ts2 = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base],
             values=[2.0],
             name="y", unit="°C", description="desc_y",
         )
-        merged = TimeSeries.merge([ts1, ts2])
+        merged = tdm.TimeSeries.merge([ts1, ts2])
         assert merged.names == ["x", "y"]
         assert merged.units == ["MW", "°C"]
         assert merged.descriptions == ["desc_x", "desc_y"]
@@ -1160,7 +1149,7 @@ class TestMultivariateConversion:
         """When a single broadcast unit is used, select_column should resolve it."""
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0, 2.0], [3.0, 4.0]])
-        mv = MultivariateTimeSeries(
+        mv = tdm.MultivariateTimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=values,
@@ -1181,7 +1170,7 @@ class TestTimeSeriesCollection:
     def ts_a(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         timestamps = [base + timedelta(hours=i) for i in range(5)]
-        return TimeSeries(
+        return tdm.TimeSeries(
             hourly_frequency,
             timestamps=timestamps,
             values=[1.0, 2.0, 3.0, 4.0, 5.0],
@@ -1193,7 +1182,7 @@ class TestTimeSeriesCollection:
     def ts_b(self, hourly_frequency):
         base = datetime(2024, 1, 5, tzinfo=timezone.utc)
         timestamps = [base + timedelta(hours=i) for i in range(3)]
-        return TimeSeries(
+        return tdm.TimeSeries(
             hourly_frequency,
             timestamps=timestamps,
             values=[10.0, 20.0, 30.0],
@@ -1211,7 +1200,7 @@ class TestTimeSeriesCollection:
             [3.0, 30.0],
             [4.0, 40.0],
         ])
-        return TimeSeriesTable(
+        return tdm.TimeSeriesTable(
             hourly_frequency,
             timestamps=timestamps,
             values=values,
@@ -1219,127 +1208,127 @@ class TestTimeSeriesCollection:
         )
 
     def test_construction_from_list(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         assert len(coll) == 2
         assert "power" in coll
         assert "temperature" in coll
 
     def test_construction_from_list_with_table(self, ts_a, table):
-        coll = TimeSeriesCollection([ts_a, table])
+        coll = tdm.TimeSeriesCollection([ts_a, table])
         assert len(coll) == 2
         assert "power" in coll
 
     def test_construction_from_dict(self, ts_a, ts_b):
-        coll = TimeSeriesCollection({"a": ts_a, "b": ts_b})
+        coll = tdm.TimeSeriesCollection({"a": ts_a, "b": ts_b})
         assert len(coll) == 2
         assert "a" in coll
         assert "b" in coll
 
     def test_construction_empty(self):
-        coll = TimeSeriesCollection()
+        coll = tdm.TimeSeriesCollection()
         assert len(coll) == 0
         assert not coll
 
     def test_auto_naming(self, hourly_frequency):
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
             values=[1.0],
         )
-        coll = TimeSeriesCollection([ts])
+        coll = tdm.TimeSeriesCollection([ts])
         assert "series_0" in coll
 
     def test_deduplication(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts1 = TimeSeries(
+        ts1 = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base],
             values=[1.0],
             name="x",
         )
-        ts2 = TimeSeries(
+        ts2 = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base],
             values=[2.0],
             name="x",
         )
-        coll = TimeSeriesCollection([ts1, ts2])
+        coll = tdm.TimeSeriesCollection([ts1, ts2])
         assert len(coll) == 2
         assert "x" in coll
         assert "x_1" in coll
 
     def test_len(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         assert len(coll) == 2
 
     def test_bool_true(self, ts_a):
-        coll = TimeSeriesCollection([ts_a])
+        coll = tdm.TimeSeriesCollection([ts_a])
         assert bool(coll) is True
 
     def test_bool_false(self):
-        coll = TimeSeriesCollection()
+        coll = tdm.TimeSeriesCollection()
         assert bool(coll) is False
 
     def test_contains(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         assert "power" in coll
         assert "nonexistent" not in coll
 
     def test_getitem_by_name(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         result = coll["power"]
         assert result is ts_a
 
     def test_getitem_by_index(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         result = coll[0]
         assert result is ts_a
         result2 = coll[1]
         assert result2 is ts_b
 
     def test_iter(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         keys = list(coll)
         assert keys == ["power", "temperature"]
 
     def test_keys(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         assert list(coll.keys()) == ["power", "temperature"]
 
     def test_values(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         vals = list(coll.values())
         assert vals[0] is ts_a
         assert vals[1] is ts_b
 
     def test_items(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         items = list(coll.items())
         assert items[0] == ("power", ts_a)
         assert items[1] == ("temperature", ts_b)
 
     def test_names_property(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         assert coll.names == ["power", "temperature"]
 
     def test_series_count(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         assert coll.series_count == 2
 
     def test_add(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a])
+        coll = tdm.TimeSeriesCollection([ts_a])
         coll2 = coll.add(ts_b)
         assert len(coll) == 1  # original unchanged
         assert len(coll2) == 2
         assert "temperature" in coll2
 
     def test_add_with_name(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a])
+        coll = tdm.TimeSeriesCollection([ts_a])
         coll2 = coll.add(ts_b, name="my_temp")
         assert "my_temp" in coll2
 
     def test_remove(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         coll2 = coll.remove("power")
         assert len(coll) == 2  # original unchanged
         assert len(coll2) == 1
@@ -1347,25 +1336,25 @@ class TestTimeSeriesCollection:
         assert "temperature" in coll2
 
     def test_coverage_bar(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         bar = coll.coverage_bar()
         r = repr(bar)
         assert "power" in r
         assert "temperature" in r
 
     def test_coverage_bar_with_table(self, ts_a, table):
-        coll = TimeSeriesCollection([ts_a, table])
+        coll = tdm.TimeSeriesCollection([ts_a, table])
         bar = coll.coverage_bar()
         r = repr(bar)
         assert "power" in r
 
     def test_coverage_bar_empty(self):
-        coll = TimeSeriesCollection()
+        coll = tdm.TimeSeriesCollection()
         bar = coll.coverage_bar()
         assert repr(bar) == ""
 
     def test_repr(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         r = repr(coll)
         assert "TimeSeriesCollection" in r
         assert "power" in r
@@ -1373,12 +1362,12 @@ class TestTimeSeriesCollection:
         assert "\u250c" in r  # box-drawing top-left
 
     def test_repr_empty(self):
-        coll = TimeSeriesCollection()
+        coll = tdm.TimeSeriesCollection()
         r = repr(coll)
         assert "empty" in r
 
     def test_repr_html(self, ts_a, ts_b):
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         html = coll._repr_html_()
         assert "TimeSeriesCollection" in html
         assert "power" in html
@@ -1388,7 +1377,7 @@ class TestTimeSeriesCollection:
 class TestToFloatArray:
     def test_none_to_nan(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base + timedelta(hours=i) for i in range(3)],
             values=[1.0, None, 3.0],
@@ -1403,7 +1392,7 @@ class TestToFloatArray:
 class TestJsonFullMetadata:
     def test_timeseries_full_round_trip(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timezone="Europe/Berlin",
             timestamps=[base + timedelta(hours=i) for i in range(3)],
@@ -1411,19 +1400,19 @@ class TestJsonFullMetadata:
             name="power",
             unit="MW",
             description="Test series",
-            data_type=DataType.ACTUAL,
-            timeseries_type=TimeSeriesType.OVERLAPPING,
+            data_type=tdm.DataType.ACTUAL,
+            timeseries_type=tdm.TimeSeriesType.OVERLAPPING,
             attributes={"source": "test"},
         )
         s = ts.to_json()
-        ts2 = TimeSeries.from_json(s)  # no extra args needed
+        ts2 = tdm.TimeSeries.from_json(s)  # no extra args needed
         assert ts2.frequency == hourly_frequency
         assert ts2.timezone == "Europe/Berlin"
         assert ts2.name == "power"
         assert ts2.unit == "MW"
         assert ts2.description == "Test series"
-        assert ts2.data_type == DataType.ACTUAL
-        assert ts2.timeseries_type == TimeSeriesType.OVERLAPPING
+        assert ts2.data_type == tdm.DataType.ACTUAL
+        assert ts2.timeseries_type == tdm.TimeSeriesType.OVERLAPPING
         assert ts2.attributes == {"source": "test"}
         assert len(ts2) == 3
         assert ts2[0].value == 1.0
@@ -1436,14 +1425,14 @@ class TestJsonFullMetadata:
             "timestamps": ["2024-01-01T00:00:00+00:00"],
             "values": [42.0],
         })
-        ts = TimeSeries.from_json(old_json, hourly_frequency, name="x")
+        ts = tdm.TimeSeries.from_json(old_json, hourly_frequency, name="x")
         assert ts.frequency == hourly_frequency
         assert ts.name == "x"
         assert ts[0].value == 42.0
 
     def test_timeseries_kwargs_override(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts = TimeSeries(
+        ts = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base],
             values=[1.0],
@@ -1452,7 +1441,7 @@ class TestJsonFullMetadata:
         )
         s = ts.to_json()
         # Override name and unit via kwargs
-        ts2 = TimeSeries.from_json(s, name="overridden", unit="kW")
+        ts2 = tdm.TimeSeries.from_json(s, name="overridden", unit="kW")
         assert ts2.name == "overridden"
         assert ts2.unit == "kW"
         assert ts2.frequency == hourly_frequency  # from JSON
@@ -1463,13 +1452,13 @@ class TestJsonFullMetadata:
             "values": [42.0],
         })
         with pytest.raises(ValueError, match="frequency must be provided"):
-            TimeSeries.from_json(old_json)
+            tdm.TimeSeries.from_json(old_json)
 
     def test_table_full_round_trip(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         timestamps = [base + timedelta(hours=i) for i in range(3)]
         values = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
-        tbl = TimeSeriesTable(
+        tbl = tdm.TimeSeriesTable(
             hourly_frequency,
             timezone="Europe/Berlin",
             timestamps=timestamps,
@@ -1477,17 +1466,17 @@ class TestJsonFullMetadata:
             names=["power", "temperature"],
             units=["MW", "°C"],
             descriptions=["Power output", "Ambient temp"],
-            data_types=[DataType.ACTUAL, DataType.MEASUREMENT],
+            data_types=[tdm.DataType.ACTUAL, tdm.DataType.MEASUREMENT],
             attributes=[{"source": "a"}, {"source": "b"}],
         )
         s = tbl.to_json()
-        tbl2 = TimeSeriesTable.from_json(s)  # no extra args needed
+        tbl2 = tdm.TimeSeriesTable.from_json(s)  # no extra args needed
         assert tbl2.frequency == hourly_frequency
         assert tbl2.timezone == "Europe/Berlin"
         assert tbl2.names == ["power", "temperature"]
         assert tbl2.units == ["MW", "°C"]
         assert tbl2.descriptions == ["Power output", "Ambient temp"]
-        assert tbl2.data_types == [DataType.ACTUAL, DataType.MEASUREMENT]
+        assert tbl2.data_types == [tdm.DataType.ACTUAL, tdm.DataType.MEASUREMENT]
         assert tbl2.attributes == [{"source": "a"}, {"source": "b"}]
         np.testing.assert_array_equal(tbl2.to_numpy(), values)
 
@@ -1497,13 +1486,13 @@ class TestJsonFullMetadata:
             "values": [[1.0, 2.0]],
             "column_names": ["a", "b"],
         })
-        tbl = TimeSeriesTable.from_json(old_json, hourly_frequency)
+        tbl = tdm.TimeSeriesTable.from_json(old_json, hourly_frequency)
         assert tbl.frequency == hourly_frequency
         assert tbl.column_names == ("a", "b")
 
     def test_table_kwargs_override(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        tbl = TimeSeriesTable(
+        tbl = tdm.TimeSeriesTable(
             hourly_frequency,
             timestamps=[base],
             values=np.array([[1.0, 2.0]]),
@@ -1511,7 +1500,7 @@ class TestJsonFullMetadata:
             units=["MW", "°C"],
         )
         s = tbl.to_json()
-        tbl2 = TimeSeriesTable.from_json(s, units=["kW", "K"])
+        tbl2 = tdm.TimeSeriesTable.from_json(s, units=["kW", "K"])
         assert tbl2.units == ["kW", "K"]
         assert tbl2.names == ["a", "b"]  # from JSON
 
@@ -1527,19 +1516,19 @@ class TestTimeSeriesEquality:
 
     def test_different_metadata(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts1 = TimeSeries(hourly_frequency, timestamps=[base], values=[1.0], name="a")
-        ts2 = TimeSeries(hourly_frequency, timestamps=[base], values=[1.0], name="b")
+        ts1 = tdm.TimeSeries(hourly_frequency, timestamps=[base], values=[1.0], name="a")
+        ts2 = tdm.TimeSeries(hourly_frequency, timestamps=[base], values=[1.0], name="b")
         assert not ts1.equals(ts2)
 
     def test_nan_equality(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts1 = TimeSeries(hourly_frequency, timestamps=[base], values=[None])
-        ts2 = TimeSeries(hourly_frequency, timestamps=[base], values=[None])
+        ts1 = tdm.TimeSeries(hourly_frequency, timestamps=[base], values=[None])
+        ts2 = tdm.TimeSeries(hourly_frequency, timestamps=[base], values=[None])
         assert ts1.equals(ts2)
 
     def test_empty_equal(self, hourly_frequency):
-        ts1 = TimeSeries(hourly_frequency)
-        ts2 = TimeSeries(hourly_frequency)
+        ts1 = tdm.TimeSeries(hourly_frequency)
+        ts2 = tdm.TimeSeries(hourly_frequency)
         assert ts1.equals(ts2)
 
     def test_not_hashable(self, sample_ts):
@@ -1559,7 +1548,7 @@ class TestTimeSeriesTableEquality:
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         timestamps = [base + timedelta(hours=i) for i in range(3)]
         values = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
-        return TimeSeriesTable(
+        return tdm.TimeSeriesTable(
             hourly_frequency,
             timestamps=timestamps,
             values=values,
@@ -1585,10 +1574,10 @@ class TestTimeSeriesTableEquality:
     def test_different_metadata(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[1.0]])
-        tbl1 = TimeSeriesTable(
+        tbl1 = tdm.TimeSeriesTable(
             hourly_frequency, timestamps=[base], values=values, names=["a"]
         )
-        tbl2 = TimeSeriesTable(
+        tbl2 = tdm.TimeSeriesTable(
             hourly_frequency, timestamps=[base], values=values, names=["b"]
         )
         assert tbl1 != tbl2
@@ -1596,10 +1585,10 @@ class TestTimeSeriesTableEquality:
     def test_nan_equality(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         values = np.array([[np.nan]])
-        tbl1 = TimeSeriesTable(
+        tbl1 = tdm.TimeSeriesTable(
             hourly_frequency, timestamps=[base], values=values, names=["x"]
         )
-        tbl2 = TimeSeriesTable(
+        tbl2 = tdm.TimeSeriesTable(
             hourly_frequency, timestamps=[base], values=values, names=["x"]
         )
         assert tbl1 == tbl2
@@ -1620,7 +1609,7 @@ class TestTimeSeriesArithmeticBinary:
     def ts_a(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         timestamps = [base + timedelta(hours=i) for i in range(4)]
-        return TimeSeries(
+        return tdm.TimeSeries(
             hourly_frequency,
             timestamps=timestamps,
             values=[1.0, 2.0, 3.0, 4.0],
@@ -1632,7 +1621,7 @@ class TestTimeSeriesArithmeticBinary:
     def ts_b(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         timestamps = [base + timedelta(hours=i) for i in range(4)]
-        return TimeSeries(
+        return tdm.TimeSeries(
             hourly_frequency,
             timestamps=timestamps,
             values=[10.0, 20.0, 30.0, 40.0],
@@ -1667,28 +1656,28 @@ class TestTimeSeriesArithmeticBinary:
     def test_timezone_mismatch(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(2)]
-        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], timezone="UTC")
-        b = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], timezone="CET")
+        a = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], timezone="UTC")
+        b = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], timezone="CET")
         with pytest.raises(ValueError, match="timezone mismatch"):
             a + b
 
     def test_frequency_mismatch(self):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(2)]
-        a = TimeSeries(Frequency.PT1H, timestamps=ts, values=[1.0, 2.0])
-        b = TimeSeries(Frequency.P1D, timestamps=ts, values=[1.0, 2.0])
+        a = tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=ts, values=[1.0, 2.0])
+        b = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=ts, values=[1.0, 2.0])
         with pytest.raises(ValueError, match="frequency mismatch"):
             a + b
 
     def test_timestamp_mismatch(self, hourly_frequency):
         base_a = datetime(2024, 1, 1, tzinfo=timezone.utc)
         base_b = datetime(2024, 1, 2, tzinfo=timezone.utc)
-        a = TimeSeries(
+        a = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base_a, base_a + timedelta(hours=1)],
             values=[1.0, 2.0],
         )
-        b = TimeSeries(
+        b = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base_b, base_b + timedelta(hours=1)],
             values=[1.0, 2.0],
@@ -1699,8 +1688,8 @@ class TestTimeSeriesArithmeticBinary:
     def test_unit_auto_conversion(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(2)]
-        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1000.0, 2000.0], unit="kW")
-        b = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
+        a = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1000.0, 2000.0], unit="kW")
+        b = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
         result = a + b
         assert result.values[0] == pytest.approx(2000.0)
         assert result.values[1] == pytest.approx(4000.0)
@@ -1709,32 +1698,32 @@ class TestTimeSeriesArithmeticBinary:
     def test_incompatible_units(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(2)]
-        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
-        b = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="m")
+        a = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
+        b = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="m")
         with pytest.raises(ValueError, match="cannot convert.*incompatible"):
             a + b
 
     def test_one_unit_none(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(2)]
-        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
-        b = TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0])
+        a = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0], unit="MW")
+        b = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0])
         with pytest.raises(ValueError, match="unit mismatch"):
             a + b
 
     def test_both_units_none(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(2)]
-        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0])
-        b = TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0])
+        a = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0])
+        b = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0])
         result = a + b
         assert result.values == [11.0, 22.0]
 
     def test_nan_propagation(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(3)]
-        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, None, 3.0])
-        b = TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0, None])
+        a = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, None, 3.0])
+        b = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[10.0, 20.0, None])
         result = a + b
         assert result.values[0] == 11.0
         assert result.values[1] is None
@@ -1747,7 +1736,7 @@ class TestTimeSeriesArithmeticBinary:
     def test_rtruediv_scalar(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(3)]
-        a = TimeSeries(hourly_frequency, timestamps=ts, values=[2.0, 5.0, 10.0])
+        a = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[2.0, 5.0, 10.0])
         result = 10 / a
         assert result.values[0] == pytest.approx(5.0)
         assert result.values[1] == pytest.approx(2.0)
@@ -1765,7 +1754,7 @@ class TestTimeSeriesComparison:
     def ts_a(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         timestamps = [base + timedelta(hours=i) for i in range(4)]
-        return TimeSeries(
+        return tdm.TimeSeries(
             hourly_frequency,
             timestamps=timestamps,
             values=[1.0, 2.0, 3.0, 4.0],
@@ -1777,7 +1766,7 @@ class TestTimeSeriesComparison:
     def ts_b(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         timestamps = [base + timedelta(hours=i) for i in range(4)]
-        return TimeSeries(
+        return tdm.TimeSeries(
             hourly_frequency,
             timestamps=timestamps,
             values=[1.0, 3.0, 2.0, 4.0],
@@ -1787,19 +1776,19 @@ class TestTimeSeriesComparison:
 
     def test_eq_timeseries(self, ts_a, ts_b):
         result = ts_a == ts_b
-        assert isinstance(result, TimeSeries)
+        assert isinstance(result, tdm.TimeSeries)
         assert result.values == [1.0, 0.0, 0.0, 1.0]
         assert result.name is None
         assert result.unit is None
 
     def test_ne_timeseries(self, ts_a, ts_b):
         result = ts_a != ts_b
-        assert isinstance(result, TimeSeries)
+        assert isinstance(result, tdm.TimeSeries)
         assert result.values == [0.0, 1.0, 1.0, 0.0]
 
     def test_gt_scalar(self, ts_a):
         result = ts_a > 2
-        assert isinstance(result, TimeSeries)
+        assert isinstance(result, tdm.TimeSeries)
         assert result.values == [0.0, 0.0, 1.0, 1.0]
 
     def test_gt_timeseries(self, ts_a, ts_b):
@@ -1821,8 +1810,8 @@ class TestTimeSeriesComparison:
     def test_comparison_nan_propagation(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(3)]
-        a = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, None, 3.0])
-        b = TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0, None])
+        a = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, None, 3.0])
+        b = tdm.TimeSeries(hourly_frequency, timestamps=ts, values=[1.0, 2.0, None])
         result = a == b
         assert result.values[0] == 1.0
         assert result.values[1] is None
@@ -1830,13 +1819,13 @@ class TestTimeSeriesComparison:
 
     def test_comparison_alignment_check(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        a = TimeSeries(
+        a = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base],
             values=[1.0],
             timezone="UTC",
         )
-        b = TimeSeries(
+        b = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base],
             values=[1.0],
@@ -1854,7 +1843,7 @@ class TestTimeSeriesComparison:
 
     def test_eq_scalar(self, ts_a):
         result = ts_a == 2.0
-        assert isinstance(result, TimeSeries)
+        assert isinstance(result, tdm.TimeSeries)
         assert result.values == [0.0, 1.0, 0.0, 0.0]
 
 
@@ -1868,19 +1857,19 @@ class TestTimeSeriesCollectionConversions:
     @pytest.fixture
     def sample_collection(self, hourly_frequency):
         base = datetime(2025, 1, 1, tzinfo=timezone.utc)
-        ts_a = TimeSeries(
+        ts_a = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1), base + timedelta(hours=2)],
             values=[1.0, 2.0, 3.0],
             name="alpha",
         )
-        ts_b = TimeSeries(
+        ts_b = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1), base + timedelta(hours=2)],
             values=[10.0, 20.0, 30.0],
             name="beta",
         )
-        return TimeSeriesCollection([ts_a, ts_b])
+        return tdm.TimeSeriesCollection([ts_a, ts_b])
 
     def test_collection_to_pandas_dataframe(self, sample_collection):
         df = sample_collection.to_pandas_dataframe()
@@ -1900,7 +1889,7 @@ class TestTimeSeriesCollectionConversions:
         assert isinstance(df, pd.DataFrame)
 
     def test_collection_to_pandas_empty(self):
-        coll = TimeSeriesCollection()
+        coll = tdm.TimeSeriesCollection()
         df = coll.to_pandas_dataframe()
         assert isinstance(df, pd.DataFrame)
         assert len(df) == 0
@@ -1908,19 +1897,19 @@ class TestTimeSeriesCollectionConversions:
     def test_collection_to_pandas_outer_join(self, hourly_frequency):
         """Series with different timestamps produce NaN-filled outer join."""
         base = datetime(2025, 1, 1, tzinfo=timezone.utc)
-        ts_a = TimeSeries(
+        ts_a = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base, base + timedelta(hours=1)],
             values=[1.0, 2.0],
             name="a",
         )
-        ts_b = TimeSeries(
+        ts_b = tdm.TimeSeries(
             hourly_frequency,
             timestamps=[base + timedelta(hours=1), base + timedelta(hours=2)],
             values=[10.0, 20.0],
             name="b",
         )
-        coll = TimeSeriesCollection([ts_a, ts_b])
+        coll = tdm.TimeSeriesCollection([ts_a, ts_b])
         df = coll.to_pandas_dataframe()
         assert len(df) == 3  # Union of timestamps
         assert pd.isna(df.loc[df.index[0], "b"])  # b missing at first timestamp
@@ -1948,7 +1937,7 @@ class TestConvertUnit:
     def ts_mw(self):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(3)]
-        return TimeSeries(Frequency.PT1H, timestamps=ts, values=[1.0, 2.0, 3.0], unit="MW", name="power")
+        return tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=ts, values=[1.0, 2.0, 3.0], unit="MW", name="power")
 
     def test_mw_to_kw(self, ts_mw):
         result = ts_mw.convert_unit("kW")
@@ -1964,7 +1953,7 @@ class TestConvertUnit:
 
     def test_none_unit_raises(self):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        ts = TimeSeries(Frequency.PT1H, timestamps=[base], values=[1.0])
+        ts = tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=[base], values=[1.0])
         with pytest.raises(ValueError, match="source unit is None"):
             ts.convert_unit("MW")
 
@@ -1975,7 +1964,7 @@ class TestConvertUnit:
     def test_none_values_preserved(self):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(3)]
-        s = TimeSeries(Frequency.PT1H, timestamps=ts, values=[1.0, None, 3.0], unit="MW")
+        s = tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=ts, values=[1.0, None, 3.0], unit="MW")
         result = s.convert_unit("kW")
         assert result.values[0] == pytest.approx(1000.0)
         assert result.values[1] is None
@@ -1997,8 +1986,8 @@ class TestTimeSeriesTableConvertUnit:
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(3)]
         vals = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
-        return TimeSeriesTable(
-            Frequency.PT1H,
+        return tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
             timestamps=ts,
             values=vals,
             names=["a", "b"],
@@ -2027,8 +2016,8 @@ class TestTimeSeriesTableConvertUnit:
     def test_none_unit_raises(self):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts = [base + timedelta(hours=i) for i in range(2)]
-        tbl = TimeSeriesTable(
-            Frequency.PT1H, timestamps=ts, values=np.array([[1.0], [2.0]]),
+        tbl = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timestamps=ts, values=np.array([[1.0], [2.0]]),
         )
         with pytest.raises(ValueError, match="source unit is None"):
             tbl.convert_unit("MW")
@@ -2046,16 +2035,16 @@ class TestTimeSeriesTableArithmeticBinary:
     @pytest.fixture
     def table_a(self, base_ts):
         vals = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
-        return TimeSeriesTable(
-            Frequency.PT1H, timestamps=base_ts, values=vals,
+        return tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timestamps=base_ts, values=vals,
             names=["x", "y"], units=["MW", "MW"],
         )
 
     @pytest.fixture
     def table_b(self, base_ts):
         vals = np.array([[4.0, 40.0], [5.0, 50.0], [6.0, 60.0]])
-        return TimeSeriesTable(
-            Frequency.PT1H, timestamps=base_ts, values=vals,
+        return tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timestamps=base_ts, values=vals,
             names=["x", "y"], units=["MW", "MW"],
         )
 
@@ -2077,13 +2066,13 @@ class TestTimeSeriesTableArithmeticBinary:
         np.testing.assert_allclose(result.values[:, 0], [4.0, 2.5, 2.0])
 
     def test_unit_auto_conversion(self, base_ts):
-        a = TimeSeriesTable(
-            Frequency.PT1H, timestamps=base_ts,
+        a = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timestamps=base_ts,
             values=np.array([[1000.0], [2000.0], [3000.0]]),
             units=["kW"],
         )
-        b = TimeSeriesTable(
-            Frequency.PT1H, timestamps=base_ts,
+        b = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timestamps=base_ts,
             values=np.array([[1.0], [2.0], [3.0]]),
             units=["MW"],
         )
@@ -2092,8 +2081,8 @@ class TestTimeSeriesTableArithmeticBinary:
         assert result.units == ["kW"]
 
     def test_table_plus_series_broadcast(self, table_a, base_ts):
-        series = TimeSeries(
-            Frequency.PT1H, timestamps=base_ts,
+        series = tdm.TimeSeries(
+            tdm.Frequency.PT1H, timestamps=base_ts,
             values=[100.0, 200.0, 300.0], unit="MW",
         )
         result = table_a + series
@@ -2101,37 +2090,37 @@ class TestTimeSeriesTableArithmeticBinary:
         np.testing.assert_allclose(result.values[:, 1], [110.0, 220.0, 330.0])
 
     def test_column_count_mismatch_raises(self, base_ts):
-        a = TimeSeriesTable(
-            Frequency.PT1H, timestamps=base_ts,
+        a = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timestamps=base_ts,
             values=np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]),
         )
-        b = TimeSeriesTable(
-            Frequency.PT1H, timestamps=base_ts,
+        b = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timestamps=base_ts,
             values=np.array([[1.0], [2.0], [3.0]]),
         )
         with pytest.raises(ValueError, match="column count mismatch"):
             a + b
 
     def test_timezone_mismatch_raises(self, base_ts):
-        a = TimeSeriesTable(
-            Frequency.PT1H, timezone="UTC", timestamps=base_ts,
+        a = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timezone="UTC", timestamps=base_ts,
             values=np.array([[1.0], [2.0], [3.0]]),
         )
-        b = TimeSeriesTable(
-            Frequency.PT1H, timezone="CET", timestamps=base_ts,
+        b = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timezone="CET", timestamps=base_ts,
             values=np.array([[1.0], [2.0], [3.0]]),
         )
         with pytest.raises(ValueError, match="timezone mismatch"):
             a + b
 
     def test_one_unit_none_raises(self, base_ts):
-        a = TimeSeriesTable(
-            Frequency.PT1H, timestamps=base_ts,
+        a = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timestamps=base_ts,
             values=np.array([[1.0], [2.0], [3.0]]),
             units=["MW"],
         )
-        b = TimeSeriesTable(
-            Frequency.PT1H, timestamps=base_ts,
+        b = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, timestamps=base_ts,
             values=np.array([[1.0], [2.0], [3.0]]),
         )
         with pytest.raises(ValueError, match="unit mismatch"):

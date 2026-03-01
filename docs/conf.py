@@ -1,10 +1,10 @@
 """Sphinx configuration for timedatamodel."""
 
-import timedatamodel
+import timedatamodel as tdm
 
 project = "timedatamodel"
 author = "Rebase Energy"
-release = timedatamodel.__version__
+release = tdm.__version__
 copyright = "2024, Rebase Energy"
 
 extensions = [

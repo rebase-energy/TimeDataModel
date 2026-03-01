@@ -1,28 +1,28 @@
 import pytest
 
-from timedatamodel import GeoArea, GeoLocation
+import timedatamodel as tdm
 
 
 class TestGeoLocation:
     def test_valid(self):
-        loc = GeoLocation(latitude=59.91, longitude=10.75)
+        loc = tdm.GeoLocation(latitude=59.91, longitude=10.75)
         assert loc.latitude == 59.91
         assert loc.longitude == 10.75
 
     def test_boundary_values(self):
-        GeoLocation(latitude=90, longitude=180)
-        GeoLocation(latitude=-90, longitude=-180)
+        tdm.GeoLocation(latitude=90, longitude=180)
+        tdm.GeoLocation(latitude=-90, longitude=-180)
 
     def test_invalid_latitude(self):
         with pytest.raises(ValueError, match="latitude"):
-            GeoLocation(latitude=91, longitude=0)
+            tdm.GeoLocation(latitude=91, longitude=0)
 
     def test_invalid_longitude(self):
         with pytest.raises(ValueError, match="longitude"):
-            GeoLocation(latitude=0, longitude=181)
+            tdm.GeoLocation(latitude=0, longitude=181)
 
     def test_frozen(self):
-        loc = GeoLocation(latitude=0, longitude=0)
+        loc = tdm.GeoLocation(latitude=0, longitude=0)
         with pytest.raises(AttributeError):
             loc.latitude = 1  # type: ignore[misc]
 
@@ -31,7 +31,7 @@ class TestGeoArea:
     @pytest.fixture
     def triangle(self):
         coords = [(60.0, 10.0), (61.0, 11.0), (60.0, 12.0)]
-        return GeoArea.from_coordinates(coords, name="test-area")
+        return tdm.GeoArea.from_coordinates(coords, name="test-area")
 
     def test_from_coordinates(self, triangle):
         assert triangle.name == "test-area"
@@ -46,10 +46,10 @@ class TestGeoArea:
 
     def test_centroid(self, triangle):
         c = triangle.centroid
-        assert isinstance(c, GeoLocation)
+        assert isinstance(c, tdm.GeoLocation)
         assert -90 <= c.latitude <= 90
         assert -180 <= c.longitude <= 180
 
     def test_no_name(self):
-        area = GeoArea.from_coordinates([(0, 0), (0, 1), (1, 1), (1, 0)])
+        area = tdm.GeoArea.from_coordinates([(0, 0), (0, 1), (1, 1), (1, 0)])
         assert area.name is None

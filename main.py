@@ -1,32 +1,26 @@
 from datetime import datetime, timedelta, timezone
 
-from timedatamodel import (
-    DataPoint,
-    DataType,
-    Frequency,
-    GeoLocation,
-    TimeSeries,
-)
+import timedatamodel as tdm
 
 
 def main():
     # Define frequency and timezone
-    frequency = Frequency.PT1H
+    frequency = tdm.Frequency.PT1H
     tz = "Europe/Oslo"
-    location = GeoLocation(latitude=59.91, longitude=10.75)
+    location = tdm.GeoLocation(latitude=59.91, longitude=10.75)
 
     # Create a time series with scalar metadata
     base = datetime(2024, 1, 1, tzinfo=timezone.utc)
     timestamps = [base + timedelta(hours=i) for i in range(24)]
     values = [100.0 + i * 5.0 for i in range(24)]
-    ts = TimeSeries(
+    ts = tdm.TimeSeries(
         frequency,
         timezone=tz,
         timestamps=timestamps,
         values=values,
         name="power",
         unit="MW",
-        data_type=DataType.ACTUAL,
+        data_type=tdm.DataType.ACTUAL,
         location=location,
         description="Hourly power generation",
         attributes={"source": "example"},
@@ -69,12 +63,12 @@ def main():
     print()
 
     # Round-trip via pandas
-    ts2 = TimeSeries.from_pandas(df_pd, frequency, timezone=tz)
+    ts2 = tdm.TimeSeries.from_pandas(df_pd, frequency, timezone=tz)
     print(f"Round-trip via pandas: {len(ts2)} points, first={ts2[0]}")
 
     # Construction via DataPoint
-    data = [DataPoint(base + timedelta(hours=i), float(i)) for i in range(3)]
-    ts3 = TimeSeries(frequency, timezone=tz, data=data)
+    data = [tdm.DataPoint(base + timedelta(hours=i), float(i)) for i in range(3)]
+    ts3 = tdm.TimeSeries(frequency, timezone=tz, data=data)
     print(f"From DataPoints: {list(ts3)}")
 
 
