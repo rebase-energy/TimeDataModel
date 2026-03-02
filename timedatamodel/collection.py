@@ -270,8 +270,11 @@ class TimeSeriesCollection:
         return self.to_pandas_dataframe()
 
     @property
-    def df(self) -> "pd.DataFrame":
-        """Shorthand for ``to_pandas_dataframe()``."""
+    def df(self):
+        """Shorthand for the default DataFrame backend (pandas or polars)."""
+        from ._base import _default_dataframe_backend
+        if _default_dataframe_backend == "polars":
+            return self.to_polars_dataframe()
         return self.to_pandas_dataframe()
 
     def to_polars_dataframe(self):

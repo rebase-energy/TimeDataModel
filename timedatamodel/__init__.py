@@ -1,5 +1,6 @@
 from importlib.metadata import version
 
+from ._base import get_default_df, set_default_df
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 from .coverage import CoverageBar
@@ -13,6 +14,7 @@ from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode,
 __version__ = version("timedatamodel")
 __all__ = [
     "AggregationMethod",
+    "get_default_df",
     "CoverageBar",
     "DataPoint",
     "DataType",
@@ -32,4 +34,5 @@ __all__ = [
     "TimeSeriesTable",
     "TimeSeriesType",
     "TimeSeries",
+    "set_default_df",
 ]

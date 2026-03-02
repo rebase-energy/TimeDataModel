@@ -11,6 +11,30 @@ import numpy as np
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 
+_default_dataframe_backend: str = "pandas"
+
+
+def set_default_df(backend: str) -> None:
+    """Set the default DataFrame backend for the ``.df`` property.
+
+    Parameters
+    ----------
+    backend : str
+        ``"pandas"`` or ``"polars"``.
+    """
+    global _default_dataframe_backend
+    if backend not in ("pandas", "polars"):
+        raise ValueError(
+            f"backend must be 'pandas' or 'polars', got {backend!r}"
+        )
+    _default_dataframe_backend = backend
+
+
+def get_default_df() -> str:
+    """Return the current default DataFrame backend (``"pandas"`` or ``"polars"``)."""
+    return _default_dataframe_backend
+
+
 _PANDAS_FREQ_MAP: dict[str, Frequency] = {
     # Modern pandas (>=2.0) aliases
     "YE": Frequency.P1Y, "YE-DEC": Frequency.P1Y, "A": Frequency.P1Y,
