@@ -2456,3 +2456,263 @@ class TestTableApplyXarray:
         assert result.names == table_basic.names
         assert result.units == table_basic.units
         assert result.frequency == table_basic.frequency
+
+
+# ===== Labels tests =====
+
+
+class TestTimeSeriesLabels:
+    """Tests for the labels field on TimeSeries."""
+
+    def test_default_empty(self):
+        ts = tdm.TimeSeries(tdm.Frequency.PT1H)
+        assert ts.labels == {}
+
+    def test_construction_with_labels(self):
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+            labels={"site": "A", "region": "north"},
+        )
+        assert ts.labels == {"site": "A", "region": "north"}
+
+    def test_equals_same_labels(self):
+        kwargs = dict(
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+            labels={"site": "A"},
+        )
+        a = tdm.TimeSeries(tdm.Frequency.PT1H, **kwargs)
+        b = tdm.TimeSeries(tdm.Frequency.PT1H, **kwargs)
+        assert a.equals(b)
+
+    def test_equals_different_labels(self):
+        base = dict(
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+        )
+        a = tdm.TimeSeries(tdm.Frequency.PT1H, **base, labels={"site": "A"})
+        b = tdm.TimeSeries(tdm.Frequency.PT1H, **base, labels={"site": "B"})
+        assert not a.equals(b)
+
+    def test_copy_preserves_labels(self):
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+            labels={"site": "A"},
+        )
+        cp = ts.copy()
+        assert cp.labels == {"site": "A"}
+
+    def test_arithmetic_preserves_labels(self):
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+            labels={"site": "A"},
+        )
+        result = ts + 10
+        assert result.labels == {"site": "A"}
+
+    def test_json_roundtrip(self):
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+            name="power",
+            labels={"site": "A", "region": "north"},
+        )
+        j = ts.to_json()
+        restored = tdm.TimeSeries.from_json(j)
+        assert restored.labels == {"site": "A", "region": "north"}
+
+    def test_json_backward_compat_missing_labels(self):
+        """JSON without 'labels' key should deserialize with empty dict."""
+        payload = json.dumps({
+            "timestamps": ["2024-01-01T00:00:00+00:00"],
+            "values": [1.0],
+            "frequency": "PT1H",
+            "timezone": "UTC",
+        })
+        ts = tdm.TimeSeries.from_json(payload)
+        assert ts.labels == {}
+
+    def test_head_tail_preserves_labels(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base + timedelta(hours=i) for i in range(5)],
+            values=[1.0, 2.0, 3.0, 4.0, 5.0],
+            labels={"site": "A"},
+        )
+        assert ts.head(2).labels == {"site": "A"}
+        assert ts.tail(2).labels == {"site": "A"}
+
+    def test_apply_numpy_preserves_labels(self):
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[1.0],
+            labels={"site": "A"},
+        )
+        result = ts.apply_numpy(lambda arr: arr * 2)
+        assert result.labels == {"site": "A"}
+
+    def test_merge_carries_labels_to_table(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts_a = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base],
+            values=[1.0],
+            name="a",
+            labels={"site": "A"},
+        )
+        ts_b = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base],
+            values=[2.0],
+            name="b",
+            labels={"site": "B"},
+        )
+        table = tdm.TimeSeries.merge([ts_a, ts_b])
+        assert table.labels == [{"site": "A"}, {"site": "B"}]
+
+
+class TestTimeSeriesTableLabels:
+    """Tests for the labels field on TimeSeriesTable."""
+
+    def test_default_empty(self):
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0]],
+        )
+        assert table.labels == [{}]
+
+    def test_construction_with_per_column_labels(self):
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0]],
+            names=["a", "b"],
+            labels=[{"site": "A"}, {"site": "B"}],
+        )
+        assert table.labels == [{"site": "A"}, {"site": "B"}]
+
+    def test_broadcast_labels(self):
+        """labels=[{"site": "A"}] with N columns should broadcast."""
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0, 3.0]],
+            labels=[{"site": "A"}],
+        )
+        assert table.labels == [{"site": "A"}]
+        # Broadcast check: all columns resolve to same labels
+        for i in range(table.n_columns):
+            assert table._get_attr(table.labels, i) == {"site": "A"}
+
+    def test_wrong_length_labels_raises(self):
+        with pytest.raises(ValueError, match="labels must have length 1 or 2"):
+            tdm.TimeSeriesTable(
+                tdm.Frequency.PT1H,
+                timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+                values=[[1.0, 2.0]],
+                labels=[{"site": "A"}, {"site": "B"}, {"site": "C"}],
+            )
+
+    def test_equals_same_labels(self):
+        kwargs = dict(
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0]],
+            labels=[{"site": "A"}, {"site": "B"}],
+        )
+        a = tdm.TimeSeriesTable(tdm.Frequency.PT1H, **kwargs)
+        b = tdm.TimeSeriesTable(tdm.Frequency.PT1H, **kwargs)
+        assert a.equals(b)
+
+    def test_equals_different_labels(self):
+        base = dict(
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0]],
+        )
+        a = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, **base, labels=[{"site": "A"}, {"site": "B"}]
+        )
+        b = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H, **base, labels=[{"site": "X"}, {"site": "Y"}]
+        )
+        assert not a.equals(b)
+
+    def test_select_column_carries_labels(self):
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0]],
+            names=["a", "b"],
+            labels=[{"site": "A"}, {"site": "B"}],
+        )
+        ts_a = table.select_column(0)
+        ts_b = table.select_column(1)
+        assert ts_a.labels == {"site": "A"}
+        assert ts_b.labels == {"site": "B"}
+
+    def test_select_column_broadcast_labels(self):
+        """When labels has length 1, all columns get same labels."""
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0]],
+            names=["a", "b"],
+            labels=[{"site": "A"}],
+        )
+        ts_a = table.select_column(0)
+        ts_b = table.select_column(1)
+        assert ts_a.labels == {"site": "A"}
+        assert ts_b.labels == {"site": "A"}
+
+    def test_json_roundtrip(self):
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0]],
+            names=["a", "b"],
+            labels=[{"site": "A"}, {"site": "B"}],
+        )
+        j = table.to_json()
+        restored = tdm.TimeSeriesTable.from_json(j)
+        assert restored.labels == [{"site": "A"}, {"site": "B"}]
+
+    def test_json_backward_compat_missing_labels(self):
+        """JSON without 'labels' key should deserialize with default."""
+        payload = json.dumps({
+            "timestamps": ["2024-01-01T00:00:00+00:00"],
+            "values": [[1.0, 2.0]],
+            "column_names": ["a", "b"],
+            "frequency": "PT1H",
+            "timezone": "UTC",
+        })
+        table = tdm.TimeSeriesTable.from_json(payload)
+        assert table.labels == [{}]
+
+    def test_copy_preserves_labels(self):
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0]],
+            labels=[{"site": "A"}, {"site": "B"}],
+        )
+        cp = table.copy()
+        assert cp.labels == [{"site": "A"}, {"site": "B"}]
+
+    def test_arithmetic_preserves_labels(self):
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=[datetime(2024, 1, 1, tzinfo=timezone.utc)],
+            values=[[1.0, 2.0]],
+            labels=[{"site": "A"}, {"site": "B"}],
+        )
+        result = table + 10
+        assert result.labels == [{"site": "A"}, {"site": "B"}]

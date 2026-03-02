@@ -43,6 +43,7 @@ class TimeSeriesTable(_TimeSeriesBase):
         default_factory=lambda: [TimeSeriesType.FLAT]
     )
     attributes: list[dict[str, str]] = field(default_factory=lambda: [{}])
+    labels: list[dict[str, str]] = field(default_factory=lambda: [{}])
     _timestamps: list[datetime] | list[tuple[datetime, ...]] = field(
         default_factory=list, repr=False
     )
@@ -65,6 +66,7 @@ class TimeSeriesTable(_TimeSeriesBase):
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
+        labels: list[dict[str, str]] | None = None,
         index_names: list[str] | None = None,
     ) -> None:
         self.frequency = frequency
@@ -114,6 +116,7 @@ class TimeSeriesTable(_TimeSeriesBase):
             "timeseries_types", timeseries_types, lambda: TimeSeriesType.FLAT
         )
         self.attributes = _validate_list("attributes", attributes, dict)
+        self.labels = _validate_list("labels", labels, dict)
 
     # ---- properties ------------------------------------------------------
 
@@ -165,6 +168,7 @@ class TimeSeriesTable(_TimeSeriesBase):
             locations=list(self.locations),
             timeseries_types=list(self.timeseries_types),
             attributes=list(self.attributes),
+            labels=list(self.labels),
             index_names=self._index_names,
         )
 
@@ -275,6 +279,7 @@ class TimeSeriesTable(_TimeSeriesBase):
             locations=_pick(self.locations, indices),
             timeseries_types=_pick(self.timeseries_types, indices),
             attributes=_pick(self.attributes, indices),
+            labels=_pick(self.labels, indices),
             index_names=self._index_names,
         )
 
@@ -332,6 +337,7 @@ class TimeSeriesTable(_TimeSeriesBase):
             or self.data_types != other.data_types
             or self.timeseries_types != other.timeseries_types
             or self.attributes != other.attributes
+            or self.labels != other.labels
             or self._timestamps != other._timestamps
         ):
             return False
@@ -371,6 +377,7 @@ class TimeSeriesTable(_TimeSeriesBase):
             location=self._get_attr(self.locations, col),
             timeseries_type=self._get_attr(self.timeseries_types, col),
             attributes=self._get_attr(self.attributes, col),
+            labels=self._get_attr(self.labels, col),
             index_names=self._index_names,
         )
 
@@ -621,6 +628,11 @@ class TimeSeriesTable(_TimeSeriesBase):
         if any(t != "FLAT" for t in tst_vals):
             lines.append(f"{'Timeseries type:':<{label_w}}{', '.join(str(t) for t in tst_vals)}")
 
+        # Labels — show if any is non-empty
+        lbl_vals = [self._get_attr(self.labels, i) for i in range(self.n_columns)]
+        if any(lbl for lbl in lbl_vals):
+            lines.append(f"{'Labels:':<{label_w}}{', '.join(str(lbl) for lbl in lbl_vals)}")
+
         return lines
 
     def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
@@ -758,6 +770,8 @@ class TimeSeriesTable(_TimeSeriesBase):
             attrs["timeseries_types"] = json.dumps([str(t) for t in self.timeseries_types])
         if any(a for a in self.attributes):
             attrs["attributes"] = json.dumps(self.attributes)
+        if any(lbl for lbl in self.labels):
+            attrs["labels"] = json.dumps(self.labels)
         if self._index_names is not None:
             attrs["index_names"] = json.dumps(self._index_names)
 
@@ -779,6 +793,7 @@ class TimeSeriesTable(_TimeSeriesBase):
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
+        labels: list[dict[str, str]] | None = None,
     ) -> "TimeSeriesTable":
         """Construct a ``TimeSeriesTable`` from a 2D ``xr.DataArray``."""
         if da.ndim != 2:
@@ -832,6 +847,9 @@ class TimeSeriesTable(_TimeSeriesBase):
         attrs = attributes if attributes is not None else (
             json.loads(da.attrs["attributes"]) if "attributes" in da.attrs else None
         )
+        lbls = labels if labels is not None else (
+            json.loads(da.attrs["labels"]) if "labels" in da.attrs else None
+        )
         index_names = (
             json.loads(da.attrs["index_names"]) if "index_names" in da.attrs else None
         )
@@ -848,6 +866,7 @@ class TimeSeriesTable(_TimeSeriesBase):
             locations=locations,
             timeseries_types=tst,
             attributes=attrs,
+            labels=lbls,
             index_names=index_names,
         )
 
@@ -865,6 +884,7 @@ class TimeSeriesTable(_TimeSeriesBase):
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
+        labels: list[dict[str, str]] | None = None,
     ) -> TimeSeriesTable:
         """Create a TimeSeriesTable from a pandas DataFrame."""
         pd = _import_pandas()
@@ -913,6 +933,7 @@ class TimeSeriesTable(_TimeSeriesBase):
             locations=locations,
             timeseries_types=timeseries_types,
             attributes=attributes,
+            labels=labels,
             index_names=index_names,
         )
 
@@ -964,6 +985,7 @@ class TimeSeriesTable(_TimeSeriesBase):
                 self.timeseries_types, lambda: TimeSeriesType.FLAT
             ),
             attributes=_carry_over(self.attributes, dict),
+            labels=_carry_over(self.labels, dict),
             index_names=index_names,
         )
 
@@ -1013,6 +1035,8 @@ class TimeSeriesTable(_TimeSeriesBase):
             payload["timeseries_types"] = [str(t) for t in self.timeseries_types]
         if any(a for a in self.attributes):
             payload["attributes"] = self.attributes
+        if any(lbl for lbl in self.labels):
+            payload["labels"] = self.labels
         if any(l is not None for l in self.locations):
             payload["locations"] = [
                 _location_to_json(loc) if loc is not None else None
@@ -1036,6 +1060,7 @@ class TimeSeriesTable(_TimeSeriesBase):
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
+        labels: list[dict[str, str]] | None = None,
     ) -> TimeSeriesTable:
         """Reconstruct from a JSON string produced by to_json()."""
         data = json.loads(s)
@@ -1086,6 +1111,8 @@ class TimeSeriesTable(_TimeSeriesBase):
                 timeseries_types = [TimeSeriesType(t) for t in raw_tst]
         if attributes is None:
             attributes = data.get("attributes")
+        if labels is None:
+            labels = data.get("labels")
 
         return cls(
             freq,
@@ -1099,6 +1126,7 @@ class TimeSeriesTable(_TimeSeriesBase):
             locations=locations,
             timeseries_types=timeseries_types,
             attributes=attributes,
+            labels=labels,
             index_names=index_names,
         )
 
@@ -1133,6 +1161,7 @@ class TimeSeriesTable(_TimeSeriesBase):
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
         attributes: list[dict[str, str]] | None = None,
+        labels: list[dict[str, str]] | None = None,
     ) -> TimeSeriesTable:
         """Read a TimeSeriesTable from a CSV file produced by to_csv()."""
         with open(path, "r", newline="") as f:
@@ -1191,6 +1220,7 @@ class TimeSeriesTable(_TimeSeriesBase):
             locations=locations,
             timeseries_types=timeseries_types,
             attributes=attributes,
+            labels=labels,
             index_names=index_names,
         )
 
@@ -1262,6 +1292,7 @@ class TimeSeriesTable(_TimeSeriesBase):
                 self.timeseries_types, lambda: TimeSeriesType.FLAT
             ),
             attributes=_carry_over(self.attributes, dict),
+            labels=_carry_over(self.labels, dict),
             index_names=index_names,
         )
 
@@ -1311,6 +1342,7 @@ class TimeSeriesTable(_TimeSeriesBase):
                 self.timeseries_types, lambda: TimeSeriesType.FLAT
             ),
             attributes=_carry_over(self.attributes, dict),
+            labels=_carry_over(self.labels, dict),
         )
 
     def apply_xarray(self, func: Callable) -> TimeSeriesTable:
@@ -1350,6 +1382,11 @@ class TimeSeriesTable(_TimeSeriesBase):
                 json.loads(result.attrs["attributes"])
                 if "attributes" in result.attrs
                 else list(self.attributes)
+            ),
+            labels=(
+                json.loads(result.attrs["labels"])
+                if "labels" in result.attrs
+                else list(self.labels)
             ),
         )
 

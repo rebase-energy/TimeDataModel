@@ -43,6 +43,7 @@ class TimeSeries(_TimeSeriesBase):
     location: Location | None = None
     timeseries_type: TimeSeriesType = TimeSeriesType.FLAT
     attributes: dict[str, str] = field(default_factory=dict)
+    labels: dict[str, str] = field(default_factory=dict)
     _timestamps: list[datetime] | list[tuple[datetime, ...]] = field(
         default_factory=list, repr=False
     )
@@ -64,6 +65,7 @@ class TimeSeries(_TimeSeriesBase):
         location: Location | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
+        labels: dict[str, str] | None = None,
         index_names: list[str] | None = None,
     ) -> None:
         self.frequency = frequency
@@ -75,6 +77,7 @@ class TimeSeries(_TimeSeriesBase):
         self.location = location
         self.timeseries_type = timeseries_type
         self.attributes = attributes if attributes is not None else {}
+        self.labels = labels if labels is not None else {}
         self._index_names = index_names
 
         if data is not None:
@@ -146,6 +149,7 @@ class TimeSeries(_TimeSeriesBase):
             location=self.location,
             timeseries_type=self.timeseries_type,
             attributes=self.attributes,
+            labels=self.labels,
             index_names=self._index_names,
         )
 
@@ -249,6 +253,7 @@ class TimeSeries(_TimeSeriesBase):
             or self.data_type != other.data_type
             or self.timeseries_type != other.timeseries_type
             or self.attributes != other.attributes
+            or self.labels != other.labels
             or self._timestamps != other._timestamps
         ):
             return False
@@ -448,6 +453,8 @@ class TimeSeries(_TimeSeriesBase):
             lines.append(f"{'Location:':<{label_w}}{self._fmt_location(self.location)}")
         if self.timeseries_type and self.timeseries_type != "FLAT":
             lines.append(f"{'Timeseries type:':<{label_w}}{self.timeseries_type}")
+        if self.labels:
+            lines.append(f"{'Labels:':<{label_w}}{self.labels}")
         return lines
 
     def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
@@ -474,6 +481,8 @@ class TimeSeries(_TimeSeriesBase):
             meta_rows.append(("Location", escape(self._fmt_location(self.location))))
         if self.description:
             meta_rows.append(("Description", escape(self.description)))
+        if self.labels:
+            meta_rows.append(("Labels", escape(str(self.labels))))
 
         def _html_row(i: int) -> str:
             ts = self._timestamps[i]
@@ -579,6 +588,8 @@ class TimeSeries(_TimeSeriesBase):
             attrs["timeseries_type"] = str(self.timeseries_type)
         if self.attributes:
             attrs["attributes"] = json.dumps(self.attributes)
+        if self.labels:
+            attrs["labels"] = json.dumps(self.labels)
 
         if self.is_multi_index:
             # xarray requires dim name to differ from MultiIndex level names
@@ -611,6 +622,7 @@ class TimeSeries(_TimeSeriesBase):
         data_type: DataType | None = None,
         timeseries_type: TimeSeriesType | None = None,
         attributes: dict[str, str] | None = None,
+        labels: dict[str, str] | None = None,
     ) -> "TimeSeries":
         """Construct a ``TimeSeries`` from a 1D ``xr.DataArray``."""
         if da.ndim != 1:
@@ -661,6 +673,9 @@ class TimeSeries(_TimeSeriesBase):
         attrs = attributes if attributes is not None else (
             json.loads(da.attrs["attributes"]) if "attributes" in da.attrs else {}
         )
+        lbls = labels if labels is not None else (
+            json.loads(da.attrs["labels"]) if "labels" in da.attrs else {}
+        )
 
         return cls(
             freq,
@@ -673,6 +688,7 @@ class TimeSeries(_TimeSeriesBase):
             data_type=dt_,
             timeseries_type=tst,
             attributes=attrs,
+            labels=lbls,
             index_names=index_names,
         )
 
@@ -691,6 +707,7 @@ class TimeSeries(_TimeSeriesBase):
         location: Location | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
+        labels: dict[str, str] | None = None,
     ) -> TimeSeries:
         """Create a TimeSeries from a pandas DataFrame.
 
@@ -744,6 +761,7 @@ class TimeSeries(_TimeSeriesBase):
             location=location,
             timeseries_type=timeseries_type,
             attributes=attributes,
+            labels=labels,
             index_names=index_names,
         )
 
@@ -763,6 +781,7 @@ class TimeSeries(_TimeSeriesBase):
         location: Location | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
+        labels: dict[str, str] | None = None,
     ) -> TimeSeries:
         """Create a TimeSeries from a polars DataFrame."""
         val_col = value_column or [
@@ -785,6 +804,7 @@ class TimeSeries(_TimeSeriesBase):
             location=location,
             timeseries_type=timeseries_type,
             attributes=attributes,
+            labels=labels,
         )
 
     def update_from_pandas(
@@ -851,6 +871,7 @@ class TimeSeries(_TimeSeriesBase):
             location=self.location,
             timeseries_type=self.timeseries_type,
             attributes=self.attributes,
+            labels=self.labels,
             index_names=index_names,
         )
 
@@ -919,6 +940,8 @@ class TimeSeries(_TimeSeriesBase):
             payload["timeseries_type"] = str(self.timeseries_type)
         if self.attributes:
             payload["attributes"] = self.attributes
+        if self.labels:
+            payload["labels"] = self.labels
         if self.location is not None:
             payload["location"] = _location_to_json(self.location)
         return json.dumps(payload)
@@ -937,6 +960,7 @@ class TimeSeries(_TimeSeriesBase):
         location: Location | None = None,
         timeseries_type: TimeSeriesType | None = None,
         attributes: dict[str, str] | None = None,
+        labels: dict[str, str] | None = None,
     ) -> TimeSeries:
         """Reconstruct a TimeSeries from a JSON string produced by to_json()."""
         data = json.loads(s)
@@ -973,6 +997,7 @@ class TimeSeries(_TimeSeriesBase):
             TimeSeriesType(data["timeseries_type"]) if "timeseries_type" in data else TimeSeriesType.FLAT
         )
         attrs = attributes if attributes is not None else data.get("attributes")
+        lbls = labels if labels is not None else data.get("labels")
         loc = location if location is not None else _location_from_json(
             data.get("location")
         )
@@ -989,6 +1014,7 @@ class TimeSeries(_TimeSeriesBase):
             location=loc,
             timeseries_type=tst,
             attributes=attrs,
+            labels=lbls,
             index_names=index_names,
         )
 
@@ -1022,6 +1048,7 @@ class TimeSeries(_TimeSeriesBase):
         location: Location | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
+        labels: dict[str, str] | None = None,
     ) -> TimeSeries:
         """Read a TimeSeries from a CSV file produced by to_csv()."""
         with open(path, "r", newline="") as f:
@@ -1076,6 +1103,7 @@ class TimeSeries(_TimeSeriesBase):
             location=location,
             timeseries_type=timeseries_type,
             attributes=attributes,
+            labels=labels,
             index_names=index_names,
         )
 
@@ -1145,6 +1173,7 @@ class TimeSeries(_TimeSeriesBase):
             location=self.location,
             timeseries_type=self.timeseries_type,
             attributes=self.attributes,
+            labels=self.labels,
             index_names=index_names,
         )
 
@@ -1215,6 +1244,11 @@ class TimeSeries(_TimeSeriesBase):
                 if "attributes" in result.attrs
                 else self.attributes
             ),
+            labels=(
+                json.loads(result.attrs["labels"])
+                if "labels" in result.attrs
+                else self.labels
+            ),
         )
 
     @staticmethod
@@ -1251,4 +1285,5 @@ class TimeSeries(_TimeSeriesBase):
             locations=[s.location for s in series],
             timeseries_types=[s.timeseries_type for s in series],
             attributes=[s.attributes or {} for s in series],
+            labels=[s.labels or {} for s in series],
         )
