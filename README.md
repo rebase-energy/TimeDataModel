@@ -38,7 +38,7 @@
 | :---- | :---- |
 | 📈&nbsp;`TimeSeries` | Univariate time series with scalar metadata (name, unit, frequency, timezone) |
 | 📊&nbsp;`TimeSeriesTable` | Multivariate time series — multiple columns sharing the same timestamp index |
-| 🧊&nbsp;`TimeSeriesCube` | N-dimensional time series with named dimensions and label-based selection |
+| 🧊&nbsp;`TimeSeriesArray` | N-dimensional time series with named dimensions and label-based selection |
 | 📦&nbsp;`TimeSeriesCollection` | Heterogeneous container for series with different indices |
 | 🌳&nbsp;`HierarchicalTimeSeries` | Tree-structured time series with aggregation across hierarchy levels |
 | 🗺️&nbsp;`GeoLocation` / `GeoArea` | Geographic point and polygon types with distance, bearing, and containment |
@@ -61,12 +61,12 @@ Each class provides `to_X`, `from_X`, and `apply_X` bridges to popular array and
 | &nbsp;&nbsp;`to_X` | ✅ | ✅ | ✅ | ✅ |
 | &nbsp;&nbsp;`from_X` | — | ✅ | — | ✅ |
 | &nbsp;&nbsp;`apply_X` | ✅ | ✅ | ✅ | ✅ |
-| **TimeSeriesCube** | | | | |
+| **TimeSeriesArray** | | | | |
 | &nbsp;&nbsp;`to_X` | ✅ | ✅ | — | ✅ |
 | &nbsp;&nbsp;`from_X` | ✅ | — | — | ✅ |
 | &nbsp;&nbsp;`apply_X` | — | ✅¹ | ✅¹ | ✅ |
 
-¹ Gated: raises `ValueError` if the cube has more than 2 non-time dimensions.
+¹ Gated: raises `ValueError` if the array has more than 2 non-time dimensions.
 
 ---
 
@@ -107,7 +107,7 @@ json_str = ts.to_json()
 
 ## ✨ Key Features
 
-- 📐 **Multi-dimensional** - From single series (`TimeSeries`) to N-dimensional cubes (`TimeSeriesCube`) with `.sel()` and `.isel()` for label- and index-based selection;
+- 📐 **Multi-dimensional** - From single series (`TimeSeries`) to N-dimensional arrays (`TimeSeriesArray`) with `.sel()` and `.isel()` for label- and index-based selection;
 - 🔢 **Arithmetic** - Element-wise `+`, `-`, `*`, `/`, comparisons, and `abs()` with automatic NaN handling;
 - 🗺️ **Geospatial** - Attach locations, compute distances (Haversine), filter by radius or area, and find nearest neighbors;
 - 🌳 **Hierarchical** - Build tree structures with automatic aggregation (`SUM`, `MEAN`, `MIN`, `MAX`) and cross-level unit conversion;
@@ -154,7 +154,7 @@ Explore the library through the example notebooks:
 | 03 | [Unit Handling](examples/nb_03_unit_handling_and_validation.ipynb) | Physical unit conversion with pint |
 | 04 | [Operations](examples/nb_04_timeseries_operations.ipynb) | Arithmetic, slicing, and indexing |
 | 05 | [Multivariate](examples/nb_05_multivariate_timeseries.ipynb) | Working with multi-column time series |
-| 06 | [Cubes & Collections](examples/nb_06_cubes_and_collections.ipynb) | N-dimensional data and heterogeneous containers |
+| 06 | [Arrays & Collections](examples/nb_06_arrays_and_collections.ipynb) | N-dimensional data and heterogeneous containers |
 | 07 | [Data Quality](examples/nb_07_data_quality_and_coverage.ipynb) | Coverage bars and validation |
 | 08 | [I/O](examples/nb_08_io_and_interoperability.ipynb) | JSON and CSV serialization |
 | 09 | [Geospatial](examples/nb_09_geographical_support.ipynb) | Locations, areas, and spatial filtering |

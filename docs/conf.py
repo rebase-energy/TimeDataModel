@@ -86,7 +86,7 @@ autodoc_default_options = {
         "_get_attr",
         "_list_meta_kwargs",
         "_clone_with",
-        # TimeSeriesCube internals
+        # TimeSeriesArray internals
         "_get_dim",
         "_dim_index",
         "_maybe_collapse",

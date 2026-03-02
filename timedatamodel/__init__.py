@@ -8,7 +8,7 @@ from .datapoint import DataPoint
 from .timeseries import TimeSeries
 from .table import TimeSeriesTable, MultivariateTimeSeries, MultiTimeSeries
 from .collection import TimeSeriesCollection
-from .cube import Dimension, NDTimeSeries, TimeSeriesCube
+from .array import Dimension, NDTimeSeries, TimeSeriesArray
 from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode, HierarchyTree
 
 __version__ = version("timedatamodel")
@@ -30,7 +30,7 @@ __all__ = [
     "MultivariateTimeSeries",
     "NDTimeSeries",
     "TimeSeriesCollection",
-    "TimeSeriesCube",
+    "TimeSeriesArray",
     "TimeSeriesTable",
     "TimeSeriesType",
     "TimeSeries",

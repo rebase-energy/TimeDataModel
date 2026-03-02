@@ -52,7 +52,7 @@ _PANDAS_FREQ_MAP: dict[str, Frequency] = {
 }
 
 _MAX_PREVIEW = 3  # rows shown at head/tail in repr
-_MAX_COL_PREVIEW = 4  # leaf columns shown at head/tail in cube repr
+_MAX_COL_PREVIEW = 4  # leaf columns shown at head/tail in array repr
 
 
 def _fmt_short_date(dt: datetime) -> str:

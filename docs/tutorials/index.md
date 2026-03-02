@@ -11,7 +11,7 @@ numpy_and_pandas_transforms
 unit_handling_and_validation
 timeseries_operations
 multivariate_timeseries
-cubes_and_collections
+arrays_and_collections
 data_quality_and_coverage
 io_and_interoperability
 geographical_support

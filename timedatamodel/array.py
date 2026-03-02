@@ -28,7 +28,7 @@ class Dimension:
 
 
 @dataclass(slots=True, repr=False, eq=False)
-class TimeSeriesCube:
+class TimeSeriesArray:
     frequency: Frequency
     timezone: str = "UTC"
     name: str | None = None
@@ -148,7 +148,7 @@ class TimeSeriesCube:
 
     # ---- sel / isel ----------------------------------------------------------
 
-    def sel(self, **kwargs) -> TimeSeriesCube | "TimeSeriesTable" | "TimeSeries":
+    def sel(self, **kwargs) -> TimeSeriesArray | "TimeSeriesTable" | "TimeSeries":
         remaining_dims = list(self.dimensions)
         values = self._values
 
@@ -178,14 +178,14 @@ class TimeSeriesCube:
                 remaining_dims.pop(axis)
 
         if not any_scalar:
-            return TimeSeriesCube(
+            return TimeSeriesArray(
                 self.frequency, timezone=self.timezone,
                 dimensions=remaining_dims, values=values,
                 **self._meta_kwargs(),
             )
         return self._maybe_collapse(values, remaining_dims)
 
-    def isel(self, **kwargs) -> TimeSeriesCube | "TimeSeriesTable" | "TimeSeries":
+    def isel(self, **kwargs) -> TimeSeriesArray | "TimeSeriesTable" | "TimeSeries":
         remaining_dims = list(self.dimensions)
         values = self._values
 
@@ -205,7 +205,7 @@ class TimeSeriesCube:
                 remaining_dims.pop(axis)
 
         if not any_scalar:
-            return TimeSeriesCube(
+            return TimeSeriesArray(
                 self.frequency, timezone=self.timezone,
                 dimensions=remaining_dims, values=values,
                 **self._meta_kwargs(),
@@ -219,7 +219,7 @@ class TimeSeriesCube:
             raise ValueError("Selection collapsed all dimensions; scalar result.")
 
         if ndim >= 3:
-            return TimeSeriesCube(
+            return TimeSeriesArray(
                 self.frequency,
                 timezone=self.timezone,
                 dimensions=remaining_dims,
@@ -360,8 +360,8 @@ class TimeSeriesCube:
         description: str | None = None,
         data_type: DataType | None = None,
         attributes: dict[str, str] | None = None,
-    ) -> "TimeSeriesCube":
-        """Construct a ``TimeSeriesCube`` from an ``xr.DataArray``.
+    ) -> "TimeSeriesArray":
+        """Construct a :class:`TimeSeriesArray` from an ``xr.DataArray``.
 
         Metadata is read from ``da.attrs`` but explicit keyword arguments
         take precedence.
@@ -403,13 +403,13 @@ class TimeSeriesCube:
 
     # ---- apply methods -------------------------------------------------------
 
-    def apply_xarray(self, func) -> TimeSeriesCube:
+    def apply_xarray(self, func) -> TimeSeriesArray:
         """Apply an xarray transformation, reading metadata from result.attrs with self as fallback."""
         import json
 
         da = self.to_xarray()
         result = func(da)
-        return TimeSeriesCube.from_xarray(
+        return TimeSeriesArray.from_xarray(
             result,
             frequency=Frequency(result.attrs.get("frequency", str(self.frequency))),
             timezone=result.attrs.get("timezone", self.timezone),
@@ -433,8 +433,8 @@ class TimeSeriesCube:
         ptd = self.primary_time_dim
         return [d for d in self.dimensions if d.name != ptd.name]
 
-    def _cube_to_pandas_df(self, non_time):
-        """Convert cube to a pandas DataFrame with time index and non-time columns."""
+    def _array_to_pandas_df(self, non_time):
+        """Convert array to a pandas DataFrame with time index and non-time columns."""
         import xarray as xr
 
         pd = _import_pandas()
@@ -494,10 +494,10 @@ class TimeSeriesCube:
 
         return result_da
 
-    def apply_pandas(self, func) -> TimeSeriesCube:
-        """Apply a pandas transformation to the cube as a DataFrame.
+    def apply_pandas(self, func) -> TimeSeriesArray:
+        """Apply a pandas transformation to the array as a DataFrame.
 
-        Gated to cubes with at most 2 non-time dimensions.
+        Gated to arrays with at most 2 non-time dimensions.
         """
         pd = _import_pandas()
 
@@ -509,7 +509,7 @@ class TimeSeriesCube:
             )
 
         da = self.to_xarray()
-        df = self._cube_to_pandas_df(non_time)
+        df = self._array_to_pandas_df(non_time)
         result_df = func(df)
         result_da = self._pandas_df_to_xr(result_df, non_time, da)
 
@@ -525,7 +525,7 @@ class TimeSeriesCube:
             freq_df, self.frequency, self.timezone,
         )
 
-        return TimeSeriesCube.from_xarray(
+        return TimeSeriesArray.from_xarray(
             result_da,
             frequency=new_freq,
             timezone=new_tz,
@@ -536,10 +536,10 @@ class TimeSeriesCube:
             attributes=self.attributes,
         )
 
-    def apply_polars(self, func) -> TimeSeriesCube:
-        """Apply a polars transformation to the cube as a DataFrame.
+    def apply_polars(self, func) -> TimeSeriesArray:
+        """Apply a polars transformation to the array as a DataFrame.
 
-        Gated to cubes with at most 2 non-time dimensions.
+        Gated to arrays with at most 2 non-time dimensions.
         """
         non_time = self._non_time_dims()
         if len(non_time) > 2:
@@ -560,7 +560,7 @@ class TimeSeriesCube:
         da = self.to_xarray()
         ptd_name = self.primary_time_dim.name
 
-        pdf = self._cube_to_pandas_df(non_time)
+        pdf = self._array_to_pandas_df(non_time)
 
         # Flatten MultiIndex columns to strings for polars compatibility
         original_columns = pdf.columns
@@ -600,7 +600,7 @@ class TimeSeriesCube:
 
         result_da = self._pandas_df_to_xr(result_pdf, non_time, da)
 
-        return TimeSeriesCube.from_xarray(
+        return TimeSeriesArray.from_xarray(
             result_da,
             frequency=self.frequency,
             timezone=self.timezone,
@@ -626,7 +626,7 @@ class TimeSeriesCube:
         description: str | None = None,
         data_type: DataType | None = None,
         attributes: dict[str, str] | None = None,
-    ) -> TimeSeriesCube:
+    ) -> TimeSeriesArray:
         return cls(
             frequency,
             timezone=timezone,
@@ -652,9 +652,9 @@ class TimeSeriesCube:
         description: str | None = None,
         data_type: DataType | None = None,
         attributes: dict[str, str] | None = None,
-    ) -> TimeSeriesCube:
+    ) -> TimeSeriesArray:
         if not series:
-            raise ValueError("Cannot build cube from an empty list of TimeSeries.")
+            raise ValueError("Cannot build array from an empty list of TimeSeries.")
         if len(dimension.labels) != len(series):
             raise ValueError(
                 f"dimension has {len(dimension.labels)} labels but "
@@ -1011,7 +1011,7 @@ class TimeSeriesCube:
     # ---- equality ------------------------------------------------------------
 
     def equals(self, other: object) -> bool:
-        if not isinstance(other, TimeSeriesCube):
+        if not isinstance(other, TimeSeriesArray):
             return NotImplemented
         if (
             self.frequency != other.frequency
@@ -1036,9 +1036,9 @@ class TimeSeriesCube:
         )
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, TimeSeriesCube):
+        if not isinstance(other, TimeSeriesArray):
             return NotImplemented
         return self.equals(other)
 
 
-NDTimeSeries = TimeSeriesCube
+NDTimeSeries = TimeSeriesArray

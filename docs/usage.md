@@ -42,9 +42,9 @@ Each class provides `to_X`, `from_X`, and `apply_X` bridges to popular array and
 | &nbsp;&nbsp;`to_X` | ✅ | ✅ | ✅ | ✅ |
 | &nbsp;&nbsp;`from_X` | — | ✅ | — | ✅ |
 | &nbsp;&nbsp;`apply_X` | ✅ | ✅ | ✅ | ✅ |
-| **TimeSeriesCube** | | | | |
+| **TimeSeriesArray** | | | | |
 | &nbsp;&nbsp;`to_X` | ✅ | ✅ | — | ✅ |
 | &nbsp;&nbsp;`from_X` | ✅ | — | — | ✅ |
 | &nbsp;&nbsp;`apply_X` | — | ✅¹ | ✅¹ | ✅ |
 
-¹ Gated: raises `ValueError` if the cube has more than 2 non-time dimensions.
+¹ Gated: raises `ValueError` if the array has more than 2 non-time dimensions.
