@@ -27,3 +27,33 @@ arr = ts.arr
 ```python
 ts_doubled = ts * 2
 ```
+
+## Integrations
+
+Each class provides `to_X`, `from_X`, and `apply_X` bridges to popular array and dataframe libraries.
+
+### TimeSeries
+
+| | numpy | pandas | polars | xarray |
+| :--- | :---: | :---: | :---: | :---: |
+| `to_X` | ✅ | ✅ | ✅ | ✅ |
+| `from_X` | — | ✅ | ✅ | ✅ |
+| `apply_X` | ✅ | ✅ | ✅ | ✅ |
+
+### TimeSeriesTable
+
+| | numpy | pandas | polars | xarray |
+| :--- | :---: | :---: | :---: | :---: |
+| `to_X` | ✅ | ✅ | ✅ | ✅ |
+| `from_X` | — | ✅ | — | ✅ |
+| `apply_X` | ✅ | ✅ | ✅ | ✅ |
+
+### TimeSeriesCube
+
+| | numpy | pandas | polars | xarray |
+| :--- | :---: | :---: | :---: | :---: |
+| `to_X` | ✅ | ✅ | — | ✅ |
+| `from_X` | ✅ | — | — | ✅ |
+| `apply_X` | — | ✅¹ | ✅¹ | ✅ |
+
+¹ Gated: raises `ValueError` if the cube has more than 2 non-time dimensions.

@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
+import xarray as xr
 
 import timedatamodel as tdm
 
@@ -588,6 +589,58 @@ class TestApplyPandas:
     def test_unit_preserved_after_arithmetic(self, sample_ts):
         ts2 = sample_ts.apply_pandas(lambda df: df * 0.001)
         assert ts2.unit == sample_ts.unit
+
+
+class TestApplyPolars:
+    def test_arithmetic(self, sample_ts):
+        import polars as pl
+
+        ts2 = sample_ts.apply_polars(
+            lambda df: df.with_columns(pl.col("power") * 10)
+        )
+        assert ts2[0].value == 10.0
+        assert ts2[1].value == 20.0
+
+    def test_metadata_preserved(self, sample_ts):
+        ts2 = sample_ts.apply_polars(lambda df: df)
+        assert ts2.name == sample_ts.name
+        assert ts2.unit == sample_ts.unit
+        assert ts2.data_type == sample_ts.data_type
+        assert ts2.frequency == sample_ts.frequency
+        assert ts2.timezone == sample_ts.timezone
+
+    def test_none_roundtrip(self, sample_ts):
+        ts2 = sample_ts.apply_polars(lambda df: df)
+        assert ts2[3].value is None
+
+    def test_immutability(self, sample_ts):
+        import polars as pl
+
+        ts2 = sample_ts.apply_polars(
+            lambda df: df.with_columns(pl.col("power") + 99)
+        )
+        assert sample_ts[0].value == 1.0
+
+
+class TestApplyXarray:
+    def test_arithmetic(self, sample_ts):
+        ts2 = sample_ts.apply_xarray(lambda da: da * 10)
+        assert ts2[0].value == 10.0
+        assert ts2[1].value == 20.0
+
+    def test_metadata_preserved(self, sample_ts):
+        ts2 = sample_ts.apply_xarray(lambda da: da * 1)
+        assert ts2.name == sample_ts.name
+        assert ts2.unit == sample_ts.unit
+        assert ts2.data_type == sample_ts.data_type
+
+    def test_nan_roundtrip(self, sample_ts):
+        ts2 = sample_ts.apply_xarray(lambda da: da)
+        assert ts2[3].value is None
+
+    def test_immutability(self, sample_ts):
+        ts2 = sample_ts.apply_xarray(lambda da: da + 99)
+        assert sample_ts[0].value == 1.0
 
 
 class TestApplyNumpy:
@@ -2167,3 +2220,239 @@ class TestTimeSeriesTableArithmeticBinary:
         )
         with pytest.raises(ValueError, match="unit mismatch"):
             a + b
+
+
+# ===========================================================================
+# TestXarrayTimeSeries
+# ===========================================================================
+
+class TestXarrayTimeSeries:
+    @pytest.fixture
+    def ts_basic(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(5)]
+        return tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=[1.0, 2.0, 3.0, 4.0, 5.0],
+            name="power",
+            unit="MW",
+        )
+
+    def test_to_xarray_basic(self, ts_basic):
+        da = ts_basic.to_xarray()
+        assert isinstance(da, xr.DataArray)
+        assert da.ndim == 1
+        assert da.name == "power"
+        assert len(da) == 5
+        assert da.attrs["unit"] == "MW"
+
+    def test_to_xarray_none_to_nan(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base + timedelta(hours=i) for i in range(3)],
+            values=[1.0, None, 3.0],
+            name="x",
+        )
+        da = ts.to_xarray()
+        assert np.isnan(da.values[1])
+        assert da.values[0] == 1.0
+
+    def test_round_trip(self, ts_basic):
+        da = ts_basic.to_xarray()
+        restored = tdm.TimeSeries.from_xarray(da)
+        assert restored.equals(ts_basic)
+
+    def test_round_trip_with_none(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base + timedelta(hours=i) for i in range(3)],
+            values=[1.0, None, 3.0],
+            name="x",
+        )
+        da = ts.to_xarray()
+        restored = tdm.TimeSeries.from_xarray(da)
+        assert restored.equals(ts)
+
+    def test_round_trip_multi_index(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [
+            (base, base + timedelta(hours=1)),
+            (base, base + timedelta(hours=2)),
+            (base + timedelta(hours=1), base + timedelta(hours=2)),
+        ]
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=[1.0, 2.0, 3.0],
+            name="power",
+            index_names=["knowledge_time", "valid_time"],
+        )
+        da = ts.to_xarray()
+        restored = tdm.TimeSeries.from_xarray(da)
+        assert restored.timestamps == ts.timestamps
+        assert restored.values == ts.values
+        assert restored.index_names == ts.index_names
+
+    def test_from_xarray_wrong_ndim(self):
+        da = xr.DataArray(np.ones((3, 3)), dims=["x", "y"])
+        with pytest.raises(ValueError, match="1D"):
+            tdm.TimeSeries.from_xarray(da)
+
+    def test_round_trip_preserves_metadata(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = tdm.TimeSeries(
+            tdm.Frequency.P1D,
+            timezone="CET",
+            timestamps=[base + timedelta(days=i) for i in range(3)],
+            values=[1.0, 2.0, 3.0],
+            name="energy",
+            unit="MWh",
+            description="daily energy",
+            data_type=tdm.DataType.ACTUAL,
+            attributes={"source": "meter"},
+        )
+        restored = tdm.TimeSeries.from_xarray(ts.to_xarray())
+        assert restored.frequency == tdm.Frequency.P1D
+        assert restored.timezone == "CET"
+        assert restored.name == "energy"
+        assert restored.unit == "MWh"
+        assert restored.description == "daily energy"
+        assert restored.data_type == tdm.DataType.ACTUAL
+        assert restored.attributes == {"source": "meter"}
+
+
+# ===========================================================================
+# TestXarrayTimeSeriesTable
+# ===========================================================================
+
+class TestXarrayTimeSeriesTable:
+    @pytest.fixture
+    def table_basic(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(4)]
+        values = np.array([
+            [1.0, 10.0],
+            [2.0, 20.0],
+            [3.0, 30.0],
+            [4.0, 40.0],
+        ])
+        return tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=values,
+            names=["power", "energy"],
+            units=["MW", "MWh"],
+        )
+
+    def test_to_xarray_basic(self, table_basic):
+        da = table_basic.to_xarray()
+        assert isinstance(da, xr.DataArray)
+        assert da.ndim == 2
+        assert da.shape == (4, 2)
+        assert list(da.coords["column"].values) == ["power", "energy"]
+
+    def test_to_xarray_column_names_preserved(self, table_basic):
+        da = table_basic.to_xarray()
+        assert list(da.coords["column"].values) == ["power", "energy"]
+
+    def test_round_trip(self, table_basic):
+        da = table_basic.to_xarray()
+        restored = tdm.TimeSeriesTable.from_xarray(da)
+        assert restored.frequency == table_basic.frequency
+        assert restored.timezone == table_basic.timezone
+        assert list(restored.column_names) == list(table_basic.column_names)
+        np.testing.assert_allclose(restored.values, table_basic.values)
+
+    def test_round_trip_per_column_metadata(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(3)]
+        values = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=values,
+            names=["power", "energy"],
+            units=["MW", "MWh"],
+            descriptions=["power output", "energy total"],
+        )
+        da = table.to_xarray()
+        restored = tdm.TimeSeriesTable.from_xarray(da)
+        assert restored.names == ["power", "energy"]
+        assert restored.units == ["MW", "MWh"]
+        assert restored.descriptions == ["power output", "energy total"]
+
+    def test_from_xarray_wrong_ndim(self):
+        da = xr.DataArray(np.ones(5), dims=["x"])
+        with pytest.raises(ValueError, match="2D"):
+            tdm.TimeSeriesTable.from_xarray(da)
+
+
+# ---- Table Apply Tests ---------------------------------------------------
+
+
+class TestTableApplyPolars:
+    @pytest.fixture
+    def table_basic(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(3)]
+        values = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
+        return tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=values,
+            names=["power", "temperature"],
+            units=["MW", "°C"],
+        )
+
+    def test_arithmetic(self, table_basic):
+        import polars as pl
+
+        result = table_basic.apply_polars(
+            lambda df: df.with_columns([
+                pl.col("power") * 10,
+                pl.col("temperature") * 10,
+            ])
+        )
+        arr = result.to_numpy()
+        assert arr[0, 0] == 10.0
+        assert arr[0, 1] == 100.0
+
+    def test_column_names_preserved(self, table_basic):
+        result = table_basic.apply_polars(lambda df: df)
+        assert result.column_names == ("power", "temperature")
+
+    def test_metadata_preserved(self, table_basic):
+        result = table_basic.apply_polars(lambda df: df)
+        assert result.frequency == table_basic.frequency
+        assert result.timezone == table_basic.timezone
+        assert result.units == table_basic.units
+
+
+class TestTableApplyXarray:
+    @pytest.fixture
+    def table_basic(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(3)]
+        values = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
+        return tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=values,
+            names=["power", "temperature"],
+            units=["MW", "°C"],
+        )
+
+    def test_arithmetic(self, table_basic):
+        result = table_basic.apply_xarray(lambda da: da * 10)
+        arr = result.to_numpy()
+        assert arr[0, 0] == 10.0
+        assert arr[0, 1] == 100.0
+
+    def test_metadata_roundtrip(self, table_basic):
+        result = table_basic.apply_xarray(lambda da: da * 1)
+        assert result.names == table_basic.names
+        assert result.units == table_basic.units
+        assert result.frequency == table_basic.frequency

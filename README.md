@@ -2,7 +2,7 @@
 
 # TimeDataModel
 
-**A lightweight Python data model for time series data with native bridges to pandas, numpy, and polars.**
+**A lightweight Python data model for time series data with native bridges to numpy, pandas, polars, and xarray.**
 
 <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square"></a>
 <a href="https://pypi.org/project/timedatamodel/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/timedatamodel?color=blue&style=flat-square"></a>
@@ -44,6 +44,38 @@
 | 🗺️&nbsp;`GeoLocation` / `GeoArea` | Geographic point and polygon types with distance, bearing, and containment |
 | ⏱️&nbsp;`Frequency` | ISO 8601 duration-based frequencies (`PT1H`, `P1D`, `P1M`, etc.) |
 | 🏷️&nbsp;`DataType` | Classification enum: `MEASUREMENT`, `FORECAST`, `SCENARIO`, `CLIMATE`, etc. |
+
+---
+
+## 🔌 Integrations
+
+Each class provides `to_X`, `from_X`, and `apply_X` bridges to popular array and dataframe libraries.
+
+### TimeSeries
+
+| | numpy | pandas | polars | xarray |
+| :--- | :---: | :---: | :---: | :---: |
+| `to_X` | ✅ | ✅ | ✅ | ✅ |
+| `from_X` | — | ✅ | ✅ | ✅ |
+| `apply_X` | ✅ | ✅ | ✅ | ✅ |
+
+### TimeSeriesTable
+
+| | numpy | pandas | polars | xarray |
+| :--- | :---: | :---: | :---: | :---: |
+| `to_X` | ✅ | ✅ | ✅ | ✅ |
+| `from_X` | — | ✅ | — | ✅ |
+| `apply_X` | ✅ | ✅ | ✅ | ✅ |
+
+### TimeSeriesCube
+
+| | numpy | pandas | polars | xarray |
+| :--- | :---: | :---: | :---: | :---: |
+| `to_X` | ✅ | ✅ | — | ✅ |
+| `from_X` | ✅ | — | — | ✅ |
+| `apply_X` | — | ✅¹ | ✅¹ | ✅ |
+
+¹ Gated: raises `ValueError` if the cube has more than 2 non-time dimensions.
 
 ---
 

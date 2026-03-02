@@ -3,14 +3,19 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from html import escape
+from itertools import product
 
 import numpy as np
 
 from ._base import (
+    _MAX_COL_PREVIEW,
     _MAX_PREVIEW,
+    _REPR_CSS,
     _TimeSeriesBase,
     _build_repr_html,
+    _fmt_short_date,
     _import_pandas,
+    _xarray_labels_to_list,
 )
 from .coverage import CoverageBar
 from .enums import DataType, Frequency
@@ -147,6 +152,7 @@ class TimeSeriesCube:
         remaining_dims = list(self.dimensions)
         values = self._values
 
+        any_scalar = False
         for dim_name, selector in kwargs.items():
             axis = next(
                 i for i, d in enumerate(remaining_dims) if d.name == dim_name
@@ -161,6 +167,7 @@ class TimeSeriesCube:
                 values = values[(slice(None),) * axis + (slc,)]
                 remaining_dims[axis] = Dimension(dim.name, labels[slc])
             else:
+                any_scalar = True
                 try:
                     idx = list(dim.labels).index(selector)
                 except ValueError:
@@ -170,12 +177,19 @@ class TimeSeriesCube:
                 values = np.take(values, idx, axis=axis)
                 remaining_dims.pop(axis)
 
+        if not any_scalar:
+            return TimeSeriesCube(
+                self.frequency, timezone=self.timezone,
+                dimensions=remaining_dims, values=values,
+                **self._meta_kwargs(),
+            )
         return self._maybe_collapse(values, remaining_dims)
 
     def isel(self, **kwargs) -> TimeSeriesCube | "TimeSeriesTable" | "TimeSeries":
         remaining_dims = list(self.dimensions)
         values = self._values
 
+        any_scalar = False
         for dim_name, selector in kwargs.items():
             axis = next(
                 i for i, d in enumerate(remaining_dims) if d.name == dim_name
@@ -186,9 +200,16 @@ class TimeSeriesCube:
                 values = values[(slice(None),) * axis + (selector,)]
                 remaining_dims[axis] = Dimension(dim.name, list(dim.labels)[selector])
             else:
+                any_scalar = True
                 values = np.take(values, selector, axis=axis)
                 remaining_dims.pop(axis)
 
+        if not any_scalar:
+            return TimeSeriesCube(
+                self.frequency, timezone=self.timezone,
+                dimensions=remaining_dims, values=values,
+                **self._meta_kwargs(),
+            )
         return self._maybe_collapse(values, remaining_dims)
 
     def _maybe_collapse(self, values, remaining_dims):
@@ -295,6 +316,300 @@ class TimeSeriesCube:
         flat = np.ma.filled(self._values, fill_value=np.nan).ravel()
         col_name = self.name or "value"
         return pd.DataFrame({col_name: flat}, index=index)
+
+    def to_xarray(self) -> "xr.DataArray":
+        """Convert to an xarray DataArray.
+
+        Each ``Dimension`` becomes a named coordinate.  Masked values are
+        exported as ``NaN``.  Metadata is stored in ``DataArray.attrs`` so
+        that ``from_xarray`` can round-trip it.
+        """
+        import json
+        import xarray as xr
+
+        data = np.ma.filled(self._values, fill_value=np.nan)
+        coords = {d.name: list(d.labels) for d in self.dimensions}
+        dims = list(self.dim_names)
+
+        attrs: dict[str, str] = {
+            "frequency": str(self.frequency),
+            "timezone": self.timezone,
+        }
+        if self.unit is not None:
+            attrs["unit"] = self.unit
+        if self.description is not None:
+            attrs["description"] = self.description
+        if self.data_type is not None:
+            attrs["data_type"] = str(self.data_type)
+        if self.attributes:
+            attrs["attributes"] = json.dumps(self.attributes)
+
+        return xr.DataArray(
+            data, coords=coords, dims=dims, name=self.name, attrs=attrs,
+        )
+
+    @classmethod
+    def from_xarray(
+        cls,
+        da: "xr.DataArray",
+        frequency: Frequency | None = None,
+        *,
+        timezone: str | None = None,
+        name: str | None = None,
+        unit: str | None = None,
+        description: str | None = None,
+        data_type: DataType | None = None,
+        attributes: dict[str, str] | None = None,
+    ) -> "TimeSeriesCube":
+        """Construct a ``TimeSeriesCube`` from an ``xr.DataArray``.
+
+        Metadata is read from ``da.attrs`` but explicit keyword arguments
+        take precedence.
+        """
+        import json
+
+        dimensions = [
+            Dimension(dim, _xarray_labels_to_list(da.coords[dim].values))
+            for dim in da.dims
+        ]
+
+        raw = da.values.astype(np.float64)
+        mask = np.isnan(raw)
+        values = np.ma.MaskedArray(raw, mask=mask)
+
+        freq = frequency if frequency is not None else Frequency(da.attrs.get("frequency", str(Frequency.NONE)))
+        tz = timezone if timezone is not None else da.attrs.get("timezone", "UTC")
+        nm = name if name is not None else da.name
+        un = unit if unit is not None else da.attrs.get("unit")
+        desc = description if description is not None else da.attrs.get("description")
+        dt_ = data_type if data_type is not None else (
+            DataType(da.attrs["data_type"]) if "data_type" in da.attrs else None
+        )
+        attrs = attributes if attributes is not None else (
+            json.loads(da.attrs["attributes"]) if "attributes" in da.attrs else {}
+        )
+
+        return cls(
+            freq,
+            timezone=tz,
+            name=nm,
+            unit=un,
+            description=desc,
+            data_type=dt_,
+            attributes=attrs,
+            dimensions=dimensions,
+            values=values,
+        )
+
+    # ---- apply methods -------------------------------------------------------
+
+    def apply_xarray(self, func) -> TimeSeriesCube:
+        """Apply an xarray transformation, reading metadata from result.attrs with self as fallback."""
+        import json
+
+        da = self.to_xarray()
+        result = func(da)
+        return TimeSeriesCube.from_xarray(
+            result,
+            frequency=Frequency(result.attrs.get("frequency", str(self.frequency))),
+            timezone=result.attrs.get("timezone", self.timezone),
+            name=result.name if result.name is not None else self.name,
+            unit=result.attrs.get("unit", self.unit),
+            description=result.attrs.get("description", self.description),
+            data_type=(
+                DataType(result.attrs["data_type"])
+                if "data_type" in result.attrs
+                else self.data_type
+            ),
+            attributes=(
+                json.loads(result.attrs["attributes"])
+                if "attributes" in result.attrs
+                else self.attributes
+            ),
+        )
+
+    def _non_time_dims(self):
+        """Return list of dimensions that are not the primary time dimension."""
+        ptd = self.primary_time_dim
+        return [d for d in self.dimensions if d.name != ptd.name]
+
+    def _cube_to_pandas_df(self, non_time):
+        """Convert cube to a pandas DataFrame with time index and non-time columns."""
+        import xarray as xr
+
+        pd = _import_pandas()
+        da = self.to_xarray()
+        ptd_name = self.primary_time_dim.name
+
+        if len(non_time) == 0:
+            series = da.to_series()
+            return series.to_frame(name=da.name or "value")
+        elif len(non_time) == 1:
+            return da.transpose(ptd_name, non_time[0].name).to_pandas()
+        else:
+            stack_dims = tuple(d.name for d in non_time)
+            stacked = da.stack(columns=stack_dims).transpose(ptd_name, "columns")
+            return stacked.to_pandas()
+
+    def _pandas_df_to_xr(self, result_df, non_time, da):
+        """Convert a pandas DataFrame back to an xarray DataArray."""
+        import xarray as xr
+
+        ptd_name = self.primary_time_dim.name
+
+        if len(non_time) == 0:
+            result_da = xr.DataArray(
+                result_df.iloc[:, 0].values,
+                dims=[ptd_name],
+                coords={ptd_name: result_df.index},
+                name=da.name,
+            )
+        elif len(non_time) == 1:
+            dim_name = non_time[0].name
+            result_da = xr.DataArray(
+                result_df.values,
+                dims=[ptd_name, dim_name],
+                coords={
+                    ptd_name: result_df.index,
+                    dim_name: list(result_df.columns),
+                },
+                name=da.name,
+            )
+        else:
+            stack_dims = tuple(d.name for d in non_time)
+            result_da = xr.DataArray.from_series(
+                result_df.stack(list(stack_dims))
+            ).unstack(list(stack_dims))
+            result_da = result_da.transpose(ptd_name, *stack_dims)
+            result_da.name = da.name
+
+        # Restore original dimension order
+        original_dims = list(da.dims)
+        if set(result_da.dims) == set(original_dims):
+            result_da = result_da.transpose(*original_dims)
+
+        for key, val in da.attrs.items():
+            if key not in result_da.attrs:
+                result_da.attrs[key] = val
+
+        return result_da
+
+    def apply_pandas(self, func) -> TimeSeriesCube:
+        """Apply a pandas transformation to the cube as a DataFrame.
+
+        Gated to cubes with at most 2 non-time dimensions.
+        """
+        pd = _import_pandas()
+
+        non_time = self._non_time_dims()
+        if len(non_time) > 2:
+            raise ValueError(
+                f"apply_pandas requires at most 2 non-time dimensions, "
+                f"got {len(non_time)}: {[d.name for d in non_time]}"
+            )
+
+        da = self.to_xarray()
+        df = self._cube_to_pandas_df(non_time)
+        result_df = func(df)
+        result_da = self._pandas_df_to_xr(result_df, non_time, da)
+
+        freq_df = pd.DataFrame(
+            {"_v": 0.0},
+            index=(
+                result_df.index
+                if isinstance(result_df.index, pd.DatetimeIndex)
+                else pd.DatetimeIndex(result_df.index)
+            ),
+        )
+        new_freq, new_tz = _TimeSeriesBase._infer_freq_tz(
+            freq_df, self.frequency, self.timezone,
+        )
+
+        return TimeSeriesCube.from_xarray(
+            result_da,
+            frequency=new_freq,
+            timezone=new_tz,
+            name=self.name,
+            unit=self.unit,
+            description=self.description,
+            data_type=self.data_type,
+            attributes=self.attributes,
+        )
+
+    def apply_polars(self, func) -> TimeSeriesCube:
+        """Apply a polars transformation to the cube as a DataFrame.
+
+        Gated to cubes with at most 2 non-time dimensions.
+        """
+        non_time = self._non_time_dims()
+        if len(non_time) > 2:
+            raise ValueError(
+                f"apply_polars requires at most 2 non-time dimensions, "
+                f"got {len(non_time)}: {[d.name for d in non_time]}"
+            )
+
+        try:
+            import polars as pl
+        except ImportError as e:
+            raise ImportError(
+                "polars is required for apply_polars(). "
+                "Install it with: pip install timedatamodel[polars]"
+            ) from e
+
+        pd = _import_pandas()
+        da = self.to_xarray()
+        ptd_name = self.primary_time_dim.name
+
+        pdf = self._cube_to_pandas_df(non_time)
+
+        # Flatten MultiIndex columns to strings for polars compatibility
+        original_columns = pdf.columns
+        if hasattr(original_columns, 'to_flat_index'):
+            pdf.columns = [str(c) for c in original_columns]
+
+        # Build polars DataFrame manually to avoid pyarrow dependency
+        data: dict = {ptd_name: list(pdf.index)}
+        for col in pdf.columns:
+            data[str(col)] = pdf[col].values
+        pl_df = pl.DataFrame(data)
+
+        result_pl = func(pl_df)
+
+        # Reconstruct pandas DataFrame from polars result
+        ts_list = result_pl[ptd_name].to_list()
+        result_pdf = pd.DataFrame(
+            {c: result_pl[c].to_numpy(allow_copy=True)
+             for c in result_pl.columns if c != ptd_name},
+            index=pd.DatetimeIndex(ts_list, name=ptd_name),
+        )
+
+        # Restore original column types
+        if hasattr(original_columns, 'to_flat_index') and len(non_time) == 2:
+            import ast
+            non_time_names = [d.name for d in non_time]
+            tuples = []
+            for c in result_pdf.columns:
+                try:
+                    tuples.append(ast.literal_eval(c))
+                except (ValueError, SyntaxError):
+                    tuples.append(c)
+            if all(isinstance(t, tuple) for t in tuples):
+                result_pdf.columns = pd.MultiIndex.from_tuples(
+                    tuples, names=non_time_names,
+                )
+
+        result_da = self._pandas_df_to_xr(result_pdf, non_time, da)
+
+        return TimeSeriesCube.from_xarray(
+            result_da,
+            frequency=self.frequency,
+            timezone=self.timezone,
+            name=self.name,
+            unit=self.unit,
+            description=self.description,
+            data_type=self.data_type,
+            attributes=self.attributes,
+        )
 
     # ---- class method constructors -------------------------------------------
 
@@ -440,36 +755,195 @@ class TimeSeriesCube:
         if self.unit:
             meta_rows.append(("Unit", escape(self.unit)))
 
-        # Build a 2D preview slice: first two dims, index 0 on remaining
         if n_dims >= 2:
-            # Slice down to 2D
-            slice_vals = self._values
-            slice_dims = list(self.dimensions)
-            while len(slice_dims) > 2:
-                slice_vals = np.take(slice_vals, 0, axis=len(slice_dims) - 1)
-                slice_dims = slice_dims[:-1]
+            # Classify dimensions: datetime → rows, others → columns
+            row_dims: list[Dimension] = []
+            col_dims: list[Dimension] = []
+            for d in self.dimensions:
+                if d.labels and isinstance(d.labels[0], datetime):
+                    row_dims.append(d)
+                else:
+                    col_dims.append(d)
+            # Edge: all datetime → move last to columns
+            if not col_dims:
+                col_dims.append(row_dims.pop())
+            # Edge: no datetime → move first to rows
+            elif not row_dims:
+                row_dims.append(col_dims.pop(0))
 
-            dim0 = slice_dims[0]
-            dim1 = slice_dims[1]
-            n_rows = len(dim0.labels)
-            col_names = tuple(str(lbl) for lbl in dim1.labels)
+            # Map dimension names to original axis indices
+            dim_to_axis = {d.name: i for i, d in enumerate(self.dimensions)}
 
-            def _html_row(i: int) -> str:
-                ts_cell = f"<td>{escape(str(dim0.labels[i]))}</td>"
-                val_cells = "".join(
-                    f"<td>{escape(_TimeSeriesBase._fmt_value(float(v)))}</td>"
-                    for v in np.ma.filled(slice_vals[i], fill_value=np.nan)
-                )
-                return f"<tr>{ts_cell}{val_cells}</tr>"
-
-            return _build_repr_html(
-                class_name=type(self).__name__,
-                meta_rows=meta_rows,
-                index_names=(dim0.name,),
-                column_names=col_names,
-                n_rows=n_rows,
-                html_row_fn=_html_row,
+            # Cross-product index combinations
+            row_combos = list(
+                product(*(range(len(d.labels)) for d in row_dims))
             )
+            col_combos = list(
+                product(*(range(len(d.labels)) for d in col_dims))
+            )
+            n_rows = len(row_combos)
+            n_cols = len(col_combos)
+            n_col_levels = len(col_dims)
+
+            # Visible row indices (truncation)
+            show_all_rows = n_rows <= _MAX_PREVIEW * 2 + 1
+            if show_all_rows:
+                vis_rows = list(range(n_rows))
+            else:
+                vis_rows = list(range(_MAX_PREVIEW)) + list(
+                    range(n_rows - _MAX_PREVIEW, n_rows)
+                )
+
+            # Visible column indices (truncation)
+            show_all_cols = n_cols <= _MAX_COL_PREVIEW * 2 + 1
+            if show_all_cols:
+                vis_cols = list(range(n_cols))
+            else:
+                vis_cols = list(range(_MAX_COL_PREVIEW)) + list(
+                    range(n_cols - _MAX_COL_PREVIEW, n_cols)
+                )
+
+            def _fmt_label(label):
+                if isinstance(label, datetime):
+                    return _fmt_short_date(label)
+                return str(label)
+
+            # ---- build <thead> ----
+            def _group_header(indices, level):
+                """Group consecutive column indices by label at *level*."""
+                cells: list[str] = []
+                if not indices:
+                    return cells
+                cur_lbl = col_combos[indices[0]][level]
+                cur_cnt = 1
+                for k in range(1, len(indices)):
+                    lbl = col_combos[indices[k]][level]
+                    if lbl == cur_lbl:
+                        cur_cnt += 1
+                    else:
+                        txt = escape(
+                            _fmt_label(col_dims[level].labels[cur_lbl])
+                        )
+                        cells.append(
+                            f'<th colspan="{cur_cnt}">{txt}</th>'
+                            if cur_cnt > 1
+                            else f"<th>{txt}</th>"
+                        )
+                        cur_lbl = lbl
+                        cur_cnt = 1
+                txt = escape(_fmt_label(col_dims[level].labels[cur_lbl]))
+                cells.append(
+                    f'<th colspan="{cur_cnt}">{txt}</th>'
+                    if cur_cnt > 1
+                    else f"<th>{txt}</th>"
+                )
+                return cells
+
+            thead_rows: list[str] = []
+            for level in range(n_col_levels):
+                tr: list[str] = []
+                if level == 0:
+                    for rd in row_dims:
+                        if n_col_levels > 1:
+                            tr.append(
+                                f'<th rowspan="{n_col_levels}">'
+                                f"{escape(rd.name)}</th>"
+                            )
+                        else:
+                            tr.append(f"<th>{escape(rd.name)}</th>")
+                if not show_all_cols:
+                    head_cells = _group_header(
+                        vis_cols[:_MAX_COL_PREVIEW], level
+                    )
+                    tail_cells = _group_header(
+                        vis_cols[_MAX_COL_PREVIEW:], level
+                    )
+                    tr.extend(head_cells)
+                    tr.append("<th>&hellip;</th>")
+                    tr.extend(tail_cells)
+                else:
+                    tr.extend(_group_header(vis_cols, level))
+                thead_rows.append(f'<tr>{"".join(tr)}</tr>')
+
+            # ---- build <tbody> ----
+            def _data_row(ri):
+                rc = row_combos[ri]
+                cells: list[str] = []
+                for rl, rd in enumerate(row_dims):
+                    lbl = _fmt_label(rd.labels[rc[rl]])
+                    cells.append(
+                        f'<td class="ts-idx">{escape(lbl)}</td>'
+                    )
+                for k, ci in enumerate(vis_cols):
+                    cc = col_combos[ci]
+                    idx = [0] * len(self.dimensions)
+                    for rl, rd in enumerate(row_dims):
+                        idx[dim_to_axis[rd.name]] = rc[rl]
+                    for cl, cd in enumerate(col_dims):
+                        idx[dim_to_axis[cd.name]] = cc[cl]
+                    v = float(
+                        np.ma.filled(
+                            self._values[tuple(idx)], fill_value=np.nan
+                        )
+                    )
+                    cells.append(
+                        f"<td>"
+                        f"{escape(_TimeSeriesBase._fmt_value(v))}</td>"
+                    )
+                    if not show_all_cols and k == _MAX_COL_PREVIEW - 1:
+                        cells.append(
+                            '<td class="ts-ellipsis">&hellip;</td>'
+                        )
+                return f'<tr>{"".join(cells)}</tr>'
+
+            tbody: list[str] = []
+            head_vis = (
+                vis_rows[:_MAX_PREVIEW] if not show_all_rows else vis_rows
+            )
+            tail_vis = (
+                vis_rows[_MAX_PREVIEW:] if not show_all_rows else []
+            )
+            for ri in head_vis:
+                tbody.append(_data_row(ri))
+
+            if not show_all_rows:
+                n_td = (
+                    len(row_dims)
+                    + len(vis_cols)
+                    + (1 if not show_all_cols else 0)
+                )
+                ell = "".join(
+                    '<td class="ts-ellipsis">&hellip;</td>'
+                    for _ in range(n_td)
+                )
+                tbody.append(f"<tr>{ell}</tr>")
+                for ri in tail_vis:
+                    tbody.append(_data_row(ri))
+
+            # ---- assemble HTML ----
+            html = [_REPR_CSS, '<div class="ts-repr">']
+            html.append(
+                f'<div class="ts-header">'
+                f"{escape(type(self).__name__)}</div>"
+            )
+            html.append('<div class="ts-meta"><table>')
+            for label, value in meta_rows:
+                html.append(
+                    f"<tr><td>{escape(label)}</td><td>{value}</td></tr>"
+                )
+            html.append("</table></div>")
+            html.append('<div class="ts-data"><table>')
+            html.append("<thead>")
+            for tr_str in thead_rows:
+                html.append(tr_str)
+            html.append("</thead>")
+            html.append("<tbody>")
+            for tr_str in tbody:
+                html.append(tr_str)
+            html.append("</tbody>")
+            html.append("</table></div>")
+            html.append("</div>")
+            return "\n".join(html)
         elif n_dims == 1:
             dim0 = self.dimensions[0]
             n_rows = len(dim0.labels)

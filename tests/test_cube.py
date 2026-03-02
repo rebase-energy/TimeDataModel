@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pandas as pd
 import pytest
+import xarray as xr
 
 import timedatamodel as tdm
 
@@ -172,8 +173,8 @@ class TestSel:
     def test_slice_keeps_axis(self, cube_2d, timestamps_5h):
         t0, t1 = timestamps_5h[0], timestamps_5h[2]
         result = cube_2d.sel(valid_time=slice(t0, t1))
-        assert isinstance(result, tdm.TimeSeriesTable)
-        assert len(result) == 3
+        assert isinstance(result, tdm.TimeSeriesCube)
+        assert result.shape == (3, 3)
 
     def test_multi_kwarg_collapse_to_timeseries(self, cube_3d, timestamps_5h):
         result = cube_3d.sel(scenario="low", quantile=0.5)
@@ -208,8 +209,8 @@ class TestIsel:
 
     def test_slice_keeps_axis(self, cube_2d):
         result = cube_2d.isel(valid_time=slice(0, 3))
-        assert isinstance(result, tdm.TimeSeriesTable)
-        assert len(result) == 3
+        assert isinstance(result, tdm.TimeSeriesCube)
+        assert result.shape == (3, 3)
 
     def test_isel_3d(self, cube_3d):
         result = cube_3d.isel(scenario=0, quantile=1)
@@ -355,6 +356,134 @@ class TestRepr:
 
 
 # ---------------------------------------------------------------------------
+# TestReprHtmlMultiIndex
+# ---------------------------------------------------------------------------
+
+class TestReprHtmlMultiIndex:
+    def test_4d_cube_multi_index(self):
+        """4D cube: datetime dims as row headers, non-datetime as column headers."""
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        kt = [base + timedelta(hours=h) for h in range(3)]
+        vt = [base + timedelta(hours=h) for h in range(10)]
+        farms = ["A", "B", "C"]
+        quantiles = [0.1, 0.5, 0.9]
+        data = np.arange(3 * 10 * 3 * 3, dtype=np.float64).reshape(3, 10, 3, 3)
+        dims = [
+            tdm.Dimension("knowledge_time", kt),
+            tdm.Dimension("valid_time", vt),
+            tdm.Dimension("wind_farm", farms),
+            tdm.Dimension("quantile", quantiles),
+        ]
+        cube = tdm.TimeSeriesCube(tdm.Frequency.PT1H, dimensions=dims, values=data)
+        html = cube._repr_html_()
+
+        # Both datetime dims in row headers
+        assert "knowledge_time" in html
+        assert "valid_time" in html
+
+        # Non-datetime dim labels in column headers
+        for farm in farms:
+            assert farm in html
+        for q in quantiles:
+            assert str(q) in html
+
+        # colspan present for wind_farm grouping
+        assert "colspan" in html
+
+        # Row truncation present (3*10=30 combos > 7)
+        assert "&hellip;" in html
+
+        # Class name
+        assert "TimeSeriesCube" in html
+
+        # ts-idx class used for row index cells
+        assert 'class="ts-idx"' in html
+
+    def test_all_datetime_dims_edge_case(self):
+        """All datetime dims: last moves to columns."""
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        kt = [base, base + timedelta(hours=12), base + timedelta(hours=24)]
+        vt = [base + timedelta(hours=i) for i in range(5)]
+        data = np.arange(15, dtype=np.float64).reshape(3, 5)
+        dims = [
+            tdm.Dimension("knowledge_time", kt),
+            tdm.Dimension("valid_time", vt),
+        ]
+        cube = tdm.TimeSeriesCube(tdm.Frequency.PT1H, dimensions=dims, values=data)
+        html = cube._repr_html_()
+
+        # knowledge_time should be row dim name in header
+        assert "knowledge_time" in html
+        # valid_time labels should appear as column headers (formatted dates)
+        assert "2024-01-01 01:00" in html  # one of the valid_time labels
+        assert "TimeSeriesCube" in html
+
+    def test_no_datetime_dims_edge_case(self):
+        """No datetime dims: first col dim moves to rows."""
+        data = np.arange(9, dtype=np.float64).reshape(3, 3)
+        dims = [
+            tdm.Dimension("scenario", ["A", "B", "C"]),
+            tdm.Dimension("quantile", [0.1, 0.5, 0.9]),
+        ]
+        cube = tdm.TimeSeriesCube(tdm.Frequency.NONE, dimensions=dims, values=data)
+        html = cube._repr_html_()
+
+        # scenario should be in row header
+        assert "scenario" in html
+        # quantile labels should appear in column headers
+        assert "0.1" in html
+        assert "0.9" in html
+        # scenario labels appear as row index values
+        assert "A" in html
+        assert "C" in html
+        assert "TimeSeriesCube" in html
+
+    def test_2d_cube_natural(self):
+        """2D cube: 1 row dim (datetime), 1 col dim (non-datetime)."""
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        vt = [base + timedelta(hours=i) for i in range(5)]
+        data = np.arange(15, dtype=np.float64).reshape(3, 5)
+        dims = [
+            tdm.Dimension("scenario", ["low", "mid", "high"]),
+            tdm.Dimension("valid_time", vt),
+        ]
+        cube = tdm.TimeSeriesCube(tdm.Frequency.PT1H, dimensions=dims, values=data)
+        html = cube._repr_html_()
+
+        # valid_time is row dim
+        assert "valid_time" in html
+        # scenario labels in column headers
+        assert "low" in html
+        assert "high" in html
+        assert "TimeSeriesCube" in html
+
+    def test_column_truncation(self):
+        """Column truncation when leaf columns > 9."""
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        vt = [base + timedelta(hours=i) for i in range(3)]
+        farms = ["F1", "F2", "F3", "F4"]
+        quantiles = [0.1, 0.25, 0.5, 0.75, 0.9]
+        # 4 * 5 = 20 leaf columns > 9 → truncation
+        data = np.arange(3 * 4 * 5, dtype=np.float64).reshape(3, 4, 5)
+        dims = [
+            tdm.Dimension("valid_time", vt),
+            tdm.Dimension("wind_farm", farms),
+            tdm.Dimension("quantile", quantiles),
+        ]
+        cube = tdm.TimeSeriesCube(tdm.Frequency.PT1H, dimensions=dims, values=data)
+        html = cube._repr_html_()
+
+        # Column truncation ellipsis present
+        assert "&hellip;" in html
+        # Head farms visible
+        assert "F1" in html
+        # Tail farms visible
+        assert "F4" in html
+        # colspan for farm grouping
+        assert "colspan" in html
+
+
+# ---------------------------------------------------------------------------
 # TestNDTimeSeriesAlias
 # ---------------------------------------------------------------------------
 
@@ -383,3 +512,198 @@ class TestEquality:
 
     def test_hash_is_none(self):
         assert tdm.TimeSeriesCube.__hash__ is None
+
+
+# ---------------------------------------------------------------------------
+# TestXarray
+# ---------------------------------------------------------------------------
+
+class TestXarray:
+    def test_to_xarray_2d(self, cube_2d):
+        da = cube_2d.to_xarray()
+        assert isinstance(da, xr.DataArray)
+        assert da.dims == ("scenario", "valid_time")
+        assert da.shape == (3, 5)
+        assert da.name == "power"
+        assert da.attrs["frequency"] == str(tdm.Frequency.PT1H)
+        assert da.attrs["timezone"] == "UTC"
+        assert da.attrs["unit"] == "MW"
+
+    def test_to_xarray_3d(self, cube_3d):
+        da = cube_3d.to_xarray()
+        assert da.dims == ("scenario", "valid_time", "quantile")
+        assert da.shape == (2, 5, 3)
+
+    def test_to_xarray_masked_to_nan(self, timestamps_5h):
+        data = np.array([[1.0, np.nan, 3.0, 4.0, 5.0]])
+        dims = [tdm.Dimension("scenario", ["a"]), tdm.Dimension("valid_time", timestamps_5h)]
+        cube = tdm.TimeSeriesCube(tdm.Frequency.PT1H, dimensions=dims, values=data)
+        da = cube.to_xarray()
+        assert np.isnan(da.values[0, 1])
+        assert da.values[0, 0] == 1.0
+
+    def test_to_xarray_metadata_in_attrs(self, timestamps_5h):
+        data = np.ones((2, 5))
+        dims = [tdm.Dimension("scenario", ["a", "b"]), tdm.Dimension("valid_time", timestamps_5h)]
+        cube = tdm.TimeSeriesCube(
+            tdm.Frequency.PT1H, dimensions=dims, values=data,
+            name="test", unit="kW", description="desc",
+            data_type=tdm.DataType.ACTUAL,
+            attributes={"key": "val"},
+        )
+        da = cube.to_xarray()
+        assert da.attrs["unit"] == "kW"
+        assert da.attrs["description"] == "desc"
+        assert da.attrs["data_type"] == str(tdm.DataType.ACTUAL)
+        assert "key" in da.attrs["attributes"]
+
+    def test_round_trip_2d(self, cube_2d):
+        da = cube_2d.to_xarray()
+        restored = tdm.TimeSeriesCube.from_xarray(da)
+        assert cube_2d.equals(restored)
+
+    def test_round_trip_3d(self, cube_3d):
+        da = cube_3d.to_xarray()
+        restored = tdm.TimeSeriesCube.from_xarray(da)
+        assert cube_3d.equals(restored)
+
+    def test_round_trip_preserves_metadata(self, timestamps_5h):
+        data = np.ones((2, 5))
+        dims = [tdm.Dimension("scenario", ["a", "b"]), tdm.Dimension("valid_time", timestamps_5h)]
+        cube = tdm.TimeSeriesCube(
+            tdm.Frequency.PT1H, dimensions=dims, values=data,
+            name="power", unit="MW", description="test desc",
+            data_type=tdm.DataType.FORECAST,
+            attributes={"source": "model"},
+        )
+        restored = tdm.TimeSeriesCube.from_xarray(cube.to_xarray())
+        assert restored.name == "power"
+        assert restored.unit == "MW"
+        assert restored.description == "test desc"
+        assert restored.data_type == tdm.DataType.FORECAST
+        assert restored.attributes == {"source": "model"}
+
+    def test_round_trip_string_and_float_labels(self, timestamps_5h):
+        dims = [
+            tdm.Dimension("scenario", ["low", "mid", "high"]),
+            tdm.Dimension("valid_time", timestamps_5h),
+            tdm.Dimension("quantile", [0.1, 0.5, 0.9]),
+        ]
+        data = np.arange(3 * 5 * 3, dtype=np.float64).reshape(3, 5, 3)
+        cube = tdm.TimeSeriesCube(tdm.Frequency.PT1H, dimensions=dims, values=data)
+        restored = tdm.TimeSeriesCube.from_xarray(cube.to_xarray())
+        assert cube.equals(restored)
+
+    def test_from_xarray_explicit_kwargs_override(self, cube_2d):
+        da = cube_2d.to_xarray()
+        restored = tdm.TimeSeriesCube.from_xarray(
+            da, frequency=tdm.Frequency.P1D, timezone="CET",
+            name="overridden", unit="GW",
+        )
+        assert restored.frequency == tdm.Frequency.P1D
+        assert restored.timezone == "CET"
+        assert restored.name == "overridden"
+        assert restored.unit == "GW"
+
+    def test_round_trip_masked_values(self, timestamps_5h):
+        data = np.array([[1.0, np.nan, 3.0, np.nan, 5.0]])
+        dims = [tdm.Dimension("s", ["a"]), tdm.Dimension("valid_time", timestamps_5h)]
+        cube = tdm.TimeSeriesCube(tdm.Frequency.PT1H, dimensions=dims, values=data)
+        restored = tdm.TimeSeriesCube.from_xarray(cube.to_xarray())
+        assert cube.equals(restored)
+
+
+# ---------------------------------------------------------------------------
+# TestCubeApplyXarray
+# ---------------------------------------------------------------------------
+
+class TestCubeApplyXarray:
+    def test_arithmetic_2d(self, cube_2d):
+        result = cube_2d.apply_xarray(lambda da: da * 10)
+        expected = cube_2d.to_numpy() * 10
+        np.testing.assert_array_almost_equal(
+            np.ma.filled(result.to_numpy(), np.nan),
+            np.ma.filled(expected, np.nan),
+        )
+
+    def test_arithmetic_3d(self, cube_3d):
+        result = cube_3d.apply_xarray(lambda da: da + 1)
+        expected = cube_3d.to_numpy() + 1
+        np.testing.assert_array_almost_equal(
+            np.ma.filled(result.to_numpy(), np.nan),
+            np.ma.filled(expected, np.nan),
+        )
+
+    def test_metadata_preserved(self, cube_2d):
+        result = cube_2d.apply_xarray(lambda da: da * 1)
+        assert result.name == cube_2d.name
+        assert result.unit == cube_2d.unit
+        assert result.frequency == cube_2d.frequency
+        assert result.timezone == cube_2d.timezone
+
+
+# ---------------------------------------------------------------------------
+# TestCubeApplyPandas
+# ---------------------------------------------------------------------------
+
+class TestCubeApplyPandas:
+    def test_2d_arithmetic(self, cube_2d):
+        result = cube_2d.apply_pandas(lambda df: df * 10)
+        expected = cube_2d.to_numpy() * 10
+        np.testing.assert_array_almost_equal(
+            np.ma.filled(result.to_numpy(), np.nan),
+            np.ma.filled(expected, np.nan),
+        )
+
+    def test_metadata_preserved(self, cube_2d):
+        result = cube_2d.apply_pandas(lambda df: df * 1)
+        assert result.name == cube_2d.name
+        assert result.unit == cube_2d.unit
+
+    def test_4d_cube_raises(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(3)]
+        data = np.ones((2, 3, 4, 2))
+        dims = [
+            tdm.Dimension("scenario", ["a", "b"]),
+            tdm.Dimension("valid_time", ts),
+            tdm.Dimension("quantile", [0.1, 0.25, 0.5, 0.9]),
+            tdm.Dimension("model", ["m1", "m2"]),
+        ]
+        cube = tdm.TimeSeriesCube(tdm.Frequency.PT1H, dimensions=dims, values=data)
+        with pytest.raises(ValueError, match="at most 2 non-time"):
+            cube.apply_pandas(lambda df: df)
+
+
+# ---------------------------------------------------------------------------
+# TestCubeApplyPolars
+# ---------------------------------------------------------------------------
+
+class TestCubeApplyPolars:
+    def test_2d_arithmetic(self, cube_2d):
+        import polars as pl
+
+        result = cube_2d.apply_polars(
+            lambda df: df.with_columns([
+                pl.col(c) * 10 for c in df.columns if c != "valid_time"
+            ])
+        )
+        expected = cube_2d.to_numpy() * 10
+        np.testing.assert_array_almost_equal(
+            np.ma.filled(result.to_numpy(), np.nan),
+            np.ma.filled(expected, np.nan),
+        )
+
+    def test_4d_cube_raises(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = [base + timedelta(hours=i) for i in range(3)]
+        data = np.ones((2, 3, 4, 2))
+        dims = [
+            tdm.Dimension("scenario", ["a", "b"]),
+            tdm.Dimension("valid_time", ts),
+            tdm.Dimension("quantile", [0.1, 0.25, 0.5, 0.9]),
+            tdm.Dimension("model", ["m1", "m2"]),
+        ]
+        cube = tdm.TimeSeriesCube(tdm.Frequency.PT1H, dimensions=dims, values=data)
+        with pytest.raises(ValueError, match="at most 2 non-time"):
+            cube.apply_polars(lambda df: df)
