@@ -15,6 +15,8 @@ from ._base import (
     _build_repr_html,
     _fmt_short_date,
     _import_pandas,
+    _import_polars,
+    _render_box,
     _xarray_labels_to_list,
 )
 from .coverage import CoverageBar
@@ -548,13 +550,7 @@ class TimeSeriesArray:
                 f"got {len(non_time)}: {[d.name for d in non_time]}"
             )
 
-        try:
-            import polars as pl
-        except ImportError as e:
-            raise ImportError(
-                "polars is required for apply_polars(). "
-                "Install it with: pip install timedatamodel[polars]"
-            ) from e
+        pl = _import_polars()
 
         pd = _import_pandas()
         da = self.to_xarray()
@@ -727,19 +723,7 @@ class TimeSeriesArray:
                     f"{'Masked:':<{label_w}}{n_masked}/{total} ({pct:.1f}%)"
                 )
 
-        # Box drawing
-        padding = 2
-        max_w = max(len(line) for line in meta_lines)
-        box_inner = max_w + padding * 2
-
-        lines: list[str] = [class_name]
-        lines.append("\u250c" + "\u2500" * box_inner + "\u2510")
-        for line in meta_lines:
-            lines.append(
-                "\u2502" + " " * padding + line.ljust(max_w) + " " * padding + "\u2502"
-            )
-        lines.append("\u2514" + "\u2500" * box_inner + "\u2518")
-        return "\n".join(lines)
+        return _render_box(class_name, meta_lines)
 
     def _repr_html_(self) -> str:
         n_dims = self.ndim

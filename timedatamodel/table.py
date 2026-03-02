@@ -12,10 +12,13 @@ import numpy as np
 
 from ._base import (
     _MAX_PREVIEW,
+    _DataFrameMixin,
     _TimeSeriesBase,
     _build_repr_html,
     _convert_unit_values,
+    _extract_timestamps_from_pandas_index,
     _import_pandas,
+    _import_polars,
     _validate_timestamp_sequence,
     _xarray_labels_to_list,
 )
@@ -30,8 +33,15 @@ from .location import (
 )
 
 
+def _carry_over(attr: list, new_ncols: int, default_factory) -> list:
+    """Carry over column metadata when column count changes."""
+    if len(attr) == 1 or len(attr) == new_ncols:
+        return list(attr)
+    return [default_factory()]
+
+
 @dataclass(slots=True, repr=False, eq=False)
-class TimeSeriesTable(_TimeSeriesBase):
+class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
     frequency: Frequency
     timezone: str = "UTC"
     names: list[str | None] = field(default_factory=lambda: [None])
@@ -685,14 +695,6 @@ class TimeSeriesTable(_TimeSeriesBase):
         """Shorthand for ``to_numpy()``."""
         return self.to_numpy()
 
-    @property
-    def df(self):
-        """Shorthand for the default DataFrame backend (pandas or polars)."""
-        from ._base import _default_dataframe_backend
-        if _default_dataframe_backend == "polars":
-            return self.to_polars_dataframe()
-        return self.to_pandas_dataframe()
-
     def to_numpy(self) -> np.ndarray:
         """Return values as a 2D numpy float64 array."""
         return self._values.astype(np.float64, copy=True)
@@ -723,13 +725,7 @@ class TimeSeriesTable(_TimeSeriesBase):
 
     def to_polars_dataframe(self):
         """Return a polars DataFrame with timestamp and value columns."""
-        try:
-            import polars as pl
-        except ImportError as e:
-            raise ImportError(
-                "polars is required for to_polars_dataframe(). "
-                "Install it with: pip install timedatamodel[polars]"
-            ) from e
+        pl = _import_polars()
 
         data: dict = {}
         if self.is_multi_index:
@@ -891,24 +887,7 @@ class TimeSeriesTable(_TimeSeriesBase):
     ) -> TimeSeriesTable:
         """Create a TimeSeriesTable from a pandas DataFrame."""
         pd = _import_pandas()
-        if isinstance(df.index, pd.MultiIndex):
-            timestamps = [
-                tuple(
-                    lvl.to_pydatetime()
-                    if hasattr(lvl, "to_pydatetime")
-                    else lvl
-                    for lvl in row
-                )
-                for row in df.index
-            ]
-            index_names = list(df.index.names)
-        elif isinstance(df.index, pd.DatetimeIndex):
-            timestamps = df.index.to_pydatetime().tolist()
-            index_names = None
-        else:
-            raise ValueError(
-                "DataFrame must have a DatetimeIndex or MultiIndex"
-            )
+        timestamps, index_names = _extract_timestamps_from_pandas_index(df)
 
         cols = list(df.columns)
         values = df[cols].to_numpy(dtype=np.float64)
@@ -943,24 +922,7 @@ class TimeSeriesTable(_TimeSeriesBase):
     def update_df(self, df: "pd.DataFrame") -> TimeSeriesTable:
         """Create a new TimeSeriesTable from a DataFrame, preserving metadata."""
         pd = _import_pandas()
-        if isinstance(df.index, pd.MultiIndex):
-            timestamps = [
-                tuple(
-                    lvl.to_pydatetime()
-                    if hasattr(lvl, "to_pydatetime")
-                    else lvl
-                    for lvl in row
-                )
-                for row in df.index
-            ]
-            index_names = list(df.index.names)
-        elif isinstance(df.index, pd.DatetimeIndex):
-            timestamps = df.index.to_pydatetime().tolist()
-            index_names = None
-        else:
-            raise ValueError(
-                "DataFrame must have a DatetimeIndex or MultiIndex"
-            )
+        timestamps, index_names = _extract_timestamps_from_pandas_index(df)
 
         values = df.to_numpy(dtype=np.float64)
         new_freq, new_tz = self._infer_freq_tz(
@@ -969,26 +931,21 @@ class TimeSeriesTable(_TimeSeriesBase):
         new_names = [str(c) for c in df.columns]
         new_ncols = len(df.columns)
 
-        def _carry_over(attr, default_factory):
-            if len(attr) == 1 or len(attr) == new_ncols:
-                return list(attr)
-            return [default_factory()]
-
         return TimeSeriesTable(
             new_freq,
             timezone=new_tz,
             timestamps=timestamps,
             values=values,
             names=new_names,
-            units=_carry_over(self.units, lambda: None),
-            descriptions=_carry_over(self.descriptions, lambda: None),
-            data_types=_carry_over(self.data_types, lambda: None),
-            locations=_carry_over(self.locations, lambda: None),
+            units=_carry_over(self.units, new_ncols, lambda: None),
+            descriptions=_carry_over(self.descriptions, new_ncols, lambda: None),
+            data_types=_carry_over(self.data_types, new_ncols, lambda: None),
+            locations=_carry_over(self.locations, new_ncols, lambda: None),
             timeseries_types=_carry_over(
-                self.timeseries_types, lambda: TimeSeriesType.FLAT
+                self.timeseries_types, new_ncols, lambda: TimeSeriesType.FLAT
             ),
-            attributes=_carry_over(self.attributes, dict),
-            labels=_carry_over(self.labels, dict),
+            attributes=_carry_over(self.attributes, new_ncols, dict),
+            labels=_carry_over(self.labels, new_ncols, dict),
             index_names=index_names,
         )
 
@@ -1253,33 +1210,11 @@ class TimeSeriesTable(_TimeSeriesBase):
             result, self.frequency, self.timezone
         )
 
-        if isinstance(result.index, pd.MultiIndex):
-            timestamps = [
-                tuple(
-                    lvl.to_pydatetime()
-                    if hasattr(lvl, "to_pydatetime")
-                    else lvl
-                    for lvl in row
-                )
-                for row in result.index
-            ]
-            index_names = list(result.index.names)
-        elif isinstance(result.index, pd.DatetimeIndex):
-            timestamps = result.index.to_pydatetime().tolist()
-            index_names = None
-        else:
-            raise ValueError(
-                "apply_pandas result must have a DatetimeIndex or MultiIndex"
-            )
+        timestamps, index_names = _extract_timestamps_from_pandas_index(result)
 
         values = result.to_numpy(dtype=np.float64)
         new_names = [str(c) for c in result.columns]
         new_ncols = len(result.columns)
-
-        def _carry_over(attr, default_factory):
-            if len(attr) == 1 or len(attr) == new_ncols:
-                return list(attr)
-            return [default_factory()]
 
         return TimeSeriesTable(
             new_freq,
@@ -1287,15 +1222,15 @@ class TimeSeriesTable(_TimeSeriesBase):
             timestamps=timestamps,
             values=values,
             names=new_names,
-            units=_carry_over(self.units, lambda: None),
-            descriptions=_carry_over(self.descriptions, lambda: None),
-            data_types=_carry_over(self.data_types, lambda: None),
-            locations=_carry_over(self.locations, lambda: None),
+            units=_carry_over(self.units, new_ncols, lambda: None),
+            descriptions=_carry_over(self.descriptions, new_ncols, lambda: None),
+            data_types=_carry_over(self.data_types, new_ncols, lambda: None),
+            locations=_carry_over(self.locations, new_ncols, lambda: None),
             timeseries_types=_carry_over(
-                self.timeseries_types, lambda: TimeSeriesType.FLAT
+                self.timeseries_types, new_ncols, lambda: TimeSeriesType.FLAT
             ),
-            attributes=_carry_over(self.attributes, dict),
-            labels=_carry_over(self.labels, dict),
+            attributes=_carry_over(self.attributes, new_ncols, dict),
+            labels=_carry_over(self.labels, new_ncols, dict),
             index_names=index_names,
         )
 
@@ -1326,26 +1261,21 @@ class TimeSeriesTable(_TimeSeriesBase):
         new_names = val_cols
         new_ncols = len(val_cols)
 
-        def _carry_over(attr, default_factory):
-            if len(attr) == 1 or len(attr) == new_ncols:
-                return list(attr)
-            return [default_factory()]
-
         return TimeSeriesTable(
             self.frequency,
             timezone=self.timezone,
             timestamps=timestamps,
             values=values,
             names=new_names,
-            units=_carry_over(self.units, lambda: None),
-            descriptions=_carry_over(self.descriptions, lambda: None),
-            data_types=_carry_over(self.data_types, lambda: None),
-            locations=_carry_over(self.locations, lambda: None),
+            units=_carry_over(self.units, new_ncols, lambda: None),
+            descriptions=_carry_over(self.descriptions, new_ncols, lambda: None),
+            data_types=_carry_over(self.data_types, new_ncols, lambda: None),
+            locations=_carry_over(self.locations, new_ncols, lambda: None),
             timeseries_types=_carry_over(
-                self.timeseries_types, lambda: TimeSeriesType.FLAT
+                self.timeseries_types, new_ncols, lambda: TimeSeriesType.FLAT
             ),
-            attributes=_carry_over(self.attributes, dict),
-            labels=_carry_over(self.labels, dict),
+            attributes=_carry_over(self.attributes, new_ncols, dict),
+            labels=_carry_over(self.labels, new_ncols, dict),
         )
 
     def apply_xarray(self, func: Callable) -> TimeSeriesTable:

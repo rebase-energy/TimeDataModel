@@ -74,6 +74,41 @@ def _import_pandas():
         ) from None
 
 
+def _import_polars():
+    try:
+        import polars as pl
+        return pl
+    except ImportError:
+        raise ImportError(
+            "polars is required for this operation. "
+            "Install it with: pip install timedatamodel[polars]"
+        ) from None
+
+
+def _extract_timestamps_from_pandas_index(df):
+    """Extract timestamps and index names from a pandas DataFrame index."""
+    pd = _import_pandas()
+    if isinstance(df.index, pd.MultiIndex):
+        timestamps = [
+            tuple(
+                lvl.to_pydatetime()
+                if hasattr(lvl, "to_pydatetime")
+                else lvl
+                for lvl in row
+            )
+            for row in df.index
+        ]
+        index_names = list(df.index.names)
+    elif isinstance(df.index, pd.DatetimeIndex):
+        timestamps = df.index.to_pydatetime().tolist()
+        index_names = None
+    else:
+        raise ValueError(
+            "DataFrame must have a DatetimeIndex or MultiIndex"
+        )
+    return timestamps, index_names
+
+
 @functools.lru_cache(maxsize=1)
 def _get_pint_registry():
     import pint
@@ -355,28 +390,7 @@ class _TimeSeriesBase:
                 for row in tail_data:
                     content_lines.append(_format_row(row))
 
-        # Compute box width
-        padding = 2
-        max_content_width = max(
-            (len(line) for line in content_lines if line is not None), default=0
-        )
-        box_inner = max_content_width + padding * 2
-
-        # Build output
-        lines: list[str] = [class_name]
-        top = "\u250c" + "\u2500" * box_inner + "\u2510"
-        bot = "\u2514" + "\u2500" * box_inner + "\u2518"
-        sep = "\u251c" + "\u2500" * box_inner + "\u2524"
-        lines.append(top)
-        for line in content_lines:
-            if line is None:
-                lines.append(sep)
-            else:
-                lines.append(
-                    "\u2502" + " " * padding + line.ljust(max_content_width) + " " * padding + "\u2502"
-                )
-        lines.append(bot)
-        return "\n".join(lines)
+        return _render_box(class_name, content_lines)
 
     # ---- static helpers --------------------------------------------------
 
@@ -442,6 +456,40 @@ def _xarray_labels_to_list(raw) -> list:
         else:
             out.append(str(v))
     return out
+
+
+def _render_box(class_name: str, content_lines: list[str | None], padding: int = 2) -> str:
+    """Render a Unicode box around content lines.
+
+    ``None`` entries in *content_lines* are drawn as horizontal separators.
+    """
+    max_w = max((len(l) for l in content_lines if l is not None), default=0)
+    box_inner = max_w + padding * 2
+    top = "\u250c" + "\u2500" * box_inner + "\u2510"
+    bot = "\u2514" + "\u2500" * box_inner + "\u2518"
+    sep = "\u251c" + "\u2500" * box_inner + "\u2524"
+    lines = [class_name, top]
+    for cl in content_lines:
+        if cl is None:
+            lines.append(sep)
+        else:
+            lines.append(
+                "\u2502" + " " * padding + cl.ljust(max_w) + " " * padding + "\u2502"
+            )
+    lines.append(bot)
+    return "\n".join(lines)
+
+
+class _DataFrameMixin:
+    """Mixin providing the ``df`` shorthand property."""
+    __slots__ = ()
+
+    @property
+    def df(self):
+        """Shorthand for the default DataFrame backend (pandas or polars)."""
+        if _default_dataframe_backend == "polars":
+            return self.to_polars_dataframe()
+        return self.to_pandas_dataframe()
 
 
 def _validate_timestamp_sequence(

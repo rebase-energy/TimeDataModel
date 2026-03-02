@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Iterator
 
 import numpy as np
 
-from ._base import _convert_unit_values, _fmt_short_date
+from ._base import _convert_unit_values, _fmt_short_date, _render_box
 from .enums import Frequency
 from .location import Location
 from .timeseries import TimeSeries
@@ -282,8 +282,6 @@ class HierarchicalTimeSeries:
         timezone: str = "UTC",
     ) -> HierarchicalTimeSeries:
         """Build from a long-format pandas DataFrame with hierarchy columns."""
-        from .enums import Frequency
-
         if frequency is None:
             frequency = Frequency.NONE
 
@@ -661,33 +659,7 @@ class HierarchicalTimeSeries:
         for dl in data_lines:
             content_lines.append(dl)
 
-        # Compute box width
-        padding = 2
-        max_content_w = max(
-            (len(line) for line in content_lines if line is not None),
-            default=0,
-        )
-        box_inner = max_content_w + padding * 2
-
-        # Build output
-        lines: list[str] = [class_name]
-        top = "\u250c" + "\u2500" * box_inner + "\u2510"
-        bot = "\u2514" + "\u2500" * box_inner + "\u2518"
-        sep = "\u251c" + "\u2500" * box_inner + "\u2524"
-        lines.append(top)
-        for cl in content_lines:
-            if cl is None:
-                lines.append(sep)
-            else:
-                lines.append(
-                    "\u2502"
-                    + " " * padding
-                    + cl.ljust(max_content_w)
-                    + " " * padding
-                    + "\u2502"
-                )
-        lines.append(bot)
-        return "\n".join(lines)
+        return _render_box(class_name, content_lines)
 
     def _repr_html_(self) -> str:
         class_name = type(self).__name__
@@ -763,26 +735,6 @@ class HierarchicalTimeSeries:
         """Return a displayable tree visualization."""
         return HierarchyTree(self._root)
 
-    @staticmethod
-    def _repr_tree(
-        node: HierarchyNode,
-        prefix: str,
-        is_last: bool,
-        lines: list[str],
-    ) -> None:
-        connector = "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
-        label = node.key
-        if node.is_leaf and node.timeseries is not None:
-            n = len(node.timeseries)
-            label += f" [{n} pts]"
-        elif not node.is_leaf:
-            label += f" ({node.level})"
-        lines.append(f"{prefix}{connector}{label}")
-        new_prefix = prefix + ("    " if is_last else "\u2502   ")
-        for i, child in enumerate(node.children):
-            HierarchicalTimeSeries._repr_tree(
-                child, new_prefix, i == len(node.children) - 1, lines
-            )
 
 
 class HierarchyTree:

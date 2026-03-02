@@ -4,14 +4,14 @@ from datetime import datetime
 from html import escape
 from typing import Iterator
 
-from ._base import _fmt_short_date
+from ._base import _DataFrameMixin, _fmt_short_date, _import_polars
 from .coverage import CoverageBar
 from .location import GeoArea, GeoLocation
 from .table import TimeSeriesTable
 from .timeseries import TimeSeries
 
 
-class TimeSeriesCollection:
+class TimeSeriesCollection(_DataFrameMixin):
     """Container for TimeSeries and/or TimeSeriesTable objects that don't share an index.
 
     Items are stored internally as an ordered ``dict[str, TimeSeries | TimeSeriesTable]``.
@@ -269,23 +269,9 @@ class TimeSeriesCollection:
         """Alias for ``to_pandas_dataframe()``."""
         return self.to_pandas_dataframe()
 
-    @property
-    def df(self):
-        """Shorthand for the default DataFrame backend (pandas or polars)."""
-        from ._base import _default_dataframe_backend
-        if _default_dataframe_backend == "polars":
-            return self.to_polars_dataframe()
-        return self.to_pandas_dataframe()
-
     def to_polars_dataframe(self):
         """Outer-join all series into a single polars DataFrame."""
-        try:
-            import polars as pl
-        except ImportError as e:
-            raise ImportError(
-                "polars is required for to_polars_dataframe(). "
-                "Install it with: pip install timedatamodel[polars]"
-            ) from e
+        pl = _import_polars()
 
         pdf = self.to_pandas_dataframe()
         return pl.from_pandas(pdf.reset_index())

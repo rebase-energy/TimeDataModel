@@ -12,11 +12,14 @@ import numpy as np
 
 from ._base import (
     _MAX_PREVIEW,
+    _DataFrameMixin,
     _TimeSeriesBase,
     _build_repr_html,
     _convert_unit_values,
+    _extract_timestamps_from_pandas_index,
     _get_pint_registry,
     _import_pandas,
+    _import_polars,
     _validate_timestamp_sequence,
     _xarray_labels_to_list,
 )
@@ -33,7 +36,7 @@ from .location import (
 
 
 @dataclass(slots=True, repr=False, eq=False)
-class TimeSeries(_TimeSeriesBase):
+class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
     frequency: Frequency
     timezone: str = "UTC"
     name: str | None = None
@@ -513,14 +516,6 @@ class TimeSeries(_TimeSeriesBase):
         """Shorthand for ``to_numpy()``."""
         return self.to_numpy()
 
-    @property
-    def df(self):
-        """Shorthand for the default DataFrame backend (pandas or polars)."""
-        from ._base import _default_dataframe_backend
-        if _default_dataframe_backend == "polars":
-            return self.to_polars_dataframe()
-        return self.to_pandas_dataframe()
-
     def to_numpy(self) -> np.ndarray:
         """Return values as a 1D numpy float64 array (None -> nan)."""
         return self._to_float_array()
@@ -551,13 +546,7 @@ class TimeSeries(_TimeSeriesBase):
 
     def to_polars_dataframe(self):
         """Return a polars DataFrame with timestamp and value columns."""
-        try:
-            import polars as pl
-        except ImportError as e:
-            raise ImportError(
-                "polars is required for to_polars_dataframe(). "
-                "Install it with: pip install timedatamodel[polars]"
-            ) from e
+        pl = _import_polars()
 
         data: dict = {}
         if self.is_multi_index:
@@ -718,24 +707,7 @@ class TimeSeries(_TimeSeriesBase):
         If *frequency* is ``None``, frequency and timezone are auto-inferred.
         """
         pd = _import_pandas()
-        if isinstance(df.index, pd.MultiIndex):
-            timestamps = [
-                tuple(
-                    lvl.to_pydatetime()
-                    if hasattr(lvl, "to_pydatetime")
-                    else lvl
-                    for lvl in row
-                )
-                for row in df.index
-            ]
-            index_names = list(df.index.names)
-        elif isinstance(df.index, pd.DatetimeIndex):
-            timestamps = df.index.to_pydatetime().tolist()
-            index_names = None
-        else:
-            raise ValueError(
-                "DataFrame must have a DatetimeIndex or MultiIndex"
-            )
+        timestamps, index_names = _extract_timestamps_from_pandas_index(df)
 
         col = value_column or df.columns[0]
         arr = df[col].to_numpy(dtype=np.float64, na_value=np.nan)
@@ -822,24 +794,7 @@ class TimeSeries(_TimeSeriesBase):
         the current instance is mutated and ``None`` is returned.
         """
         pd = _import_pandas()
-        if isinstance(df.index, pd.MultiIndex):
-            timestamps = [
-                tuple(
-                    lvl.to_pydatetime()
-                    if hasattr(lvl, "to_pydatetime")
-                    else lvl
-                    for lvl in row
-                )
-                for row in df.index
-            ]
-            index_names = list(df.index.names)
-        elif isinstance(df.index, pd.DatetimeIndex):
-            timestamps = df.index.to_pydatetime().tolist()
-            index_names = None
-        else:
-            raise ValueError(
-                "DataFrame must have a DatetimeIndex or MultiIndex"
-            )
+        timestamps, index_names = _extract_timestamps_from_pandas_index(df)
 
         col = value_column or df.columns[0]
         arr = df[col].to_numpy(dtype=np.float64, na_value=np.nan)
@@ -1142,24 +1097,7 @@ class TimeSeries(_TimeSeriesBase):
         )
         new_name = str(new_col) if str(new_col) != original_col else self.name
 
-        if isinstance(result.index, pd.MultiIndex):
-            timestamps = [
-                tuple(
-                    lvl.to_pydatetime()
-                    if hasattr(lvl, "to_pydatetime")
-                    else lvl
-                    for lvl in row
-                )
-                for row in result.index
-            ]
-            index_names = list(result.index.names)
-        elif isinstance(result.index, pd.DatetimeIndex):
-            timestamps = result.index.to_pydatetime().tolist()
-            index_names = None
-        else:
-            raise ValueError(
-                "apply_pandas result must have a DatetimeIndex or MultiIndex"
-            )
+        timestamps, index_names = _extract_timestamps_from_pandas_index(result)
 
         arr = result.iloc[:, 0].to_numpy(dtype=np.float64, na_value=np.nan)
         values = self._from_float_array(arr)
