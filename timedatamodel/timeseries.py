@@ -18,6 +18,7 @@ from ._base import (
     _get_pint_registry,
     _import_pandas,
     _validate_timestamp_sequence,
+    _xarray_labels_to_list,
 )
 from .coverage import CoverageBar
 from .datapoint import DataPoint
@@ -557,6 +558,124 @@ class TimeSeries(_TimeSeriesBase):
         data[col_name] = self._to_float_array()
         return pl.DataFrame(data)
 
+    def to_xarray(self) -> "xr.DataArray":
+        """Convert to a 1D xarray DataArray with timestamp coordinate."""
+        import xarray as xr
+
+        pd = _import_pandas()
+        arr = self._to_float_array()
+
+        attrs: dict[str, str] = {
+            "frequency": str(self.frequency),
+            "timezone": self.timezone,
+        }
+        if self.unit is not None:
+            attrs["unit"] = self.unit
+        if self.description is not None:
+            attrs["description"] = self.description
+        if self.data_type is not None:
+            attrs["data_type"] = str(self.data_type)
+        if self.timeseries_type != TimeSeriesType.FLAT:
+            attrs["timeseries_type"] = str(self.timeseries_type)
+        if self.attributes:
+            attrs["attributes"] = json.dumps(self.attributes)
+
+        if self.is_multi_index:
+            # xarray requires dim name to differ from MultiIndex level names
+            dim_name = "multi_index"
+            coord = pd.MultiIndex.from_tuples(
+                self._timestamps, names=list(self.index_names)
+            )
+            attrs["index_names"] = json.dumps(list(self.index_names))
+        else:
+            dim_name = self.index_names[0]
+            coord = list(self._timestamps)
+            if self._index_names is not None:
+                attrs["index_names"] = json.dumps(self._index_names)
+
+        return xr.DataArray(
+            arr, coords={dim_name: coord}, dims=[dim_name],
+            name=self.name, attrs=attrs,
+        )
+
+    @classmethod
+    def from_xarray(
+        cls,
+        da: "xr.DataArray",
+        frequency: Frequency | None = None,
+        *,
+        timezone: str | None = None,
+        name: str | None = None,
+        unit: str | None = None,
+        description: str | None = None,
+        data_type: DataType | None = None,
+        timeseries_type: TimeSeriesType | None = None,
+        attributes: dict[str, str] | None = None,
+    ) -> "TimeSeries":
+        """Construct a ``TimeSeries`` from a 1D ``xr.DataArray``."""
+        if da.ndim != 1:
+            raise ValueError(f"expected 1D DataArray, got {da.ndim}D")
+
+        pd = _import_pandas()
+
+        dim_name = da.dims[0]
+        coord = da.coords[dim_name]
+
+        # Detect multi-index
+        if isinstance(coord.to_index(), pd.MultiIndex):
+            mi = coord.to_index()
+            timestamps = [
+                tuple(
+                    pd.Timestamp(v).to_pydatetime() if isinstance(v, (np.datetime64, pd.Timestamp)) else v
+                    for v in tup
+                )
+                for tup in mi
+            ]
+            index_names = list(mi.names)
+        else:
+            raw = coord.values
+            timestamps = []
+            for v in raw:
+                if isinstance(v, (np.datetime64, pd.Timestamp)):
+                    timestamps.append(pd.Timestamp(v).to_pydatetime())
+                else:
+                    timestamps.append(v)
+            index_names = da.attrs.get("index_names")
+            if isinstance(index_names, str):
+                index_names = json.loads(index_names)
+
+        arr = da.values.astype(np.float64)
+        values = cls._from_float_array(arr)
+
+        freq = frequency if frequency is not None else Frequency(da.attrs.get("frequency", str(Frequency.NONE)))
+        tz = timezone if timezone is not None else da.attrs.get("timezone", "UTC")
+        nm = name if name is not None else da.name
+        un = unit if unit is not None else da.attrs.get("unit")
+        desc = description if description is not None else da.attrs.get("description")
+        dt_ = data_type if data_type is not None else (
+            DataType(da.attrs["data_type"]) if "data_type" in da.attrs else None
+        )
+        tst = timeseries_type if timeseries_type is not None else (
+            TimeSeriesType(da.attrs["timeseries_type"]) if "timeseries_type" in da.attrs else TimeSeriesType.FLAT
+        )
+        attrs = attributes if attributes is not None else (
+            json.loads(da.attrs["attributes"]) if "attributes" in da.attrs else {}
+        )
+
+        return cls(
+            freq,
+            timezone=tz,
+            timestamps=timestamps,
+            values=values,
+            name=nm,
+            unit=un,
+            description=desc,
+            data_type=dt_,
+            timeseries_type=tst,
+            attributes=attrs,
+            index_names=index_names,
+        )
+
     @classmethod
     def from_pandas(
         cls,
@@ -1047,6 +1166,55 @@ class TimeSeries(_TimeSeriesBase):
             timestamps=list(self._timestamps),
             values=self._from_float_array(result),
             **self._meta_kwargs(),
+        )
+
+    def apply_polars(self, func: Callable) -> TimeSeries:
+        """Apply a polars transformation, preserving frequency/timezone/metadata."""
+        df = self.to_polars_dataframe()
+        result = func(df)
+
+        ts_col = self.index_names[0]
+        timestamps = result[ts_col].to_list()
+
+        val_cols = [c for c in result.columns if c != ts_col]
+        val_col = val_cols[0] if val_cols else (self.name or "value")
+        arr = result[val_col].to_numpy(allow_copy=True).astype(np.float64)
+        values = self._from_float_array(arr)
+
+        return TimeSeries(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=timestamps,
+            values=values,
+            **self._meta_kwargs(),
+        )
+
+    def apply_xarray(self, func: Callable) -> TimeSeries:
+        """Apply an xarray transformation, reading metadata from result.attrs with self as fallback."""
+        da = self.to_xarray()
+        result = func(da)
+        return TimeSeries.from_xarray(
+            result,
+            frequency=Frequency(result.attrs.get("frequency", str(self.frequency))),
+            timezone=result.attrs.get("timezone", self.timezone),
+            name=result.name if result.name is not None else self.name,
+            unit=result.attrs.get("unit", self.unit),
+            description=result.attrs.get("description", self.description),
+            data_type=(
+                DataType(result.attrs["data_type"])
+                if "data_type" in result.attrs
+                else self.data_type
+            ),
+            timeseries_type=(
+                TimeSeriesType(result.attrs["timeseries_type"])
+                if "timeseries_type" in result.attrs
+                else self.timeseries_type
+            ),
+            attributes=(
+                json.loads(result.attrs["attributes"])
+                if "attributes" in result.attrs
+                else self.attributes
+            ),
         )
 
     @staticmethod

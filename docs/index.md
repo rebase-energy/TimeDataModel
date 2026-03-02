@@ -1,6 +1,6 @@
 # timedatamodel
 
-A lightweight data model for time series data with pandas, numpy, and polars support.
+A lightweight data model for time series data with pandas, numpy, polars, and xarray support.
 
 ## Features
 

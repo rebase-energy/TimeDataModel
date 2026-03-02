@@ -17,6 +17,7 @@ from ._base import (
     _convert_unit_values,
     _import_pandas,
     _validate_timestamp_sequence,
+    _xarray_labels_to_list,
 )
 from .coverage import CoverageBar
 from .enums import DataType, Frequency, TimeSeriesType
@@ -728,6 +729,128 @@ class TimeSeriesTable(_TimeSeriesBase):
 
         return pl.DataFrame(data)
 
+    def to_xarray(self) -> "xr.DataArray":
+        """Convert to a 2D xarray DataArray (timestamp x column)."""
+        import xarray as xr
+
+        arr = self.to_numpy()
+        dim_name = self.index_names[0]
+        col_names = list(self.column_names)
+
+        coords = {
+            dim_name: list(self._timestamps),
+            "column": col_names,
+        }
+
+        attrs: dict[str, str] = {
+            "frequency": str(self.frequency),
+            "timezone": self.timezone,
+        }
+        if any(n is not None for n in self.names):
+            attrs["names"] = json.dumps(self.names)
+        if any(u is not None for u in self.units):
+            attrs["units"] = json.dumps(self.units)
+        if any(d is not None for d in self.descriptions):
+            attrs["descriptions"] = json.dumps(self.descriptions)
+        if any(d is not None for d in self.data_types):
+            attrs["data_types"] = json.dumps([str(d) if d else None for d in self.data_types])
+        if any(t != TimeSeriesType.FLAT for t in self.timeseries_types):
+            attrs["timeseries_types"] = json.dumps([str(t) for t in self.timeseries_types])
+        if any(a for a in self.attributes):
+            attrs["attributes"] = json.dumps(self.attributes)
+        if self._index_names is not None:
+            attrs["index_names"] = json.dumps(self._index_names)
+
+        return xr.DataArray(
+            arr, coords=coords, dims=[dim_name, "column"], attrs=attrs,
+        )
+
+    @classmethod
+    def from_xarray(
+        cls,
+        da: "xr.DataArray",
+        frequency: Frequency | None = None,
+        *,
+        timezone: str | None = None,
+        names: list[str | None] | None = None,
+        units: list[str | None] | None = None,
+        descriptions: list[str | None] | None = None,
+        data_types: list[DataType | None] | None = None,
+        locations: list[Location | None] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
+        attributes: list[dict[str, str]] | None = None,
+    ) -> "TimeSeriesTable":
+        """Construct a ``TimeSeriesTable`` from a 2D ``xr.DataArray``."""
+        if da.ndim != 2:
+            raise ValueError(f"expected 2D DataArray, got {da.ndim}D")
+
+        pd = _import_pandas()
+
+        # Identify timestamp dimension vs column dimension
+        dim0, dim1 = da.dims
+        coord0 = da.coords[dim0].values
+        coord1 = da.coords[dim1].values
+
+        # The timestamp dim has datetime-like values; the other is columns
+        def _is_datetime_coord(vals):
+            if len(vals) == 0:
+                return False
+            return isinstance(vals[0], (np.datetime64, pd.Timestamp))
+
+        if _is_datetime_coord(coord0):
+            ts_dim, col_dim = dim0, dim1
+            values = da.values.astype(np.float64)
+        elif _is_datetime_coord(coord1):
+            ts_dim, col_dim = dim1, dim0
+            values = da.values.astype(np.float64).T
+        else:
+            # Fallback: first dim is timestamp
+            ts_dim, col_dim = dim0, dim1
+            values = da.values.astype(np.float64)
+
+        timestamps = _xarray_labels_to_list(da.coords[ts_dim].values)
+
+        freq = frequency if frequency is not None else Frequency(da.attrs.get("frequency", str(Frequency.NONE)))
+        tz = timezone if timezone is not None else da.attrs.get("timezone", "UTC")
+        nm = names if names is not None else (
+            json.loads(da.attrs["names"]) if "names" in da.attrs else None
+        )
+        un = units if units is not None else (
+            json.loads(da.attrs["units"]) if "units" in da.attrs else None
+        )
+        desc = descriptions if descriptions is not None else (
+            json.loads(da.attrs["descriptions"]) if "descriptions" in da.attrs else None
+        )
+        dt_ = data_types if data_types is not None else (
+            [DataType(d) if d else None for d in json.loads(da.attrs["data_types"])]
+            if "data_types" in da.attrs else None
+        )
+        tst = timeseries_types if timeseries_types is not None else (
+            [TimeSeriesType(t) for t in json.loads(da.attrs["timeseries_types"])]
+            if "timeseries_types" in da.attrs else None
+        )
+        attrs = attributes if attributes is not None else (
+            json.loads(da.attrs["attributes"]) if "attributes" in da.attrs else None
+        )
+        index_names = (
+            json.loads(da.attrs["index_names"]) if "index_names" in da.attrs else None
+        )
+
+        return cls(
+            freq,
+            timezone=tz,
+            timestamps=timestamps,
+            values=values,
+            names=nm,
+            units=un,
+            descriptions=desc,
+            data_types=dt_,
+            locations=locations,
+            timeseries_types=tst,
+            attributes=attrs,
+            index_names=index_names,
+        )
+
     @classmethod
     def from_pandas(
         cls,
@@ -1155,6 +1278,80 @@ class TimeSeriesTable(_TimeSeriesBase):
                 f"series length ({len(self._timestamps)})"
             )
         return self._clone_with(list(self._timestamps), result)
+
+    def apply_polars(self, func: Callable) -> TimeSeriesTable:
+        """Apply a polars transformation, preserving frequency/timezone/metadata."""
+        df = self.to_polars_dataframe()
+        result = func(df)
+
+        ts_col = self.index_names[0]
+        timestamps = result[ts_col].to_list()
+
+        val_cols = [c for c in result.columns if c != ts_col]
+        values = result.select(val_cols).to_numpy().astype(np.float64)
+        new_names = val_cols
+        new_ncols = len(val_cols)
+
+        def _carry_over(attr, default_factory):
+            if len(attr) == 1 or len(attr) == new_ncols:
+                return list(attr)
+            return [default_factory()]
+
+        return TimeSeriesTable(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=timestamps,
+            values=values,
+            names=new_names,
+            units=_carry_over(self.units, lambda: None),
+            descriptions=_carry_over(self.descriptions, lambda: None),
+            data_types=_carry_over(self.data_types, lambda: None),
+            locations=_carry_over(self.locations, lambda: None),
+            timeseries_types=_carry_over(
+                self.timeseries_types, lambda: TimeSeriesType.FLAT
+            ),
+            attributes=_carry_over(self.attributes, dict),
+        )
+
+    def apply_xarray(self, func: Callable) -> TimeSeriesTable:
+        """Apply an xarray transformation, reading metadata from result.attrs with self as fallback."""
+        da = self.to_xarray()
+        result = func(da)
+        return TimeSeriesTable.from_xarray(
+            result,
+            frequency=Frequency(result.attrs.get("frequency", str(self.frequency))),
+            timezone=result.attrs.get("timezone", self.timezone),
+            names=(
+                json.loads(result.attrs["names"])
+                if "names" in result.attrs
+                else list(self.names)
+            ),
+            units=(
+                json.loads(result.attrs["units"])
+                if "units" in result.attrs
+                else list(self.units)
+            ),
+            descriptions=(
+                json.loads(result.attrs["descriptions"])
+                if "descriptions" in result.attrs
+                else list(self.descriptions)
+            ),
+            data_types=(
+                [DataType(d) if d else None for d in json.loads(result.attrs["data_types"])]
+                if "data_types" in result.attrs
+                else list(self.data_types)
+            ),
+            timeseries_types=(
+                [TimeSeriesType(t) for t in json.loads(result.attrs["timeseries_types"])]
+                if "timeseries_types" in result.attrs
+                else list(self.timeseries_types)
+            ),
+            attributes=(
+                json.loads(result.attrs["attributes"])
+                if "attributes" in result.attrs
+                else list(self.attributes)
+            ),
+        )
 
 
 MultivariateTimeSeries = TimeSeriesTable

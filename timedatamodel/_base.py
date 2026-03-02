@@ -28,6 +28,7 @@ _PANDAS_FREQ_MAP: dict[str, Frequency] = {
 }
 
 _MAX_PREVIEW = 3  # rows shown at head/tail in repr
+_MAX_COL_PREVIEW = 4  # leaf columns shown at head/tail in cube repr
 
 
 def _fmt_short_date(dt: datetime) -> str:
@@ -107,6 +108,7 @@ _REPR_CSS = """\
 .ts-repr .ts-data td { padding: 2px 10px; }
 .ts-repr .ts-data tr:hover { background: #f5f5f5; }
 .ts-repr .ts-data td:first-child { text-align: left; color: #333; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #333; }
 .ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
 </style>"""
 
@@ -400,6 +402,22 @@ class _TimeSeriesBase:
             else fallback_freq
         )
         return (new_freq, new_tz)
+
+
+def _xarray_labels_to_list(raw) -> list:
+    """Convert xarray coord values (numpy) to Python datetime/float/str."""
+    import pandas as pd
+    out = []
+    for v in raw:
+        if isinstance(v, (np.datetime64, pd.Timestamp)):
+            out.append(pd.Timestamp(v).to_pydatetime())
+        elif isinstance(v, (np.floating, float)):
+            out.append(float(v))
+        elif isinstance(v, np.integer):
+            out.append(float(v))
+        else:
+            out.append(str(v))
+    return out
 
 
 def _validate_timestamp_sequence(
