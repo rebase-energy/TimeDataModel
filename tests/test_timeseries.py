@@ -74,7 +74,6 @@ class TestConstruction:
             data_type=tdm.DataType.ACTUAL,
             location=loc,
             timeseries_type=tdm.TimeSeriesType.FLAT,
-            attributes={"source": "test"},
         )
         assert ts.name == "power"
         assert ts.unit == "MW"
@@ -82,7 +81,6 @@ class TestConstruction:
         assert ts.data_type == tdm.DataType.ACTUAL
         assert ts.location == loc
         assert ts.timeseries_type == tdm.TimeSeriesType.FLAT
-        assert ts.attributes["source"] == "test"
 
     def test_defaults(self, hourly_frequency):
         ts = tdm.TimeSeries(hourly_frequency)
@@ -92,7 +90,6 @@ class TestConstruction:
         assert ts.data_type is None
         assert ts.location is None
         assert ts.timeseries_type == tdm.TimeSeriesType.FLAT
-        assert ts.attributes == {}
 
     def test_length_mismatch_raises(self, hourly_frequency):
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
@@ -1492,7 +1489,6 @@ class TestJsonFullMetadata:
             data_type=tdm.DataType.ACTUAL,
             location=loc,
             timeseries_type=tdm.TimeSeriesType.OVERLAPPING,
-            attributes={"source": "test"},
         )
         s = ts.to_json()
         ts2 = tdm.TimeSeries.from_json(s)  # no extra args needed
@@ -1504,7 +1500,6 @@ class TestJsonFullMetadata:
         assert ts2.data_type == tdm.DataType.ACTUAL
         assert ts2.location == loc
         assert ts2.timeseries_type == tdm.TimeSeriesType.OVERLAPPING
-        assert ts2.attributes == {"source": "test"}
         assert len(ts2) == 3
         assert ts2[0].value == 1.0
         assert ts2[1].value is None
@@ -1561,7 +1556,6 @@ class TestJsonFullMetadata:
             descriptions=["Power output", "Ambient temp"],
             data_types=[tdm.DataType.ACTUAL, tdm.DataType.MEASUREMENT],
             locations=[loc_a, loc_b],
-            attributes=[{"source": "a"}, {"source": "b"}],
         )
         s = tbl.to_json()
         tbl2 = tdm.TimeSeriesTable.from_json(s)  # no extra args needed
@@ -1572,7 +1566,6 @@ class TestJsonFullMetadata:
         assert tbl2.descriptions == ["Power output", "Ambient temp"]
         assert tbl2.data_types == [tdm.DataType.ACTUAL, tdm.DataType.MEASUREMENT]
         assert tbl2.locations == [loc_a, loc_b]
-        assert tbl2.attributes == [{"source": "a"}, {"source": "b"}]
         np.testing.assert_array_equal(tbl2.to_numpy(), values)
 
     def test_table_backward_compat(self, hourly_frequency):
@@ -2312,7 +2305,6 @@ class TestXarrayTimeSeries:
             unit="MWh",
             description="daily energy",
             data_type=tdm.DataType.ACTUAL,
-            attributes={"source": "meter"},
         )
         restored = tdm.TimeSeries.from_xarray(ts.to_xarray())
         assert restored.frequency == tdm.Frequency.P1D
@@ -2321,7 +2313,6 @@ class TestXarrayTimeSeries:
         assert restored.unit == "MWh"
         assert restored.description == "daily energy"
         assert restored.data_type == tdm.DataType.ACTUAL
-        assert restored.attributes == {"source": "meter"}
 
 
 # ===========================================================================

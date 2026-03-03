@@ -23,6 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "numpy>=2.0",
+    "pyarrow>=14.0",
     "xarray>=2026.2.0",
 ]
 

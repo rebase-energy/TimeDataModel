@@ -441,6 +441,27 @@ class _TimeSeriesBase:
         )
         return (new_freq, new_tz)
 
+    @staticmethod
+    def _extract_pandas_index(df) -> tuple[list, list | None]:
+        """Extract timestamps and index_names from a pandas DataFrame.
+
+        Returns ``(timestamps, index_names)``.  *index_names* is ``None`` for a
+        plain DatetimeIndex and a list of strings for a MultiIndex.
+        """
+        pd = _import_pandas()
+        if isinstance(df.index, pd.MultiIndex):
+            timestamps = [
+                tuple(
+                    lvl.to_pydatetime() if hasattr(lvl, "to_pydatetime") else lvl
+                    for lvl in row
+                )
+                for row in df.index
+            ]
+            return timestamps, list(df.index.names)
+        if isinstance(df.index, pd.DatetimeIndex):
+            return df.index.to_pydatetime().tolist(), None
+        raise ValueError("DataFrame must have a DatetimeIndex or MultiIndex")
+
 
 def _xarray_labels_to_list(raw) -> list:
     """Convert xarray coord values (numpy) to Python datetime/float/str."""

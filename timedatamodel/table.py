@@ -52,7 +52,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
     timeseries_types: list[TimeSeriesType] = field(
         default_factory=lambda: [TimeSeriesType.FLAT]
     )
-    attributes: list[dict[str, str]] = field(default_factory=lambda: [{}])
     labels: list[dict[str, str]] = field(default_factory=lambda: [{}])
     _timestamps: list[datetime] | list[tuple[datetime, ...]] = field(
         default_factory=list, repr=False
@@ -75,7 +74,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
         data_types: list[DataType | None] | None = None,
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
-        attributes: list[dict[str, str]] | None = None,
         labels: list[dict[str, str]] | None = None,
         index_names: list[str] | None = None,
     ) -> None:
@@ -125,7 +123,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
         self.timeseries_types = _validate_list(
             "timeseries_types", timeseries_types, lambda: TimeSeriesType.FLAT
         )
-        self.attributes = _validate_list("attributes", attributes, dict)
         self.labels = _validate_list("labels", labels, dict)
 
     # ---- properties ------------------------------------------------------
@@ -177,7 +174,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             data_types=list(self.data_types),
             locations=list(self.locations),
             timeseries_types=list(self.timeseries_types),
-            attributes=list(self.attributes),
             labels=list(self.labels),
             index_names=self._index_names,
         )
@@ -192,6 +188,12 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             values=values,
             **self._list_meta_kwargs(),
         )
+
+    def _carry_over(self, attr: list, new_ncols: int, default_factory) -> list:
+        """Broadcast or reset a metadata list for a new column count."""
+        if len(attr) == 1 or len(attr) == new_ncols:
+            return list(attr)
+        return [default_factory()]
 
     def convert_unit(
         self, target_unit: str, column: int | str | None = None
@@ -288,7 +290,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             data_types=_pick(self.data_types, indices),
             locations=_pick(self.locations, indices),
             timeseries_types=_pick(self.timeseries_types, indices),
-            attributes=_pick(self.attributes, indices),
             labels=_pick(self.labels, indices),
             index_names=self._index_names,
         )
@@ -346,7 +347,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             or self.descriptions != other.descriptions
             or self.data_types != other.data_types
             or self.timeseries_types != other.timeseries_types
-            or self.attributes != other.attributes
             or self.labels != other.labels
             or self._timestamps != other._timestamps
         ):
@@ -386,7 +386,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             data_type=self._get_attr(self.data_types, col),
             location=self._get_attr(self.locations, col),
             timeseries_type=self._get_attr(self.timeseries_types, col),
-            attributes=self._get_attr(self.attributes, col),
             labels=self._get_attr(self.labels, col),
             index_names=self._index_names,
         )
@@ -767,8 +766,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             attrs["data_types"] = json.dumps([str(d) if d else None for d in self.data_types])
         if any(t != TimeSeriesType.FLAT for t in self.timeseries_types):
             attrs["timeseries_types"] = json.dumps([str(t) for t in self.timeseries_types])
-        if any(a for a in self.attributes):
-            attrs["attributes"] = json.dumps(self.attributes)
         if any(lbl for lbl in self.labels):
             attrs["labels"] = json.dumps(self.labels)
         if self._index_names is not None:
@@ -791,7 +788,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
         data_types: list[DataType | None] | None = None,
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
-        attributes: list[dict[str, str]] | None = None,
         labels: list[dict[str, str]] | None = None,
     ) -> "TimeSeriesTable":
         """Construct a ``TimeSeriesTable`` from a 2D ``xr.DataArray``."""
@@ -843,9 +839,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             [TimeSeriesType(t) for t in json.loads(da.attrs["timeseries_types"])]
             if "timeseries_types" in da.attrs else None
         )
-        attrs = attributes if attributes is not None else (
-            json.loads(da.attrs["attributes"]) if "attributes" in da.attrs else None
-        )
         lbls = labels if labels is not None else (
             json.loads(da.attrs["labels"]) if "labels" in da.attrs else None
         )
@@ -864,7 +857,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             data_types=dt_,
             locations=locations,
             timeseries_types=tst,
-            attributes=attrs,
             labels=lbls,
             index_names=index_names,
         )
@@ -882,11 +874,9 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
         data_types: list[DataType | None] | None = None,
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
-        attributes: list[dict[str, str]] | None = None,
         labels: list[dict[str, str]] | None = None,
     ) -> TimeSeriesTable:
         """Create a TimeSeriesTable from a pandas DataFrame."""
-        pd = _import_pandas()
         timestamps, index_names = _extract_timestamps_from_pandas_index(df)
 
         cols = list(df.columns)
@@ -896,7 +886,7 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             names = [str(c) for c in cols]
 
         if frequency is None:
-            if isinstance(df.index, pd.DatetimeIndex):
+            if index_names is None:  # DatetimeIndex
                 frequency, timezone = cls._infer_freq_tz(
                     df, Frequency.NONE, timezone
                 )
@@ -914,14 +904,12 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             data_types=data_types,
             locations=locations,
             timeseries_types=timeseries_types,
-            attributes=attributes,
             labels=labels,
             index_names=index_names,
         )
 
     def update_df(self, df: "pd.DataFrame") -> TimeSeriesTable:
         """Create a new TimeSeriesTable from a DataFrame, preserving metadata."""
-        pd = _import_pandas()
         timestamps, index_names = _extract_timestamps_from_pandas_index(df)
 
         values = df.to_numpy(dtype=np.float64)
@@ -944,7 +932,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             timeseries_types=_carry_over(
                 self.timeseries_types, new_ncols, lambda: TimeSeriesType.FLAT
             ),
-            attributes=_carry_over(self.attributes, new_ncols, dict),
             labels=_carry_over(self.labels, new_ncols, dict),
             index_names=index_names,
         )
@@ -993,8 +980,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             payload["data_types"] = [str(d) if d else None for d in self.data_types]
         if any(t != TimeSeriesType.FLAT for t in self.timeseries_types):
             payload["timeseries_types"] = [str(t) for t in self.timeseries_types]
-        if any(a for a in self.attributes):
-            payload["attributes"] = self.attributes
         if any(lbl for lbl in self.labels):
             payload["labels"] = self.labels
         if any(l is not None for l in self.locations):
@@ -1019,7 +1004,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
         data_types: list[DataType | None] | None = None,
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
-        attributes: list[dict[str, str]] | None = None,
         labels: list[dict[str, str]] | None = None,
     ) -> TimeSeriesTable:
         """Reconstruct from a JSON string produced by to_json()."""
@@ -1069,8 +1053,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             raw_tst = data.get("timeseries_types")
             if raw_tst:
                 timeseries_types = [TimeSeriesType(t) for t in raw_tst]
-        if attributes is None:
-            attributes = data.get("attributes")
         if labels is None:
             labels = data.get("labels")
 
@@ -1085,7 +1067,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             data_types=data_types,
             locations=locations,
             timeseries_types=timeseries_types,
-            attributes=attributes,
             labels=labels,
             index_names=index_names,
         )
@@ -1120,7 +1101,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
         data_types: list[DataType | None] | None = None,
         locations: list[Location | None] | None = None,
         timeseries_types: list[TimeSeriesType] | None = None,
-        attributes: list[dict[str, str]] | None = None,
         labels: list[dict[str, str]] | None = None,
     ) -> TimeSeriesTable:
         """Read a TimeSeriesTable from a CSV file produced by to_csv()."""
@@ -1179,7 +1159,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             data_types=data_types,
             locations=locations,
             timeseries_types=timeseries_types,
-            attributes=attributes,
             labels=labels,
             index_names=index_names,
         )
@@ -1203,7 +1182,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
         func: Callable[["pd.DataFrame"], "pd.DataFrame"],
     ) -> TimeSeriesTable:
         """Apply a pandas transformation, preserving metadata and auto-detecting frequency."""
-        pd = _import_pandas()
         df = self.to_pandas_dataframe()
         result = func(df)
         new_freq, new_tz = self._infer_freq_tz(
@@ -1229,7 +1207,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             timeseries_types=_carry_over(
                 self.timeseries_types, new_ncols, lambda: TimeSeriesType.FLAT
             ),
-            attributes=_carry_over(self.attributes, new_ncols, dict),
             labels=_carry_over(self.labels, new_ncols, dict),
             index_names=index_names,
         )
@@ -1274,7 +1251,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             timeseries_types=_carry_over(
                 self.timeseries_types, new_ncols, lambda: TimeSeriesType.FLAT
             ),
-            attributes=_carry_over(self.attributes, new_ncols, dict),
             labels=_carry_over(self.labels, new_ncols, dict),
         )
 
@@ -1310,11 +1286,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
                 [TimeSeriesType(t) for t in json.loads(result.attrs["timeseries_types"])]
                 if "timeseries_types" in result.attrs
                 else list(self.timeseries_types)
-            ),
-            attributes=(
-                json.loads(result.attrs["attributes"])
-                if "attributes" in result.attrs
-                else list(self.attributes)
             ),
             labels=(
                 json.loads(result.attrs["labels"])
