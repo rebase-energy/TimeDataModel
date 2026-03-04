@@ -1559,7 +1559,7 @@ class TestJsonFullMetadata:
             names=["power", "temperature"],
             units=["MW", "°C"],
             descriptions=["Power output", "Ambient temp"],
-            data_types=[tdm.DataType.ACTUAL, tdm.DataType.MEASUREMENT],
+            data_types=[tdm.DataType.ACTUAL, tdm.DataType.OBSERVATION],
             locations=[loc_a, loc_b],
             attributes=[{"source": "a"}, {"source": "b"}],
         )
@@ -1570,7 +1570,7 @@ class TestJsonFullMetadata:
         assert tbl2.names == ["power", "temperature"]
         assert tbl2.units == ["MW", "°C"]
         assert tbl2.descriptions == ["Power output", "Ambient temp"]
-        assert tbl2.data_types == [tdm.DataType.ACTUAL, tdm.DataType.MEASUREMENT]
+        assert tbl2.data_types == [tdm.DataType.ACTUAL, tdm.DataType.OBSERVATION]
         assert tbl2.locations == [loc_a, loc_b]
         assert tbl2.attributes == [{"source": "a"}, {"source": "b"}]
         np.testing.assert_array_equal(tbl2.to_numpy(), values)

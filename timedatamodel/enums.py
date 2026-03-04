@@ -43,14 +43,59 @@ class Frequency(StrEnum):
         return _FREQUENCY_TO_TIMEDELTA[self.value]
 
 
+_DATATYPE_HIERARCHY: dict[str, str | None] = {
+    "ACTUAL": None,
+    "OBSERVATION": "ACTUAL",
+    "DERIVED": "ACTUAL",
+    "CALCULATED": None,
+    "ESTIMATION": "CALCULATED",
+    "FORECAST": "ESTIMATION",
+    "PREDICTION": "ESTIMATION",
+    "SCENARIO": "ESTIMATION",
+    "SIMULATION": "ESTIMATION",
+    "RECONSTRUCTION": "ESTIMATION",
+    "REFERENCE": "CALCULATED",
+    "BASELINE": "REFERENCE",
+    "BENCHMARK": "REFERENCE",
+    "IDEAL": "REFERENCE",
+}
+
+
 class DataType(StrEnum):
-    MEASUREMENT = "MEASUREMENT"
+    ACTUAL = "ACTUAL"
+    OBSERVATION = "OBSERVATION"
+    DERIVED = "DERIVED"
+    CALCULATED = "CALCULATED"
     ESTIMATION = "ESTIMATION"
     FORECAST = "FORECAST"
+    PREDICTION = "PREDICTION"
     SCENARIO = "SCENARIO"
-    SYNTHETIC = "SYNTHETIC"
-    CLIMATE = "CLIMATE"
-    ACTUAL = "ACTUAL"
+    SIMULATION = "SIMULATION"
+    RECONSTRUCTION = "RECONSTRUCTION"
+    REFERENCE = "REFERENCE"
+    BASELINE = "BASELINE"
+    BENCHMARK = "BENCHMARK"
+    IDEAL = "IDEAL"
+
+    @property
+    def parent(self) -> DataType | None:
+        p = _DATATYPE_HIERARCHY[self.value]
+        return DataType(p) if p is not None else None
+
+    @property
+    def children(self) -> list[DataType]:
+        return [DataType(k) for k, v in _DATATYPE_HIERARCHY.items() if v == self.value]
+
+    @property
+    def is_leaf(self) -> bool:
+        return len(self.children) == 0
+
+    @property
+    def root(self) -> DataType:
+        node = self
+        while node.parent is not None:
+            node = node.parent
+        return node
 
 
 class TimeSeriesType(StrEnum):

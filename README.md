@@ -43,7 +43,7 @@
 | 🌳&nbsp;`HierarchicalTimeSeries` | Tree-structured time series with aggregation across hierarchy levels |
 | 🗺️&nbsp;`GeoLocation` / `GeoArea` | Geographic point and polygon types with distance, bearing, and containment |
 | ⏱️&nbsp;`Frequency` | ISO 8601 duration-based frequencies (`PT1H`, `P1D`, `P1M`, etc.) |
-| 🏷️&nbsp;`DataType` | Classification enum: `MEASUREMENT`, `FORECAST`, `SCENARIO`, `CLIMATE`, etc. |
+| 🏷️&nbsp;`DataType` | Hierarchical taxonomy: `ACTUAL` → `OBSERVATION`, `DERIVED`; `CALCULATED` → `ESTIMATION`, `REFERENCE`, etc. |
 
 ---
 
