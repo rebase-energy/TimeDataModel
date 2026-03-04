@@ -1344,3 +1344,140 @@ class _TimeSeriesCollectionReprMixin:
             result[bin_idx] = True
 
         return result
+
+
+# ---------------------------------------------------------------------------
+# Mixin: _TimeSeriesArrowReprMixin
+# ---------------------------------------------------------------------------
+
+#: Maps DataShape.value → ordered index column names for that shape.
+_SHAPE_INDEX_COLS: dict[str, tuple[str, ...]] = {
+    "SIMPLE":    ("valid_time",),
+    "VERSIONED": ("knowledge_time", "valid_time"),
+    "CORRECTED": ("valid_time", "change_time"),
+    "AUDIT":     ("knowledge_time", "change_time", "valid_time"),
+}
+
+
+class _TimeSeriesArrowReprMixin:
+    """Repr mixin for the PyArrow-backed TimeSeries class."""
+
+    __slots__ = ()
+
+    def _repr_meta_pairs(self) -> list[tuple[str, str]]:
+        pairs: list[tuple[str, str]] = [
+            ("Name",  self.name or "unnamed"),
+            ("Shape", self.shape.value),
+            ("Rows",  str(self.num_rows)),
+        ]
+        if self.frequency:
+            pairs.append(("Frequency", self.frequency))
+        pairs.append(("Timezone", self.timezone))
+        if self.unit and self.unit != "dimensionless":
+            pairs.append(("Unit", self.unit))
+        if self.data_type:
+            pairs.append(("Data type", str(self.data_type)))
+        if self.location:
+            pairs.append(("Location", _fmt_location(self.location)))
+        if self.description:
+            pairs.append(("Description", self.description))
+        if self.timeseries_type and self.timeseries_type != "FLAT":
+            pairs.append(("Timeseries type", str(self.timeseries_type)))
+        if self.labels:
+            pairs.append(("Labels", str(self.labels)))
+        return pairs
+
+    def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
+        """Return one [timestamp_str, value_str] row per index, reading from Arrow."""
+        idx_cols = _SHAPE_INDEX_COLS[self.shape.value]
+        rows: list[list[str]] = []
+        for i in indices:
+            ts_parts = [
+                _fmt_short_date(self._table.column(col)[i].as_py())
+                for col in idx_cols
+            ]
+            val = self._table.column("value")[i].as_py()
+            rows.append([", ".join(ts_parts), _fmt_value(val)])
+        return rows
+
+    def __repr__(self) -> str:
+        meta_lines = _format_meta_lines(self._repr_meta_pairs())
+        n = self.num_rows
+        col_names = [self.name or "value"]
+
+        if n == 0:
+            indices: list[int] = []
+            truncated = False
+        elif n <= _MAX_PREVIEW * 2 + 1:
+            indices = list(range(n))
+            truncated = False
+        else:
+            indices = list(range(_MAX_PREVIEW)) + list(range(n - _MAX_PREVIEW, n))
+            truncated = True
+
+        data_rows = self._repr_data_rows(indices) if indices else []
+
+        content_lines: list[str | None] = []
+        for ml in meta_lines:
+            content_lines.append(ml)
+
+        if n == 0:
+            content_lines.append(None)
+            content_lines.append("(empty)")
+        else:
+            # Include a header row for column-width computation
+            all_rows: list[list[str]] = [[""] + col_names] + data_rows
+            ncols_data = len(all_rows[0])
+            col_widths = [0] * ncols_data
+            for row in all_rows:
+                for j, cell in enumerate(row):
+                    col_widths[j] = max(col_widths[j], len(cell))
+            if truncated:
+                for j in range(ncols_data):
+                    col_widths[j] = max(col_widths[j], 3)
+
+            def _format_row(row: list[str]) -> str:
+                parts: list[str] = []
+                for j, cell in enumerate(row):
+                    if j == 0:
+                        parts.append(f"{cell:<{col_widths[j]}}")
+                    else:
+                        parts.append(f"{cell:>{col_widths[j]}}")
+                return "  ".join(parts)
+
+            content_lines.append(None)
+            content_lines.append(_format_row([""] + col_names))
+
+            head_data = data_rows[:_MAX_PREVIEW] if truncated else data_rows
+            tail_data = data_rows[_MAX_PREVIEW:] if truncated else []
+
+            for row in head_data:
+                content_lines.append(_format_row(row))
+            if truncated:
+                ellipsis_row = ["..."] * ncols_data
+                content_lines.append(_format_row(ellipsis_row))
+                for row in tail_data:
+                    content_lines.append(_format_row(row))
+
+        return _render_box("TimeSeries", content_lines)
+
+    def _repr_html_(self) -> str:
+        idx_cols = _SHAPE_INDEX_COLS[self.shape.value]
+        col_names = (self.name or "value",)
+
+        def _html_row(i: int) -> str:
+            idx_cells = "".join(
+                f"<td>{escape(_fmt_short_date(self._table.column(col)[i].as_py()))}</td>"
+                for col in idx_cols
+            )
+            val = self._table.column("value")[i].as_py()
+            return f"<tr>{idx_cells}<td>{escape(_fmt_value(val))}</td></tr>"
+
+        return _build_repr_html(
+            class_name="TimeSeries",
+            meta_rows=self._repr_meta_pairs(),
+            index_names=idx_cols,
+            column_names=col_names,
+            n_rows=self.num_rows,
+            html_row_fn=_html_row,
+        )

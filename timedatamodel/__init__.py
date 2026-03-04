@@ -7,6 +7,7 @@ from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 from .datapoint import DataPoint
 from .timeseries import TimeSeriesList
+from .timeseries_arrow import DataShape, TimeSeries
 from .table import TimeSeriesTable, MultivariateTimeSeries, MultiTimeSeries
 from .collection import TimeSeriesCollection
 from .array import Dimension, NDTimeSeries, TimeSeriesArray
@@ -15,6 +16,7 @@ from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode
 __version__ = version("timedatamodel")
 __all__ = [
     "AggregationMethod",
+    "DataShape",
     "get_default_df",
     "get_repr_width",
     "get_theme",
@@ -36,6 +38,7 @@ __all__ = [
     "TimeSeriesArray",
     "TimeSeriesTable",
     "TimeSeriesType",
+    "TimeSeries",
     "TimeSeriesList",
     "reset_theme",
     "set_default_df",
