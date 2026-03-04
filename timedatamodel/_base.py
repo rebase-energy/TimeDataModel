@@ -248,7 +248,7 @@ def _build_repr_html(
     html_row_fn: Callable[[int], str],
     max_preview: int = _MAX_PREVIEW,
 ) -> str:
-    """Build a shared HTML repr for TimeSeries and TimeSeriesTable."""
+    """Build a shared HTML repr for TimeSeriesList and TimeSeriesTable."""
     total_cols = len(index_names) + len(column_names)
 
     html = [_get_repr_css(), '<div class="ts-repr">']

@@ -151,7 +151,7 @@ class TimeSeriesArray:
 
     # ---- sel / isel ----------------------------------------------------------
 
-    def sel(self, **kwargs) -> TimeSeriesArray | "TimeSeriesTable" | "TimeSeries":
+    def sel(self, **kwargs) -> TimeSeriesArray | "TimeSeriesTable" | "TimeSeriesList":
         remaining_dims = list(self.dimensions)
         values = self._values
 
@@ -188,7 +188,7 @@ class TimeSeriesArray:
             )
         return self._maybe_collapse(values, remaining_dims)
 
-    def isel(self, **kwargs) -> TimeSeriesArray | "TimeSeriesTable" | "TimeSeries":
+    def isel(self, **kwargs) -> TimeSeriesArray | "TimeSeriesTable" | "TimeSeriesList":
         remaining_dims = list(self.dimensions)
         values = self._values
 
@@ -232,7 +232,7 @@ class TimeSeriesArray:
 
         # Deferred imports to avoid circular imports
         from .table import TimeSeriesTable
-        from .timeseries import TimeSeries
+        from .timeseries import TimeSeriesList
 
         filled = np.ma.filled(values, fill_value=np.nan)
 
@@ -267,12 +267,12 @@ class TimeSeriesArray:
         dim0 = remaining_dims[0]
         if not (dim0.labels and isinstance(dim0.labels[0], datetime)):
             raise ValueError(
-                f"Cannot collapse to TimeSeries: dimension "
+                f"Cannot collapse to TimeSeriesList: dimension "
                 f"{dim0.name!r} labels are not datetimes."
             )
         timestamps = list(dim0.labels)
         values_list = _TimeSeriesBase._from_float_array(filled)
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=timestamps,
@@ -282,16 +282,16 @@ class TimeSeriesArray:
 
     # ---- conversion methods --------------------------------------------------
 
-    def to_timeseries(self, **sel_kwargs) -> "TimeSeries":
-        from .timeseries import TimeSeries
+    def to_timeseries(self, **sel_kwargs) -> "TimeSeriesList":
+        from .timeseries import TimeSeriesList
 
         if sel_kwargs:
             result = self.sel(**sel_kwargs)
         else:
             result = self._maybe_collapse(self._values, list(self.dimensions))
-        if not isinstance(result, TimeSeries):
+        if not isinstance(result, TimeSeriesList):
             raise ValueError(
-                f"Selection did not collapse to TimeSeries, got {type(result).__name__}"
+                f"Selection did not collapse to TimeSeriesList, got {type(result).__name__}"
             )
         return result
 
@@ -651,7 +651,7 @@ class TimeSeriesArray:
         attributes: dict[str, str] | None = None,
     ) -> TimeSeriesArray:
         if not series:
-            raise ValueError("Cannot build array from an empty list of TimeSeries.")
+            raise ValueError("Cannot build array from an empty list of TimeSeriesList.")
         if len(dimension.labels) != len(series):
             raise ValueError(
                 f"dimension has {len(dimension.labels)} labels but "

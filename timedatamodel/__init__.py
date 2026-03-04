@@ -6,7 +6,7 @@ from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 from .coverage import CoverageBar
 from .datapoint import DataPoint
-from .timeseries import TimeSeries
+from .timeseries import TimeSeriesList
 from .table import TimeSeriesTable, MultivariateTimeSeries, MultiTimeSeries
 from .collection import TimeSeriesCollection
 from .array import Dimension, NDTimeSeries, TimeSeriesArray
@@ -36,7 +36,7 @@ __all__ = [
     "TimeSeriesArray",
     "TimeSeriesTable",
     "TimeSeriesType",
-    "TimeSeries",
+    "TimeSeriesList",
     "reset_theme",
     "set_default_df",
     "set_repr_width",

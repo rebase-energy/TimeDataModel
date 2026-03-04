@@ -8,9 +8,9 @@ from ._theme import THEME
 
 
 class CoverageBar:
-    """Displayable coverage bar for TimeSeries objects."""
+    """Displayable coverage bar for TimeSeriesList objects."""
 
-    _TERM_BINS = 40
+    _TERM_BINS = 60
     _SVG_BINS = 60
 
     def __init__(
@@ -51,7 +51,10 @@ class CoverageBar:
 
         start_str = _fmt_short_date(self._begin) if self._begin else ""
         end_str = _fmt_short_date(self._end) if self._end else ""
-        date_line = f"{start_str:<{bar_len // 2}}{end_str:>{bar_len - bar_len // 2}}"
+        gap = bar_len - len(start_str) - len(end_str)
+        if gap < 2:
+            gap = 2
+        date_line = start_str + " " * gap + end_str
         lines.append(f"{'':<{label_w}}{date_line}")
         return "\n".join(lines)
 

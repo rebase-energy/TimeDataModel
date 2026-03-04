@@ -364,9 +364,9 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
 
     # ---- column extraction ------------------------------------------------
 
-    def select_column(self, col: int | str) -> "TimeSeries":
-        """Extract a single column as a univariate TimeSeries."""
-        from .timeseries import TimeSeries
+    def select_column(self, col: int | str) -> "TimeSeriesList":
+        """Extract a single column as a univariate TimeSeriesList."""
+        from .timeseries import TimeSeriesList
 
         if isinstance(col, str):
             names = self.column_names
@@ -377,7 +377,7 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
         arr = self._values[:, col]
         values = self._from_float_array(arr)
 
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=list(self._timestamps),
@@ -393,8 +393,8 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             index_names=self._index_names,
         )
 
-    def to_univariate_list(self) -> list["TimeSeries"]:
-        """Convert to a list of univariate TimeSeries, one per column."""
+    def to_univariate_list(self) -> list["TimeSeriesList"]:
+        """Convert to a list of univariate TimeSeriesList, one per column."""
         return [self.select_column(i) for i in range(self.n_columns)]
 
     # ---- sequence protocol -----------------------------------------------
@@ -479,8 +479,8 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
         return arr
 
     def _convert_series_values(self, series) -> np.ndarray:
-        """Broadcast a TimeSeries across all columns with per-column unit conversion."""
-        from .timeseries import TimeSeries
+        """Broadcast a TimeSeriesList across all columns with per-column unit conversion."""
+        from .timeseries import TimeSeriesList
         arr = series._to_float_array()  # (n_rows,)
         result = np.empty_like(self._values)
         for col in range(self.n_columns):
@@ -509,7 +509,7 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
 
     def _apply_series_binary(self, series, func) -> TimeSeriesTable:
         """Binary op: table (op) series, broadcasting the series."""
-        from .timeseries import TimeSeries
+        from .timeseries import TimeSeriesList
         if self.timezone != series.timezone:
             raise ValueError(
                 f"timezone mismatch: {self.timezone!r} vs {series.timezone!r}"
@@ -527,72 +527,72 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
     # ---- operators -------------------------------------------------------
 
     def __add__(self, other) -> TimeSeriesTable:
-        from .timeseries import TimeSeries
+        from .timeseries import TimeSeriesList
         if isinstance(other, TimeSeriesTable):
             return self._apply_table_binary(other, lambda a, b: a + b)
-        if isinstance(other, TimeSeries):
+        if isinstance(other, TimeSeriesList):
             return self._apply_series_binary(other, lambda a, b: a + b)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: v + other)
         return NotImplemented
 
     def __radd__(self, other) -> TimeSeriesTable:
-        from .timeseries import TimeSeries
-        if isinstance(other, TimeSeries):
+        from .timeseries import TimeSeriesList
+        if isinstance(other, TimeSeriesList):
             return self._apply_series_binary(other, lambda a, b: b + a)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: other + v)
         return NotImplemented
 
     def __sub__(self, other) -> TimeSeriesTable:
-        from .timeseries import TimeSeries
+        from .timeseries import TimeSeriesList
         if isinstance(other, TimeSeriesTable):
             return self._apply_table_binary(other, lambda a, b: a - b)
-        if isinstance(other, TimeSeries):
+        if isinstance(other, TimeSeriesList):
             return self._apply_series_binary(other, lambda a, b: a - b)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: v - other)
         return NotImplemented
 
     def __rsub__(self, other) -> TimeSeriesTable:
-        from .timeseries import TimeSeries
-        if isinstance(other, TimeSeries):
+        from .timeseries import TimeSeriesList
+        if isinstance(other, TimeSeriesList):
             return self._apply_series_binary(other, lambda a, b: b - a)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: other - v)
         return NotImplemented
 
     def __mul__(self, other) -> TimeSeriesTable:
-        from .timeseries import TimeSeries
+        from .timeseries import TimeSeriesList
         if isinstance(other, TimeSeriesTable):
             return self._apply_table_binary(other, lambda a, b: a * b)
-        if isinstance(other, TimeSeries):
+        if isinstance(other, TimeSeriesList):
             return self._apply_series_binary(other, lambda a, b: a * b)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: v * other)
         return NotImplemented
 
     def __rmul__(self, other) -> TimeSeriesTable:
-        from .timeseries import TimeSeries
-        if isinstance(other, TimeSeries):
+        from .timeseries import TimeSeriesList
+        if isinstance(other, TimeSeriesList):
             return self._apply_series_binary(other, lambda a, b: b * a)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: other * v)
         return NotImplemented
 
     def __truediv__(self, other) -> TimeSeriesTable:
-        from .timeseries import TimeSeries
+        from .timeseries import TimeSeriesList
         if isinstance(other, TimeSeriesTable):
             return self._apply_table_binary(other, lambda a, b: a / b)
-        if isinstance(other, TimeSeries):
+        if isinstance(other, TimeSeriesList):
             return self._apply_series_binary(other, lambda a, b: a / b)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: v / other)
         return NotImplemented
 
     def __rtruediv__(self, other) -> TimeSeriesTable:
-        from .timeseries import TimeSeries
-        if isinstance(other, TimeSeries):
+        from .timeseries import TimeSeriesList
+        if isinstance(other, TimeSeriesList):
             return self._apply_series_binary(other, lambda a, b: b / a)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: other / v)

@@ -13,7 +13,7 @@ from ._base import _convert_unit_values, _fmt_short_date, _fmt_tz_with_offset, _
 from ._theme import THEME
 from .enums import Frequency
 from .location import Location
-from .timeseries import TimeSeries
+from .timeseries import TimeSeriesList
 
 if TYPE_CHECKING:
     from .collection import TimeSeriesCollection
@@ -40,7 +40,7 @@ class HierarchyNode:
     key: str
     level: str
     children: list[HierarchyNode] = field(default_factory=list)
-    timeseries: TimeSeries | None = None
+    timeseries: TimeSeriesList | None = None
     location: Location | None = None
     _parent: HierarchyNode | None = field(default=None, repr=False)
 
@@ -176,7 +176,7 @@ class HierarchicalTimeSeries:
                 converted_arr = _convert_unit_values(
                     ts._to_float_array(), ts.unit, target_unit
                 )
-                node.timeseries = TimeSeries(
+                node.timeseries = TimeSeriesList(
                     ts.frequency,
                     timezone=ts.timezone,
                     timestamps=list(ts._timestamps),
@@ -209,7 +209,7 @@ class HierarchicalTimeSeries:
     def from_dict(
         cls,
         tree: dict,
-        series_map: dict[str, TimeSeries],
+        series_map: dict[str, TimeSeriesList],
         *,
         levels: list[str] | None = None,
         name: str | None = None,
@@ -291,7 +291,7 @@ class HierarchicalTimeSeries:
         grouped = df.groupby(level_columns)
 
         # Build series for each leaf
-        series_map: dict[str, TimeSeries] = {}
+        series_map: dict[str, TimeSeriesList] = {}
         paths: list[tuple[str, ...]] = []
         for group_key, group_df in grouped:
             if isinstance(group_key, str):
@@ -306,7 +306,7 @@ class HierarchicalTimeSeries:
                 timestamps = group_df.index.tolist()
 
             values_list = group_df[value_column].tolist()
-            ts = TimeSeries(
+            ts = TimeSeriesList(
                 frequency,
                 timezone=timezone,
                 timestamps=timestamps,
@@ -473,7 +473,7 @@ class HierarchicalTimeSeries:
         node: HierarchyNode | None = None,
         method: AggregationMethod | None = None,
         auto_align: bool = False,
-    ) -> TimeSeries:
+    ) -> TimeSeriesList:
         """Recursive bottom-up aggregation."""
         if node is None:
             node = self._root
@@ -503,7 +503,7 @@ class HierarchicalTimeSeries:
         agg_func = _AGG_FUNCS[method]
         result_arr = agg_func(stacked, axis=1)
 
-        return TimeSeries(
+        return TimeSeriesList(
             child_series[0].frequency,
             timezone=child_series[0].timezone,
             timestamps=list(child_series[0]._timestamps),
@@ -512,18 +512,18 @@ class HierarchicalTimeSeries:
         )
 
     @staticmethod
-    def _align_series(series_list: list[TimeSeries]) -> list[TimeSeries]:
+    def _align_series(series_list: list[TimeSeriesList]) -> list[TimeSeriesList]:
         """Align series to the union of all timestamps, filling NaN where missing."""
         all_ts: set = set()
         for s in series_list:
             all_ts.update(s._timestamps)
         union_ts = sorted(all_ts)
 
-        aligned: list[TimeSeries] = []
+        aligned: list[TimeSeriesList] = []
         for s in series_list:
             ts_set = dict(zip(s._timestamps, s._values))
             new_values = [ts_set.get(t) for t in union_ts]
-            aligned.append(TimeSeries(
+            aligned.append(TimeSeriesList(
                 s.frequency,
                 timezone=s.timezone,
                 timestamps=union_ts,
@@ -537,7 +537,7 @@ class HierarchicalTimeSeries:
         level: str | int,
         method: AggregationMethod | None = None,
         auto_align: bool = False,
-    ) -> dict[str, TimeSeries]:
+    ) -> dict[str, TimeSeriesList]:
         """Aggregate every node at *level*."""
         nodes = self.get_level(level)
         return {n.key: self.aggregate(n, method, auto_align) for n in nodes}
@@ -561,10 +561,10 @@ class HierarchicalTimeSeries:
     ) -> TimeSeriesTable:
         """Flatten to a TimeSeriesTable (requires shared timestamps)."""
         collection = self.to_collection(level)
-        series_list = [v for v in collection.values() if isinstance(v, TimeSeries)]
+        series_list = [v for v in collection.values() if isinstance(v, TimeSeriesList)]
         if not series_list:
-            raise ValueError("no TimeSeries found to build table")
-        return TimeSeries.merge(series_list)
+            raise ValueError("no TimeSeriesList found to build table")
+        return TimeSeriesList.merge(series_list)
 
     # ---- sequence protocol ------------------------------------------------
 

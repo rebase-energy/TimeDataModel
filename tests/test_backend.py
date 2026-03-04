@@ -21,7 +21,7 @@ def sample_ts():
     base = datetime(2024, 1, 1)
     timestamps = [base + timedelta(hours=i) for i in range(5)]
     values = [1.0, 2.0, 3.0, 4.0, 5.0]
-    return tdm.TimeSeries(
+    return tdm.TimeSeriesList(
         tdm.Frequency.PT1H,
         timestamps=timestamps,
         values=values,

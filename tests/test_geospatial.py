@@ -254,21 +254,21 @@ def geo_collection():
     oslo = tdm.GeoLocation(latitude=59.91, longitude=10.75)
     bergen = tdm.GeoLocation(latitude=60.39, longitude=5.32)
     trondheim = tdm.GeoLocation(latitude=63.43, longitude=10.40)
-    ts_oslo = tdm.TimeSeries(
+    ts_oslo = tdm.TimeSeriesList(
         tdm.Frequency.P1D,
         timestamps=[datetime(2024, 1, 1), datetime(2024, 1, 2)],
         values=[1.0, 2.0],
         name="Oslo",
         location=oslo,
     )
-    ts_bergen = tdm.TimeSeries(
+    ts_bergen = tdm.TimeSeriesList(
         tdm.Frequency.P1D,
         timestamps=[datetime(2024, 1, 1), datetime(2024, 1, 2)],
         values=[3.0, 4.0],
         name="Bergen",
         location=bergen,
     )
-    ts_trondheim = tdm.TimeSeries(
+    ts_trondheim = tdm.TimeSeriesList(
         tdm.Frequency.P1D,
         timestamps=[datetime(2024, 1, 1), datetime(2024, 1, 2)],
         values=[5.0, 6.0],

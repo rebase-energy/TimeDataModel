@@ -38,7 +38,7 @@ from .location import (
 
 
 @dataclass(slots=True, repr=False, eq=False)
-class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
+class TimeSeriesList(_TimeSeriesBase, _DataFrameMixin):
     frequency: Frequency
     timezone: str = "UTC"
     name: str | None = None
@@ -158,14 +158,14 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             index_names=self._index_names,
         )
 
-    def convert_unit(self, target_unit: str) -> TimeSeries:
-        """Return a new TimeSeries with values converted to *target_unit*."""
+    def convert_unit(self, target_unit: str) -> TimeSeriesList:
+        """Return a new TimeSeriesList with values converted to *target_unit*."""
         if self.unit is None:
             raise ValueError("cannot convert units: source unit is None")
         arr = _convert_unit_values(self._to_float_array(), self.unit, target_unit)
         kwargs = self._meta_kwargs()
         kwargs["unit"] = target_unit
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=list(self._timestamps),
@@ -175,7 +175,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
 
     # ---- binary helpers --------------------------------------------------
 
-    def _validate_alignment(self, other: TimeSeries) -> None:
+    def _validate_alignment(self, other: TimeSeriesList) -> None:
         """Raise ValueError if timezone, frequency, or timestamps differ."""
         if self.timezone != other.timezone:
             raise ValueError(
@@ -188,7 +188,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         if self._timestamps != other._timestamps:
             raise ValueError("timestamps do not match")
 
-    def _convert_other_values(self, other: TimeSeries) -> np.ndarray:
+    def _convert_other_values(self, other: TimeSeriesList) -> np.ndarray:
         """Return other's values as float64, converting units if needed."""
         arr = other._to_float_array()
         has_self = self.unit is not None
@@ -203,16 +203,16 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         return arr
 
     def _apply_binary(
-        self, other: TimeSeries, func: Callable[[np.ndarray, np.ndarray], np.ndarray]
-    ) -> TimeSeries:
-        """Element-wise binary op between two aligned TimeSeries."""
+        self, other: TimeSeriesList, func: Callable[[np.ndarray, np.ndarray], np.ndarray]
+    ) -> TimeSeriesList:
+        """Element-wise binary op between two aligned TimeSeriesList."""
         self._validate_alignment(other)
         a = self._to_float_array()
         b = self._convert_other_values(other)
         result = func(a, b)
         kwargs = self._meta_kwargs()
         kwargs["name"] = None
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=list(self._timestamps),
@@ -220,9 +220,9 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             **kwargs,
         )
 
-    def _apply_comparison(self, other, op) -> TimeSeries:
-        """Element-wise comparison returning TimeSeries of 1.0/0.0/NaN."""
-        if isinstance(other, TimeSeries):
+    def _apply_comparison(self, other, op) -> TimeSeriesList:
+        """Element-wise comparison returning TimeSeriesList of 1.0/0.0/NaN."""
+        if isinstance(other, TimeSeriesList):
             self._validate_alignment(other)
             a = self._to_float_array()
             b = self._convert_other_values(other)
@@ -234,7 +234,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         nan_mask = np.isnan(a) | np.isnan(b)
         result = np.where(op(a, b), 1.0, 0.0)
         result[nan_mask] = np.nan
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=list(self._timestamps),
@@ -247,7 +247,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
 
     def equals(self, other: object) -> bool:
         """Full structural equality (all metadata + NaN-aware values)."""
-        if not isinstance(other, TimeSeries):
+        if not isinstance(other, TimeSeriesList):
             return NotImplemented
         if (
             self.frequency != other.frequency
@@ -267,14 +267,14 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         return bool(np.array_equal(a, b, equal_nan=True))
 
     def __eq__(self, other):
-        if isinstance(other, TimeSeries):
+        if isinstance(other, TimeSeriesList):
             return self._apply_comparison(other, np.equal)
         if isinstance(other, (int, float)):
             return self._apply_comparison(other, np.equal)
         return NotImplemented
 
     def __ne__(self, other):
-        if isinstance(other, TimeSeries):
+        if isinstance(other, TimeSeriesList):
             return self._apply_comparison(other, np.not_equal)
         if isinstance(other, (int, float)):
             return self._apply_comparison(other, np.not_equal)
@@ -318,9 +318,9 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
 
     # ---- head / tail / copy ----------------------------------------------
 
-    def head(self, n: int = 5) -> TimeSeries:
-        """Return a new TimeSeries with the first *n* points."""
-        return TimeSeries(
+    def head(self, n: int = 5) -> TimeSeriesList:
+        """Return a new TimeSeriesList with the first *n* points."""
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=self._timestamps[:n],
@@ -328,13 +328,13 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             **self._meta_kwargs(),
         )
 
-    def tail(self, n: int = 5) -> TimeSeries:
-        """Return a new TimeSeries with the last *n* points."""
+    def tail(self, n: int = 5) -> TimeSeriesList:
+        """Return a new TimeSeriesList with the last *n* points."""
         if n == 0:
-            return TimeSeries(
+            return TimeSeriesList(
                 self.frequency, timezone=self.timezone, timestamps=[], values=[], **self._meta_kwargs()
             )
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=self._timestamps[-n:],
@@ -342,9 +342,9 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             **self._meta_kwargs(),
         )
 
-    def copy(self) -> TimeSeries:
+    def copy(self) -> TimeSeriesList:
         """Return a shallow copy (timestamps and values lists are new)."""
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=list(self._timestamps),
@@ -361,9 +361,9 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             dtype=np.float64,
         )
 
-    def _apply_scalar(self, func) -> TimeSeries:
+    def _apply_scalar(self, func) -> TimeSeriesList:
         arr = self._to_float_array()
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=list(self._timestamps),
@@ -371,69 +371,69 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             **self._meta_kwargs(),
         )
 
-    def __add__(self, other) -> TimeSeries:
-        if isinstance(other, TimeSeries):
+    def __add__(self, other) -> TimeSeriesList:
+        if isinstance(other, TimeSeriesList):
             return self._apply_binary(other, lambda a, b: a + b)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: v + other)
         return NotImplemented
 
-    def __radd__(self, other) -> TimeSeries:
-        if isinstance(other, TimeSeries):
+    def __radd__(self, other) -> TimeSeriesList:
+        if isinstance(other, TimeSeriesList):
             return self._apply_binary(other, lambda a, b: b + a)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: other + v)
         return NotImplemented
 
-    def __sub__(self, other) -> TimeSeries:
-        if isinstance(other, TimeSeries):
+    def __sub__(self, other) -> TimeSeriesList:
+        if isinstance(other, TimeSeriesList):
             return self._apply_binary(other, lambda a, b: a - b)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: v - other)
         return NotImplemented
 
-    def __rsub__(self, other) -> TimeSeries:
-        if isinstance(other, TimeSeries):
+    def __rsub__(self, other) -> TimeSeriesList:
+        if isinstance(other, TimeSeriesList):
             return self._apply_binary(other, lambda a, b: b - a)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: other - v)
         return NotImplemented
 
-    def __mul__(self, other) -> TimeSeries:
-        if isinstance(other, TimeSeries):
+    def __mul__(self, other) -> TimeSeriesList:
+        if isinstance(other, TimeSeriesList):
             return self._apply_binary(other, lambda a, b: a * b)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: v * other)
         return NotImplemented
 
-    def __rmul__(self, other) -> TimeSeries:
-        if isinstance(other, TimeSeries):
+    def __rmul__(self, other) -> TimeSeriesList:
+        if isinstance(other, TimeSeriesList):
             return self._apply_binary(other, lambda a, b: b * a)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: other * v)
         return NotImplemented
 
-    def __truediv__(self, other) -> TimeSeries:
-        if isinstance(other, TimeSeries):
+    def __truediv__(self, other) -> TimeSeriesList:
+        if isinstance(other, TimeSeriesList):
             return self._apply_binary(other, lambda a, b: a / b)
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: v / other)
         return NotImplemented
 
-    def __rtruediv__(self, other) -> TimeSeries:
+    def __rtruediv__(self, other) -> TimeSeriesList:
         if isinstance(other, (int, float)):
             return self._apply_scalar(lambda v: other / v)
         return NotImplemented
 
-    def __neg__(self) -> TimeSeries:
+    def __neg__(self) -> TimeSeriesList:
         return self._apply_scalar(lambda v: -v)
 
-    def __abs__(self) -> TimeSeries:
+    def __abs__(self) -> TimeSeriesList:
         return self._apply_scalar(abs)
 
-    def __round__(self, n: int = 0) -> TimeSeries:
+    def __round__(self, n: int = 0) -> TimeSeriesList:
         arr = self._to_float_array()
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=list(self._timestamps),
@@ -508,7 +508,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             return f"<tr>{ts_cells}{val_cells}</tr>"
 
         return _build_repr_html(
-            class_name="TimeSeries",
+            class_name="TimeSeriesList",
             meta_rows=meta_rows,
             index_names=self.index_names,
             column_names=self.column_names,
@@ -622,8 +622,8 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         timeseries_type: TimeSeriesType | None = None,
         attributes: dict[str, str] | None = None,
         labels: dict[str, str] | None = None,
-    ) -> "TimeSeries":
-        """Construct a ``TimeSeries`` from a 1D ``xr.DataArray``."""
+    ) -> "TimeSeriesList":
+        """Construct a ``TimeSeriesList`` from a 1D ``xr.DataArray``."""
         if da.ndim != 1:
             raise ValueError(f"expected 1D DataArray, got {da.ndim}D")
 
@@ -707,8 +707,8 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
         labels: dict[str, str] | None = None,
-    ) -> TimeSeries:
-        """Create a TimeSeries from a pandas DataFrame.
+    ) -> TimeSeriesList:
+        """Create a TimeSeriesList from a pandas DataFrame.
 
         Supports DatetimeIndex (single-index) and MultiIndex (multi-index).
         If *frequency* is ``None``, frequency and timezone are auto-inferred.
@@ -764,8 +764,8 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
         labels: dict[str, str] | None = None,
-    ) -> TimeSeries:
-        """Create a TimeSeries from a polars DataFrame."""
+    ) -> TimeSeriesList:
+        """Create a TimeSeriesList from a polars DataFrame."""
         val_col = value_column or [
             c for c in df.columns if c != timestamp_column
         ][0]
@@ -794,10 +794,10 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         df: "pd.DataFrame",
         value_column: str | None = None,
         inplace: bool = False,
-    ) -> TimeSeries | None:
-        """Update a TimeSeries from a pandas DataFrame.
+    ) -> TimeSeriesList | None:
+        """Update a TimeSeriesList from a pandas DataFrame.
 
-        By default returns a **new** TimeSeries.  With ``inplace=True``
+        By default returns a **new** TimeSeriesList.  With ``inplace=True``
         the current instance is mutated and ``None`` is returned.
         """
         pd = _import_pandas()
@@ -824,7 +824,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             self.timezone = new_tz
             self.name = new_name
             return None
-        return TimeSeries(
+        return TimeSeriesList(
             new_freq,
             timezone=new_tz,
             timestamps=timestamps,
@@ -844,12 +844,12 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         self,
         df: "pd.DataFrame",
         value_column: str | None = None,
-    ) -> TimeSeries:
-        """Shorthand for ``update_from_pandas(df)`` — always returns a new TimeSeries."""
+    ) -> TimeSeriesList:
+        """Shorthand for ``update_from_pandas(df)`` — always returns a new TimeSeriesList."""
         return self.update_from_pandas(df, value_column)
 
-    def update_arr(self, arr: np.ndarray) -> TimeSeries:
-        """Create a new TimeSeries with *arr* as values, keeping timestamps and metadata."""
+    def update_arr(self, arr: np.ndarray) -> TimeSeriesList:
+        """Create a new TimeSeriesList with *arr* as values, keeping timestamps and metadata."""
         result = np.asarray(arr, dtype=np.float64)
         if result.ndim != 1:
             raise ValueError(
@@ -860,7 +860,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
                 f"update_arr: array length ({result.shape[0]}) must match "
                 f"series length ({len(self._timestamps)})"
             )
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=list(self._timestamps),
@@ -926,8 +926,8 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         timeseries_type: TimeSeriesType | None = None,
         attributes: dict[str, str] | None = None,
         labels: dict[str, str] | None = None,
-    ) -> TimeSeries:
-        """Reconstruct a TimeSeries from a JSON string produced by to_json()."""
+    ) -> TimeSeriesList:
+        """Reconstruct a TimeSeriesList from a JSON string produced by to_json()."""
         data = json.loads(s)
         raw_ts = data["timestamps"]
 
@@ -1014,8 +1014,8 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
         attributes: dict[str, str] | None = None,
         labels: dict[str, str] | None = None,
-    ) -> TimeSeries:
-        """Read a TimeSeries from a CSV file produced by to_csv()."""
+    ) -> TimeSeriesList:
+        """Read a TimeSeriesList from a CSV file produced by to_csv()."""
         with open(path, "r", newline="") as f:
             reader = csv.reader(f)
             header = next(reader)
@@ -1089,7 +1089,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
     def apply_pandas(
         self,
         func: Callable[["pd.DataFrame"], "pd.DataFrame"],
-    ) -> TimeSeries:
+    ) -> TimeSeriesList:
         """Apply a pandas transformation, preserving metadata and auto-detecting frequency."""
         pd = _import_pandas()
         df = self.to_pandas_dataframe()
@@ -1109,7 +1109,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         arr = result.iloc[:, 0].to_numpy(dtype=np.float64, na_value=np.nan)
         values = self._from_float_array(arr)
 
-        return TimeSeries(
+        return TimeSeriesList(
             new_freq,
             timezone=new_tz,
             timestamps=timestamps,
@@ -1128,7 +1128,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
     def apply_numpy(
         self,
         func: Callable[[np.ndarray], np.ndarray],
-    ) -> TimeSeries:
+    ) -> TimeSeriesList:
         """Apply a numpy transformation to values, keeping timestamps and frequency unchanged."""
         arr = self.to_numpy()
         result = np.asarray(func(arr), dtype=np.float64)
@@ -1137,7 +1137,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
                 f"apply_numpy: result length ({result.shape[0]}) must match "
                 f"series length ({len(self._timestamps)})"
             )
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=list(self._timestamps),
@@ -1145,7 +1145,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             **self._meta_kwargs(),
         )
 
-    def apply_polars(self, func: Callable) -> TimeSeries:
+    def apply_polars(self, func: Callable) -> TimeSeriesList:
         """Apply a polars transformation, preserving frequency/timezone/metadata."""
         df = self.to_polars_dataframe()
         result = func(df)
@@ -1158,7 +1158,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         arr = result[val_col].to_numpy(allow_copy=True).astype(np.float64)
         values = self._from_float_array(arr)
 
-        return TimeSeries(
+        return TimeSeriesList(
             self.frequency,
             timezone=self.timezone,
             timestamps=timestamps,
@@ -1166,11 +1166,11 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             **self._meta_kwargs(),
         )
 
-    def apply_xarray(self, func: Callable) -> TimeSeries:
+    def apply_xarray(self, func: Callable) -> TimeSeriesList:
         """Apply an xarray transformation, reading metadata from result.attrs with self as fallback."""
         da = self.to_xarray()
         result = func(da)
-        return TimeSeries.from_xarray(
+        return TimeSeriesList.from_xarray(
             result,
             frequency=Frequency(result.attrs.get("frequency", str(self.frequency))),
             timezone=result.attrs.get("timezone", self.timezone),
@@ -1200,15 +1200,15 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         )
 
     @staticmethod
-    def merge(series: list[TimeSeries]) -> "TimeSeriesTable":
-        """Combine multiple univariate TimeSeries into a TimeSeriesTable.
+    def merge(series: list[TimeSeriesList]) -> "TimeSeriesTable":
+        """Combine multiple univariate TimeSeriesList into a TimeSeriesTable.
 
         All series must share the same timestamps (same length and values).
         """
         from .table import TimeSeriesTable
 
         if not series:
-            raise ValueError("Cannot merge an empty list of TimeSeries.")
+            raise ValueError("Cannot merge an empty list of TimeSeriesList.")
 
         ref_ts = series[0]._timestamps
         for i, s in enumerate(series[1:], 1):

@@ -166,7 +166,7 @@ class TestProperties:
 class TestSel:
     def test_single_value_drops_axis(self, cube_2d, timestamps_5h):
         result = cube_2d.sel(scenario="low")
-        assert isinstance(result, tdm.TimeSeries)
+        assert isinstance(result, tdm.TimeSeriesList)
         assert len(result) == 5
         assert result.values == [1.0, 2.0, 3.0, 4.0, 5.0]
 
@@ -178,7 +178,7 @@ class TestSel:
 
     def test_multi_kwarg_collapse_to_timeseries(self, cube_3d, timestamps_5h):
         result = cube_3d.sel(scenario="low", quantile=0.5)
-        assert isinstance(result, tdm.TimeSeries)
+        assert isinstance(result, tdm.TimeSeriesList)
         assert len(result) == 5
 
     def test_label_not_found_raises(self, cube_2d):
@@ -204,7 +204,7 @@ class TestSel:
 class TestIsel:
     def test_single_int_drops_axis(self, cube_2d):
         result = cube_2d.isel(scenario=0)
-        assert isinstance(result, tdm.TimeSeries)
+        assert isinstance(result, tdm.TimeSeriesList)
         assert result.values == [1.0, 2.0, 3.0, 4.0, 5.0]
 
     def test_slice_keeps_axis(self, cube_2d):
@@ -214,7 +214,7 @@ class TestIsel:
 
     def test_isel_3d(self, cube_3d):
         result = cube_3d.isel(scenario=0, quantile=1)
-        assert isinstance(result, tdm.TimeSeries)
+        assert isinstance(result, tdm.TimeSeriesList)
         assert len(result) == 5
 
 
@@ -225,11 +225,11 @@ class TestIsel:
 class TestConversion:
     def test_to_timeseries(self, cube_2d):
         ts = cube_2d.to_timeseries(scenario="mid")
-        assert isinstance(ts, tdm.TimeSeries)
+        assert isinstance(ts, tdm.TimeSeriesList)
         assert ts.values == [10.0, 20.0, 30.0, 40.0, 50.0]
 
     def test_to_timeseries_wrong_ndim(self, cube_2d):
-        with pytest.raises(ValueError, match="TimeSeries"):
+        with pytest.raises(ValueError, match="TimeSeriesList"):
             cube_2d.to_timeseries()
 
     def test_to_table(self, cube_2d):
@@ -263,8 +263,8 @@ class TestConversion:
 
 class TestFromTimeseriesList:
     def test_aligned_timestamps(self, timestamps_5h):
-        s1 = tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=timestamps_5h, values=[1.0]*5, name="a")
-        s2 = tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=timestamps_5h, values=[2.0]*5, name="b")
+        s1 = tdm.TimeSeriesList(tdm.Frequency.PT1H, timestamps=timestamps_5h, values=[1.0]*5, name="a")
+        s2 = tdm.TimeSeriesList(tdm.Frequency.PT1H, timestamps=timestamps_5h, values=[2.0]*5, name="b")
         dim = tdm.Dimension("scenario", ["s1", "s2"])
         cube = tdm.TimeSeriesArray.from_timeseries_list([s1, s2], dim)
         assert cube.shape == (2, 5)
@@ -274,8 +274,8 @@ class TestFromTimeseriesList:
         base = datetime(2024, 1, 1, tzinfo=timezone.utc)
         ts1 = [base, base + timedelta(hours=1), base + timedelta(hours=2)]
         ts2 = [base + timedelta(hours=1), base + timedelta(hours=2), base + timedelta(hours=3)]
-        s1 = tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=ts1, values=[1.0, 2.0, 3.0])
-        s2 = tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=ts2, values=[10.0, 20.0, 30.0])
+        s1 = tdm.TimeSeriesList(tdm.Frequency.PT1H, timestamps=ts1, values=[1.0, 2.0, 3.0])
+        s2 = tdm.TimeSeriesList(tdm.Frequency.PT1H, timestamps=ts2, values=[10.0, 20.0, 30.0])
         dim = tdm.Dimension("scenario", ["a", "b"])
         cube = tdm.TimeSeriesArray.from_timeseries_list([s1, s2], dim)
         # Union has 4 timestamps
@@ -283,7 +283,7 @@ class TestFromTimeseriesList:
         assert cube.has_missing  # gaps at edges
 
     def test_label_count_mismatch(self, timestamps_5h):
-        s1 = tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=timestamps_5h, values=[1.0]*5)
+        s1 = tdm.TimeSeriesList(tdm.Frequency.PT1H, timestamps=timestamps_5h, values=[1.0]*5)
         dim = tdm.Dimension("scenario", ["a", "b"])  # 2 labels but 1 series
         with pytest.raises(ValueError, match="labels"):
             tdm.TimeSeriesArray.from_timeseries_list([s1], dim)

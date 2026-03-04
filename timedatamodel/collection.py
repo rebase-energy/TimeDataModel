@@ -9,13 +9,13 @@ from ._theme import THEME
 from .coverage import CoverageBar
 from .location import GeoArea, GeoLocation
 from .table import TimeSeriesTable
-from .timeseries import TimeSeries
+from .timeseries import TimeSeriesList
 
 
 class TimeSeriesCollection(_DataFrameMixin):
-    """Container for TimeSeries and/or TimeSeriesTable objects that don't share an index.
+    """Container for TimeSeriesList and/or TimeSeriesTable objects that don't share an index.
 
-    Items are stored internally as an ordered ``dict[str, TimeSeries | TimeSeriesTable]``.
+    Items are stored internally as an ordered ``dict[str, TimeSeriesList | TimeSeriesTable]``.
     """
 
     __slots__ = ("_series", "_name", "_description")
@@ -23,8 +23,8 @@ class TimeSeriesCollection(_DataFrameMixin):
     def __init__(
         self,
         series: (
-            list[TimeSeries | TimeSeriesTable]
-            | dict[str, TimeSeries | TimeSeriesTable]
+            list[TimeSeriesList | TimeSeriesTable]
+            | dict[str, TimeSeriesList | TimeSeriesTable]
             | None
         ) = None,
         *,
@@ -35,7 +35,7 @@ class TimeSeriesCollection(_DataFrameMixin):
         self._description = description
 
         if series is None:
-            self._series: dict[str, TimeSeries | TimeSeriesTable] = {}
+            self._series: dict[str, TimeSeriesList | TimeSeriesTable] = {}
         elif isinstance(series, dict):
             self._series = dict(series)
         else:
@@ -43,7 +43,7 @@ class TimeSeriesCollection(_DataFrameMixin):
             used: dict[str, int] = {}
             for idx, item in enumerate(series):
                 key: str | None = None
-                if isinstance(item, TimeSeries) and item.name:
+                if isinstance(item, TimeSeriesList) and item.name:
                     key = item.name
                 elif isinstance(item, TimeSeriesTable):
                     names = item.column_names
@@ -92,7 +92,7 @@ class TimeSeriesCollection(_DataFrameMixin):
     def __iter__(self) -> Iterator[str]:
         return iter(self._series)
 
-    def __getitem__(self, key: str | int) -> TimeSeries | TimeSeriesTable:
+    def __getitem__(self, key: str | int) -> TimeSeriesList | TimeSeriesTable:
         if isinstance(key, int):
             keys = list(self._series.keys())
             return self._series[keys[key]]
@@ -111,11 +111,11 @@ class TimeSeriesCollection(_DataFrameMixin):
 
     def add(
         self,
-        item: TimeSeries | TimeSeriesTable,
+        item: TimeSeriesList | TimeSeriesTable,
         name: str | None = None,
     ) -> TimeSeriesCollection:
         if name is None:
-            if isinstance(item, TimeSeries) and item.name:
+            if isinstance(item, TimeSeriesList) and item.name:
                 name = item.name
             elif isinstance(item, TimeSeriesTable):
                 names = item.column_names
@@ -138,10 +138,10 @@ class TimeSeriesCollection(_DataFrameMixin):
 
     @staticmethod
     def _item_distance(
-        item: TimeSeries | TimeSeriesTable, target: GeoLocation
+        item: TimeSeriesList | TimeSeriesTable, target: GeoLocation
     ) -> float | None:
         """Return the minimum distance from *item* to *target*, or None if no location."""
-        if isinstance(item, TimeSeries):
+        if isinstance(item, TimeSeriesList):
             loc = item.location
             if isinstance(loc, GeoLocation):
                 return loc.distance_to(target)
@@ -160,12 +160,12 @@ class TimeSeriesCollection(_DataFrameMixin):
 
     @staticmethod
     def _item_in_radius(
-        item: TimeSeries | TimeSeriesTable,
+        item: TimeSeriesList | TimeSeriesTable,
         center: GeoLocation,
         radius_km: float,
     ) -> bool:
         """True if any location on *item* is within *radius_km* of *center*."""
-        if isinstance(item, TimeSeries):
+        if isinstance(item, TimeSeriesList):
             loc = item.location
             if isinstance(loc, GeoLocation):
                 return loc.distance_to(center) <= radius_km
@@ -182,10 +182,10 @@ class TimeSeriesCollection(_DataFrameMixin):
 
     @staticmethod
     def _item_in_area(
-        item: TimeSeries | TimeSeriesTable, area: GeoArea
+        item: TimeSeriesList | TimeSeriesTable, area: GeoArea
     ) -> bool:
         """True if any location on *item* is inside *area*."""
-        if isinstance(item, TimeSeries):
+        if isinstance(item, TimeSeriesList):
             loc = item.location
             if isinstance(loc, GeoLocation):
                 return loc.is_within(area)
@@ -256,7 +256,7 @@ class TimeSeriesCollection(_DataFrameMixin):
         frames: dict[str, "pd.Series"] = {}
         for key, item in self._series.items():
             df_item = item.to_pandas_dataframe()
-            # TimeSeries produces a single-column DataFrame; extract the Series
+            # TimeSeriesList produces a single-column DataFrame; extract the Series
             if df_item.shape[1] == 1:
                 frames[key] = df_item.iloc[:, 0]
             else:
@@ -297,7 +297,7 @@ class TimeSeriesCollection(_DataFrameMixin):
 
     # ---- display -----------------------------------------------------------
 
-    def _item_summary(self, key: str, item: TimeSeries | TimeSeriesTable) -> dict:
+    def _item_summary(self, key: str, item: TimeSeriesList | TimeSeriesTable) -> dict:
         """Summarize a single item for repr tables."""
         kind = type(item).__name__
         freq = str(item.frequency) if hasattr(item, "frequency") else "-"
@@ -426,7 +426,7 @@ class TimeSeriesCollection(_DataFrameMixin):
             begin = item.begin
             end = item.end
 
-            if isinstance(item, TimeSeries):
+            if isinstance(item, TimeSeriesList):
                 label = key
                 if begin is None or end is None or global_span == 0:
                     masks.append((label, [False] * n_bins))

@@ -10,7 +10,7 @@ import timedatamodel as tdm
 def _make_ts(name, values, timestamps=None):
     if timestamps is None:
         timestamps = [datetime(2024, 1, i + 1) for i in range(len(values))]
-    return tdm.TimeSeries(
+    return tdm.TimeSeriesList(
         tdm.Frequency.P1D,
         timestamps=timestamps,
         values=values,
@@ -345,8 +345,8 @@ class TestConversion:
 
 class TestValidation:
     def test_mismatched_frequency_raises(self):
-        ts_a = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A")
-        ts_b = tdm.TimeSeries(tdm.Frequency.PT1H, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
+        ts_a = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A")
+        ts_b = tdm.TimeSeriesList(tdm.Frequency.PT1H, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
         a = tdm.HierarchyNode(key="A", level="leaf", timeseries=ts_a)
         b = tdm.HierarchyNode(key="B", level="leaf", timeseries=ts_b)
         root = tdm.HierarchyNode(key="Root", level="root", children=[a, b])
@@ -354,8 +354,8 @@ class TestValidation:
             tdm.HierarchicalTimeSeries(root, levels=["root", "leaf"])
 
     def test_mismatched_timezone_raises(self):
-        ts_a = tdm.TimeSeries(tdm.Frequency.P1D, timezone="UTC", timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A")
-        ts_b = tdm.TimeSeries(tdm.Frequency.P1D, timezone="CET", timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
+        ts_a = tdm.TimeSeriesList(tdm.Frequency.P1D, timezone="UTC", timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A")
+        ts_b = tdm.TimeSeriesList(tdm.Frequency.P1D, timezone="CET", timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
         a = tdm.HierarchyNode(key="A", level="leaf", timeseries=ts_a)
         b = tdm.HierarchyNode(key="B", level="leaf", timeseries=ts_b)
         root = tdm.HierarchyNode(key="Root", level="root", children=[a, b])
@@ -364,8 +364,8 @@ class TestValidation:
 
     def test_compatible_units_auto_convert(self):
         """MWh vs GWh are compatible — should auto-convert to first leaf's unit."""
-        ts_a = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
-        ts_b = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B", unit="GWh")
+        ts_a = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
+        ts_b = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B", unit="GWh")
         a = tdm.HierarchyNode(key="A", level="leaf", timeseries=ts_a)
         b = tdm.HierarchyNode(key="B", level="leaf", timeseries=ts_b)
         root = tdm.HierarchyNode(key="Root", level="root", children=[a, b])
@@ -477,8 +477,8 @@ class TestEdgeCases:
 class TestUnitAutoConversion:
     def test_compatible_units_converted(self):
         """kWh leaves auto-convert to MWh (first leaf's unit)."""
-        ts_a = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
-        ts_b = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[5000.0], name="B", unit="kWh")
+        ts_a = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
+        ts_b = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[5000.0], name="B", unit="kWh")
         a = tdm.HierarchyNode(key="A", level="leaf", timeseries=ts_a)
         b = tdm.HierarchyNode(key="B", level="leaf", timeseries=ts_b)
         root = tdm.HierarchyNode(key="Root", level="root", children=[a, b])
@@ -489,8 +489,8 @@ class TestUnitAutoConversion:
         assert b_node.timeseries.unit == "MWh"
 
     def test_incompatible_units_raises(self):
-        ts_a = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
-        ts_b = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B", unit="m")
+        ts_a = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
+        ts_b = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B", unit="m")
         a = tdm.HierarchyNode(key="A", level="leaf", timeseries=ts_a)
         b = tdm.HierarchyNode(key="B", level="leaf", timeseries=ts_b)
         root = tdm.HierarchyNode(key="Root", level="root", children=[a, b])
@@ -498,8 +498,8 @@ class TestUnitAutoConversion:
             tdm.HierarchicalTimeSeries(root, levels=["root", "leaf"])
 
     def test_mixed_none_raises(self):
-        ts_a = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
-        ts_b = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
+        ts_a = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MWh")
+        ts_b = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
         a = tdm.HierarchyNode(key="A", level="leaf", timeseries=ts_a)
         b = tdm.HierarchyNode(key="B", level="leaf", timeseries=ts_b)
         root = tdm.HierarchyNode(key="Root", level="root", children=[a, b])
@@ -507,8 +507,8 @@ class TestUnitAutoConversion:
             tdm.HierarchicalTimeSeries(root, levels=["root", "leaf"])
 
     def test_all_none_ok(self):
-        ts_a = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A")
-        ts_b = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
+        ts_a = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A")
+        ts_b = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B")
         a = tdm.HierarchyNode(key="A", level="leaf", timeseries=ts_a)
         b = tdm.HierarchyNode(key="B", level="leaf", timeseries=ts_b)
         root = tdm.HierarchyNode(key="Root", level="root", children=[a, b])
@@ -516,8 +516,8 @@ class TestUnitAutoConversion:
         assert h.unit is None
 
     def test_same_units_no_conversion(self):
-        ts_a = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MW")
-        ts_b = tdm.TimeSeries(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B", unit="MW")
+        ts_a = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[1.0], name="A", unit="MW")
+        ts_b = tdm.TimeSeriesList(tdm.Frequency.P1D, timestamps=[datetime(2024, 1, 1)], values=[2.0], name="B", unit="MW")
         a = tdm.HierarchyNode(key="A", level="leaf", timeseries=ts_a)
         b = tdm.HierarchyNode(key="B", level="leaf", timeseries=ts_b)
         root = tdm.HierarchyNode(key="Root", level="root", children=[a, b])
