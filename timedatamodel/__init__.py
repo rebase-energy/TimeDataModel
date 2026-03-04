@@ -1,6 +1,7 @@
 from importlib.metadata import version
 
-from ._base import get_default_df, set_default_df
+from ._base import get_default_df, get_repr_width, set_default_df, set_repr_width
+from ._theme import get_theme, reset_theme, set_theme
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 from .coverage import CoverageBar
@@ -15,6 +16,8 @@ __version__ = version("timedatamodel")
 __all__ = [
     "AggregationMethod",
     "get_default_df",
+    "get_repr_width",
+    "get_theme",
     "CoverageBar",
     "DataPoint",
     "DataType",
@@ -34,5 +37,8 @@ __all__ = [
     "TimeSeriesTable",
     "TimeSeriesType",
     "TimeSeries",
+    "reset_theme",
     "set_default_df",
+    "set_repr_width",
+    "set_theme",
 ]

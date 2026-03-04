@@ -8,10 +8,25 @@ from typing import Callable
 
 import numpy as np
 
+from ._theme import THEME, get_theme_version
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 
 _default_dataframe_backend: str = "pandas"
+_default_repr_width: int | None = None  # None = no limit
+
+
+def set_repr_width(width: int | None) -> None:
+    """Set max repr box width. None = no limit."""
+    global _default_repr_width
+    if width is not None and width < 10:
+        raise ValueError("repr width must be at least 10 or None")
+    _default_repr_width = width
+
+
+def get_repr_width() -> int | None:
+    """Return current max repr width (None = no limit)."""
+    return _default_repr_width
 
 
 def set_default_df(backend: str) -> None:
@@ -55,11 +70,16 @@ _MAX_PREVIEW = 3  # rows shown at head/tail in repr
 _MAX_COL_PREVIEW = 4  # leaf columns shown at head/tail in array repr
 
 
+def _truncate(s: str, max_len: int) -> str:
+    """Return s[:max_len-3] + '...' if too long, else s."""
+    if len(s) <= max_len:
+        return s
+    return s[: max_len - 3] + "..."
+
+
 def _fmt_short_date(dt: datetime) -> str:
-    """Format a datetime concisely: omit time when midnight, omit tzinfo."""
+    """Format a datetime concisely: always include time, omit tzinfo."""
     dt_naive = dt.replace(tzinfo=None)
-    if dt_naive.hour == 0 and dt_naive.minute == 0 and dt_naive.second == 0:
-        return dt_naive.strftime("%Y-%m-%d")
     return dt_naive.strftime("%Y-%m-%d %H:%M")
 
 
@@ -160,45 +180,63 @@ def _convert_unit_values(values: np.ndarray, from_unit: str, to_unit: str) -> np
 # Shared _repr_html_ builder
 # ---------------------------------------------------------------------------
 
-_REPR_CSS = """\
+def _repr_css() -> str:
+    lt = THEME["light"]
+    dk = THEME["dark"]
+    return f"""\
 <style>
-.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; }
-.ts-repr .ts-header {
+.ts-repr {{ font-family: monospace; font-size: 13px; max-width: 640px; display: inline-block; }}
+.ts-repr .ts-header {{
   font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; }
-.ts-repr .ts-meta table { border-collapse: collapse; }
-.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
-.ts-repr .ts-meta td:last-child { color: #1a1a1a; }
-.ts-repr .ts-data { padding: 6px 10px; }
-.ts-repr .ts-data table {
-  border-collapse: collapse; width: 100%; text-align: right;
-}
-.ts-repr .ts-data th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.ts-repr .ts-data td { padding: 2px 10px; }
-.ts-repr .ts-data tr:hover { background: #f5f5f5; }
-.ts-repr .ts-data td:first-child { text-align: left; color: #333; }
-.ts-repr .ts-data td.ts-idx { text-align: left; color: #333; }
-.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
-@media (prefers-color-scheme: dark) {
-  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
-  .ts-repr .ts-meta { background: #0f172a; }
-  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
-  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
-  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
-  .ts-repr .ts-data td { color: #e2e8f0; }
-  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
-  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
-  .ts-repr .ts-data tr:hover { background: #1e293b; }
-  .ts-repr .ts-ellipsis { color: #64748b; }
-}
+  padding: 6px 10px; border-bottom: 2px solid {lt["header_border"]};
+  background: {lt["header_bg"]}; color: {lt["header_text"]};
+}}
+.ts-repr .ts-meta {{ padding: 6px 10px; background: {lt["meta_bg"]}; }}
+.ts-repr .ts-meta table {{ border-collapse: collapse; }}
+.ts-repr .ts-meta td {{ padding: 1px 8px 1px 0; white-space: nowrap; }}
+.ts-repr .ts-meta td:first-child {{ color: {lt["meta_label"]}; font-weight: 600; }}
+.ts-repr .ts-meta td:last-child {{ color: {lt["meta_value"]}; }}
+.ts-repr .ts-data {{ padding: 6px 10px; }}
+.ts-repr .ts-data table {{
+  border-collapse: collapse; text-align: right;
+}}
+.ts-repr .ts-data th {{
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid {lt["col_header_border"]};
+  color: {lt["col_header_text"]}; font-weight: 600;
+}}
+.ts-repr .ts-data th.ts-idx {{ text-align: left; }}
+.ts-repr .ts-data td {{ padding: 2px 10px; }}
+.ts-repr .ts-data tr:hover {{ background: {lt["hover_bg"]}; }}
+.ts-repr .ts-data td:first-child {{ text-align: left; color: {lt["index_text"]}; }}
+.ts-repr .ts-data td.ts-idx {{ text-align: left; color: {lt["index_text"]}; }}
+.ts-repr .ts-ellipsis {{ text-align: center !important; color: {lt["ellipsis"]}; }}
+@media (prefers-color-scheme: dark) {{
+  .ts-repr .ts-header {{ background: {dk["header_bg"]}; color: {dk["header_text"]}; border-color: {dk["header_border"]}; }}
+  .ts-repr .ts-meta {{ background: {dk["meta_bg"]}; }}
+  .ts-repr .ts-meta td:first-child {{ color: {dk["meta_label"]}; }}
+  .ts-repr .ts-meta td:last-child {{ color: {dk["meta_value"]}; }}
+  .ts-repr .ts-data th {{ color: {dk["col_header_text"]}; border-color: {dk["col_header_border"]}; }}
+  .ts-repr .ts-data td {{ color: {dk["data_text"]}; }}
+  .ts-repr .ts-data td:first-child {{ color: {dk["index_text"]}; }}
+  .ts-repr .ts-data td.ts-idx {{ color: {dk["index_text"]}; }}
+  .ts-repr .ts-data tr:hover {{ background: {dk["hover_bg"]}; }}
+  .ts-repr .ts-ellipsis {{ color: {dk["ellipsis"]}; }}
+}}
 </style>"""
+
+_css_cache: str | None = None
+_css_cache_version: int = -1
+
+
+def _get_repr_css() -> str:
+    """Return the CSS string, regenerating only when the theme version changes."""
+    global _css_cache, _css_cache_version
+    version = get_theme_version()
+    if _css_cache is not None and _css_cache_version == version:
+        return _css_cache
+    _css_cache = _repr_css()
+    _css_cache_version = version
+    return _css_cache
 
 
 def _build_repr_html(
@@ -213,7 +251,7 @@ def _build_repr_html(
     """Build a shared HTML repr for TimeSeries and TimeSeriesTable."""
     total_cols = len(index_names) + len(column_names)
 
-    html = [_REPR_CSS, '<div class="ts-repr">']
+    html = [_get_repr_css(), '<div class="ts-repr">']
     html.append(f'<div class="ts-header">{escape(class_name)}</div>')
 
     # Meta section
@@ -224,7 +262,7 @@ def _build_repr_html(
 
     # Data section
     html.append('<div class="ts-data"><table>')
-    header_cells = "".join(f"<th>{escape(c)}</th>" for c in index_names)
+    header_cells = "".join(f'<th class="ts-idx">{escape(c)}</th>' for c in index_names)
     header_cells += "".join(f"<th>{escape(c)}</th>" for c in column_names)
     html.append(f"<tr>{header_cells}</tr>")
 
@@ -487,12 +525,31 @@ def _xarray_labels_to_list(raw) -> list:
     return out
 
 
-def _render_box(class_name: str, content_lines: list[str | None], padding: int = 2) -> str:
+def _render_box(
+    class_name: str,
+    content_lines: list[str | None],
+    padding: int = 2,
+    max_width: int | None = None,
+) -> str:
     """Render a Unicode box around content lines.
 
     ``None`` entries in *content_lines* are drawn as horizontal separators.
+    *max_width* caps the total box width (border + padding + content).
+    Defaults to the global ``get_repr_width()`` setting when ``None``.
     """
+    if max_width is None:
+        max_width = get_repr_width()
+
     max_w = max((len(l) for l in content_lines if l is not None), default=0)
+
+    # Cap content width when a max_width is active
+    # Total width = 2 (borders) + 2*padding + content
+    if max_width is not None:
+        max_content = max_width - 2 * padding - 2
+        if max_content < 1:
+            max_content = 1
+        max_w = min(max_w, max_content)
+
     box_inner = max_w + padding * 2
     top = "\u250c" + "\u2500" * box_inner + "\u2510"
     bot = "\u2514" + "\u2500" * box_inner + "\u2518"
@@ -502,6 +559,8 @@ def _render_box(class_name: str, content_lines: list[str | None], padding: int =
         if cl is None:
             lines.append(sep)
         else:
+            if max_width is not None and len(cl) > max_w:
+                cl = _truncate(cl, max_w)
             lines.append(
                 "\u2502" + " " * padding + cl.ljust(max_w) + " " * padding + "\u2502"
             )

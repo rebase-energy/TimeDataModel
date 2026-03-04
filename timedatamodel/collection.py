@@ -4,7 +4,8 @@ from datetime import datetime
 from html import escape
 from typing import Iterator
 
-from ._base import _DataFrameMixin, _fmt_short_date, _import_polars
+from ._base import _DataFrameMixin, _fmt_short_date, _import_polars, _render_box
+from ._theme import THEME
 from .coverage import CoverageBar
 from .location import GeoArea, GeoLocation
 from .table import TimeSeriesTable
@@ -318,8 +319,10 @@ class TimeSeriesCollection(_DataFrameMixin):
 
     def __repr__(self) -> str:
         class_name = type(self).__name__
+        if self._name:
+            class_name = f"{class_name}: {self._name}"
         if not self._series:
-            return f"{class_name}(empty)"
+            return f"{type(self).__name__}(empty)"
 
         rows = [
             self._item_summary(k, v) for k, v in self._series.items()
@@ -330,41 +333,16 @@ class TimeSeriesCollection(_DataFrameMixin):
             for h in headers:
                 col_widths[h] = max(col_widths[h], len(row[h]))
 
-        padding = 2
-
         def _fmt_row(vals: dict) -> str:
             return "  ".join(f"{vals[h]:<{col_widths[h]}}" for h in headers)
 
         header_line = _fmt_row({h: h for h in headers})
-        content_lines = [header_line]
+        content_lines: list[str | None] = [header_line]
         content_lines.append(None)  # separator
         for row in rows:
             content_lines.append(_fmt_row(row))
 
-        max_w = max(
-            (len(line) for line in content_lines if line is not None),
-            default=0,
-        )
-        inner_w = max_w + padding * 2
-        title = f" {class_name} "
-        if self._name:
-            title = f" {class_name}: {self._name} "
-
-        lines: list[str] = []
-        lines.append(
-            f"\u250c{title:\u2500^{inner_w}}\u2510"
-        )
-        for cl in content_lines:
-            if cl is None:
-                lines.append(
-                    f"\u251c{'\u2500' * inner_w}\u2524"
-                )
-            else:
-                lines.append(
-                    f"\u2502{' ' * padding}{cl}{' ' * (inner_w - padding - len(cl))}\u2502"
-                )
-        lines.append(f"\u2514{'\u2500' * inner_w}\u2518")
-        return "\n".join(lines)
+        return _render_box(class_name, content_lines)
 
     def _repr_html_(self) -> str:
         if not self._series:
@@ -379,21 +357,29 @@ class TimeSeriesCollection(_DataFrameMixin):
         if self._name:
             title = f"{title}: {escape(self._name)}"
 
-        css = """\
+        lt = THEME["light"]
+        dk = THEME["dark"]
+        css = f"""\
 <style>
-.tsc-repr { font-family: monospace; font-size: 13px; max-width: 720px; }
-.tsc-repr .tsc-header {
+.tsc-repr {{ font-family: monospace; font-size: 13px; max-width: 720px; }}
+.tsc-repr .tsc-header {{
   font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.tsc-repr table { border-collapse: collapse; width: 100%; }
-.tsc-repr th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.tsc-repr td { padding: 2px 10px; }
-.tsc-repr tr:hover { background: #f5f5f5; }
+  padding: 6px 10px; border-bottom: 2px solid {lt["header_border"]};
+  background: {lt["header_bg"]}; color: {lt["header_text"]};
+}}
+.tsc-repr table {{ border-collapse: collapse; width: 100%; }}
+.tsc-repr th {{
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid {lt["col_header_border"]};
+  color: {lt["col_header_text"]}; font-weight: 600;
+}}
+.tsc-repr td {{ padding: 2px 10px; }}
+.tsc-repr tr:hover {{ background: {lt["hover_bg"]}; }}
+@media (prefers-color-scheme: dark) {{
+  .tsc-repr .tsc-header {{ background: {dk["header_bg"]}; color: {dk["header_text"]}; border-color: {dk["header_border"]}; }}
+  .tsc-repr th {{ color: {dk["col_header_text"]}; border-color: {dk["col_header_border"]}; }}
+  .tsc-repr td {{ color: {dk["data_text"]}; }}
+  .tsc-repr tr:hover {{ background: {dk["hover_bg"]}; }}
+}}
 </style>"""
 
         html = [css, '<div class="tsc-repr">']

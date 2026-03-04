@@ -6,7 +6,7 @@ from typing import NamedTuple
 
 import numpy as np
 
-from ._base import _REPR_CSS, _fmt_short_date, _fmt_tz_with_offset, _render_box
+from ._base import _get_repr_css, _fmt_short_date, _fmt_tz_with_offset, _render_box
 
 
 class DataPoint(NamedTuple):
@@ -49,7 +49,7 @@ class DataPoint(NamedTuple):
 
         meta_rows.append(("Value", val_str))
 
-        html = [_REPR_CSS, '<div class="ts-repr">']
+        html = [_get_repr_css(), '<div class="ts-repr">']
         html.append('<div class="ts-header">DataPoint</div>')
         html.append('<div class="ts-meta"><table>')
         for label, value in meta_rows:

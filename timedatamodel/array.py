@@ -10,7 +10,7 @@ import numpy as np
 from ._base import (
     _MAX_COL_PREVIEW,
     _MAX_PREVIEW,
-    _REPR_CSS,
+    _get_repr_css,
     _TimeSeriesBase,
     _build_repr_html,
     _fmt_short_date,
@@ -906,7 +906,7 @@ class TimeSeriesArray:
                     tbody.append(_data_row(ri))
 
             # ---- assemble HTML ----
-            html = [_REPR_CSS, '<div class="ts-repr">']
+            html = [_get_repr_css(), '<div class="ts-repr">']
             html.append(
                 f'<div class="ts-header">'
                 f"{escape(type(self).__name__)}</div>"

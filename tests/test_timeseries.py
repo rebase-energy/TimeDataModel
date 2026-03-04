@@ -863,7 +863,7 @@ class TestMultiIndex:
     def test_repr(self, multi_ts):
         r = repr(multi_ts)
         assert "TimeSeries" in r
-        assert "(5,)" in r
+        assert "5.0" in r
         assert "\u250c" in r  # box-drawing top-left
 
 
@@ -988,7 +988,7 @@ class TestMultivariate:
     def test_repr(self, mv_ts):
         r = repr(mv_ts)
         assert "TimeSeriesTable" in r
-        assert "(5, 2)" in r
+        assert "5.0" in r
         assert "\u250c" in r  # box-drawing top-left
 
     def test_validate(self, mv_ts):
@@ -2786,3 +2786,130 @@ class TestDataPointRepr:
         assert "Timezone" not in r
         html = dp._repr_html_()
         assert "Timezone" not in html
+
+
+class TestReprWidth:
+    """Tests for opt-in repr width limiting via set_repr_width/get_repr_width."""
+
+    def setup_method(self):
+        tdm.set_repr_width(None)
+
+    def teardown_method(self):
+        tdm.set_repr_width(None)
+
+    def test_truncate_short_unchanged(self):
+        from timedatamodel._base import _truncate
+        assert _truncate("hello", 10) == "hello"
+
+    def test_truncate_exact_length(self):
+        from timedatamodel._base import _truncate
+        assert _truncate("hello", 5) == "hello"
+
+    def test_truncate_long_gets_ellipsis(self):
+        from timedatamodel._base import _truncate
+        assert _truncate("hello world", 8) == "hello..."
+
+    def test_truncate_minimum(self):
+        from timedatamodel._base import _truncate
+        assert _truncate("abcdef", 4) == "a..."
+
+    def test_default_no_limit(self):
+        assert tdm.get_repr_width() is None
+
+    def test_set_and_get(self):
+        tdm.set_repr_width(80)
+        assert tdm.get_repr_width() == 80
+
+    def test_set_none_resets(self):
+        tdm.set_repr_width(80)
+        tdm.set_repr_width(None)
+        assert tdm.get_repr_width() is None
+
+    def test_set_too_small_raises(self):
+        with pytest.raises(ValueError):
+            tdm.set_repr_width(5)
+
+    def test_default_repr_no_truncation(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base + timedelta(hours=i) for i in range(5)],
+            values=[1.0, 2.0, 3.0, 4.0, 5.0],
+            name="a_long_name_for_testing",
+        )
+        r = repr(ts)
+        # No line should end with "..."
+        for line in r.split("\n"):
+            assert not line.rstrip().endswith("...")
+
+    def test_repr_width_limits_lines(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base + timedelta(hours=i) for i in range(5)],
+            values=[1.0, 2.0, 3.0, 4.0, 5.0],
+            name="a_very_long_series_name_for_testing_width_limit",
+            description="A very long description that should definitely be truncated",
+        )
+        tdm.set_repr_width(40)
+        r = repr(ts)
+        for line in r.split("\n"):
+            assert len(line) <= 40, f"Line too long ({len(line)}): {line!r}"
+
+    def test_repr_width_truncated_lines_have_ellipsis(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base + timedelta(hours=i) for i in range(5)],
+            values=[1.0, 2.0, 3.0, 4.0, 5.0],
+            name="a_very_long_series_name_for_testing_width_limit",
+            description="A very long description that should be truncated with ellipsis",
+        )
+        tdm.set_repr_width(40)
+        r = repr(ts)
+        # At least one content line should be truncated with "..."
+        assert any("..." in line for line in r.split("\n"))
+
+    def test_reset_to_none_restores_full_width(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base + timedelta(hours=i) for i in range(5)],
+            values=[1.0, 2.0, 3.0, 4.0, 5.0],
+            name="test",
+        )
+        full_repr = repr(ts)
+        tdm.set_repr_width(40)
+        tdm.set_repr_width(None)
+        assert repr(ts) == full_repr
+
+    def test_datapoint_repr_unchanged(self):
+        dp = tdm.DataPoint(datetime(2024, 1, 1, tzinfo=timezone.utc), 42.0)
+        r1 = repr(dp)
+        tdm.set_repr_width(80)
+        r2 = repr(dp)
+        # DataPoint uses _render_box too, so it should still work
+        assert "DataPoint" in r2
+        assert "42.0" in r2
+        for line in r2.split("\n"):
+            assert len(line) <= 80
+
+    def test_collection_repr_width(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        ts1 = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base + timedelta(hours=i) for i in range(5)],
+            values=[float(i) for i in range(5)],
+            name="series_with_a_long_name",
+        )
+        ts2 = tdm.TimeSeries(
+            tdm.Frequency.PT1H,
+            timestamps=[base + timedelta(hours=i) for i in range(5)],
+            values=[float(i) for i in range(5)],
+            name="another_long_series_name",
+        )
+        coll = tdm.TimeSeriesCollection([ts1, ts2], name="my_collection")
+        tdm.set_repr_width(60)
+        r = repr(coll)
+        for line in r.split("\n"):
+            assert len(line) <= 60, f"Line too long ({len(line)}): {line!r}"

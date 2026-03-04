@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Iterator
 import numpy as np
 
 from ._base import _convert_unit_values, _fmt_short_date, _fmt_tz_with_offset, _render_box
+from ._theme import THEME
 from .enums import Frequency
 from .location import Location
 from .timeseries import TimeSeries
@@ -668,25 +669,35 @@ class HierarchicalTimeSeries:
         if self._name:
             title = f"{class_name}: {escape(self._name)}"
 
-        css = """\
+        lt = THEME["light"]
+        dk = THEME["dark"]
+        css = f"""\
 <style>
-.tsh-repr { font-family: monospace; font-size: 13px; max-width: 720px; }
-.tsh-repr .tsh-header {
+.tsh-repr {{ font-family: monospace; font-size: 13px; max-width: 720px; display: inline-block; }}
+.tsh-repr .tsh-header {{
   font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
-  background: #f0f0f0; color: #1a1a1a;
-}
-.tsh-repr .tsh-meta { padding: 6px 10px; background: #fafafa; }
-.tsh-repr .tsh-meta table { border-collapse: collapse; }
-.tsh-repr .tsh-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
-.tsh-repr .tsh-meta td:first-child { color: #666; font-weight: 600; }
-.tsh-repr table.tsh-leaves { border-collapse: collapse; width: 100%; }
-.tsh-repr .tsh-leaves th {
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;
-  color: #555; font-weight: 600;
-}
-.tsh-repr .tsh-leaves td { padding: 2px 10px; }
-.tsh-repr .tsh-leaves tr:hover { background: #f5f5f5; }
+  padding: 6px 10px; border-bottom: 2px solid {lt["header_border"]};
+  background: {lt["header_bg"]}; color: {lt["header_text"]};
+}}
+.tsh-repr .tsh-meta {{ padding: 6px 10px; background: {lt["meta_bg"]}; }}
+.tsh-repr .tsh-meta table {{ border-collapse: collapse; }}
+.tsh-repr .tsh-meta td {{ padding: 1px 8px 1px 0; white-space: nowrap; }}
+.tsh-repr .tsh-meta td:first-child {{ color: {lt["meta_label"]}; font-weight: 600; }}
+.tsh-repr table.tsh-leaves {{ border-collapse: collapse; }}
+.tsh-repr .tsh-leaves th {{
+  text-align: left; padding: 3px 10px; border-bottom: 1px solid {lt["col_header_border"]};
+  color: {lt["col_header_text"]}; font-weight: 600;
+}}
+.tsh-repr .tsh-leaves td {{ padding: 2px 10px; }}
+.tsh-repr .tsh-leaves tr:hover {{ background: {lt["hover_bg"]}; }}
+@media (prefers-color-scheme: dark) {{
+  .tsh-repr .tsh-header {{ background: {dk["header_bg"]}; color: {dk["header_text"]}; border-color: {dk["header_border"]}; }}
+  .tsh-repr .tsh-meta {{ background: {dk["meta_bg"]}; }}
+  .tsh-repr .tsh-meta td:first-child {{ color: {dk["meta_label"]}; }}
+  .tsh-repr .tsh-leaves th {{ color: {dk["col_header_text"]}; border-color: {dk["col_header_border"]}; }}
+  .tsh-repr .tsh-leaves td {{ color: {dk["data_text"]}; }}
+  .tsh-repr .tsh-leaves tr:hover {{ background: {dk["hover_bg"]}; }}
+}}
 </style>"""
 
         # Meta table

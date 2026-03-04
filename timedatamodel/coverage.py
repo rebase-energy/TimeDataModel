@@ -4,6 +4,7 @@ from datetime import datetime
 from html import escape
 
 from ._base import _fmt_short_date
+from ._theme import THEME
 
 
 class CoverageBar:
@@ -76,18 +77,19 @@ class CoverageBar:
             f'font-family:monospace;font-size:12px;">'
         )
 
+        lt = THEME["light"]
         for row_idx, (name, mask) in enumerate(self._masks):
             y = row_idx * row_h
             # label
             parts.append(
                 f'<text x="{label_w - 6}" y="{y + 15}" '
-                f'text-anchor="end" fill="#333">{escape(name)}</text>'
+                f'text-anchor="end" fill="{lt["coverage_label"]}">{escape(name)}</text>'
             )
             # bar segments
             binned = self._bin_coverage(mask, n_bins)
             seg_w = bar_w / len(binned) if binned else bar_w
             for i, b in enumerate(binned):
-                color = "#4CAF50" if b else "#e0e0e0"
+                color = lt["coverage_present"] if b else lt["coverage_absent"]
                 x = label_w + i * seg_w
                 parts.append(
                     f'<rect x="{x:.1f}" y="{y + 2}" '
@@ -100,13 +102,13 @@ class CoverageBar:
         if self._begin:
             parts.append(
                 f'<text x="{label_w}" y="{date_y}" '
-                f'text-anchor="start" fill="#666">'
+                f'text-anchor="start" fill="{lt["coverage_date"]}">'
                 f'{escape(_fmt_short_date(self._begin))}</text>'
             )
         if self._end:
             parts.append(
                 f'<text x="{label_w + bar_w}" y="{date_y}" '
-                f'text-anchor="end" fill="#666">'
+                f'text-anchor="end" fill="{lt["coverage_date"]}">'
                 f'{escape(_fmt_short_date(self._end))}</text>'
             )
 
