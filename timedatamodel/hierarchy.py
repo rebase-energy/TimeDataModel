@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Iterator
 import numpy as np
 
 from ._base import _convert_unit_values
-from ._repr import HierarchyTree, _HierarchicalTimeSeriesReprMixin
+from ._repr import _HierarchicalTimeSeriesReprMixin
 from .enums import Frequency
 from .location import Location
 from .timeseries import TimeSeriesList

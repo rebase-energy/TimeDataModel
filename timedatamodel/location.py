@@ -124,7 +124,13 @@ class GeoArea:
 
     def contains_point(self, location: GeoLocation) -> bool:
         """True if *location* is inside this area."""
-        from shapely.geometry import Point
+        try:
+            from shapely.geometry import Point
+        except ImportError:
+            raise ImportError(
+                "shapely is required for contains_point(). "
+                "Install it with: pip install timedatamodel[geo]"
+            ) from None
         return self.polygon.contains(Point(location.longitude, location.latitude))
 
     def contains_area(self, other: GeoArea) -> bool:

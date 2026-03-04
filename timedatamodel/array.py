@@ -6,9 +6,9 @@ from datetime import datetime
 import numpy as np
 
 from ._base import (
-    _TimeSeriesBase,
     _import_pandas,
     _import_polars,
+    _TimeSeriesBase,
     _xarray_labels_to_list,
 )
 from ._repr import _TimeSeriesArrayReprMixin
@@ -319,6 +319,7 @@ class TimeSeriesArray(_TimeSeriesArrayReprMixin):
         that ``from_xarray`` can round-trip it.
         """
         import json
+
         import xarray as xr
 
         data = np.ma.filled(self._values, fill_value=np.nan)
@@ -429,7 +430,6 @@ class TimeSeriesArray(_TimeSeriesArrayReprMixin):
 
     def _array_to_pandas_df(self, non_time):
         """Convert array to a pandas DataFrame with time index and non-time columns."""
-        import xarray as xr
 
         pd = _import_pandas()
         da = self.to_xarray()

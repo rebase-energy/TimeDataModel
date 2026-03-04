@@ -6,8 +6,7 @@ from datetime import datetime, timedelta
 
 import numpy as np
 
-from .enums import DataType, Frequency, TimeSeriesType
-from .location import GeoArea, GeoLocation, Location
+from .enums import Frequency
 
 _default_dataframe_backend: str = "pandas"
 
@@ -235,7 +234,7 @@ class _TimeSeriesBase(_TimeSeriesBaseReprMixin):
         elif len(df.index) >= 3:
             try:
                 freq_str = pd.infer_freq(df.index)
-            except Exception:
+            except (ValueError, TypeError):
                 pass
         new_freq = (
             _PANDAS_FREQ_MAP.get(freq_str, fallback_freq)

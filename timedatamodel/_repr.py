@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Callable
 import numpy as np
 
 from ._theme import THEME, get_theme_version
-from .location import GeoArea, GeoLocation, Location
+from .location import GeoArea, GeoLocation
 
 if TYPE_CHECKING:
     from .hierarchy import HierarchyNode
@@ -233,7 +233,7 @@ def _build_repr_html(
 
         if not show_all:
             ellipsis_cells = "".join(
-                f'<td class="ts-ellipsis">&hellip;</td>'
+                '<td class="ts-ellipsis">&hellip;</td>'
                 for _ in range(total_cols)
             )
             html.append(f"<tr>{ellipsis_cells}</tr>")
@@ -1276,8 +1276,8 @@ class _TimeSeriesCollectionReprMixin:
             end = item.end
 
             # Import here to check type without circular import
-            from .timeseries import TimeSeriesList
             from .table import TimeSeriesTable
+            from .timeseries import TimeSeriesList
 
             if isinstance(item, TimeSeriesList):
                 label = key

@@ -369,8 +369,8 @@ class _TimeSeriesTableOpsMixin:
     # ---- operators -------------------------------------------------------
 
     def __add__(self, other):
-        from .timeseries import TimeSeriesList
         from .table import TimeSeriesTable
+        from .timeseries import TimeSeriesList
 
         if isinstance(other, TimeSeriesTable):
             return self._apply_table_binary(other, lambda a, b: a + b)
@@ -390,8 +390,8 @@ class _TimeSeriesTableOpsMixin:
         return NotImplemented
 
     def __sub__(self, other):
-        from .timeseries import TimeSeriesList
         from .table import TimeSeriesTable
+        from .timeseries import TimeSeriesList
 
         if isinstance(other, TimeSeriesTable):
             return self._apply_table_binary(other, lambda a, b: a - b)
@@ -411,8 +411,8 @@ class _TimeSeriesTableOpsMixin:
         return NotImplemented
 
     def __mul__(self, other):
-        from .timeseries import TimeSeriesList
         from .table import TimeSeriesTable
+        from .timeseries import TimeSeriesList
 
         if isinstance(other, TimeSeriesTable):
             return self._apply_table_binary(other, lambda a, b: a * b)
@@ -432,8 +432,8 @@ class _TimeSeriesTableOpsMixin:
         return NotImplemented
 
     def __truediv__(self, other):
-        from .timeseries import TimeSeriesList
         from .table import TimeSeriesTable
+        from .timeseries import TimeSeriesList
 
         if isinstance(other, TimeSeriesTable):
             return self._apply_table_binary(other, lambda a, b: a / b)

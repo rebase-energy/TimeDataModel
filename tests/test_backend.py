@@ -1,11 +1,10 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import pandas as pd
 import polars as pl
 import pytest
 
 import timedatamodel as tdm
-from timedatamodel._base import _default_dataframe_backend
 
 
 @pytest.fixture(autouse=True)

@@ -7,10 +7,10 @@ from typing import Iterator, overload
 import numpy as np
 
 from ._base import (
-    _DataFrameMixin,
-    _TimeSeriesBase,
     _convert_unit_values,
+    _DataFrameMixin,
     _get_pint_registry,
+    _TimeSeriesBase,
     _validate_timestamp_sequence,
 )
 from ._converters import _TimeSeriesListConverterMixin
