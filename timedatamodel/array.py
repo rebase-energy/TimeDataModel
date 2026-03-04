@@ -14,6 +14,7 @@ from ._base import (
     _TimeSeriesBase,
     _build_repr_html,
     _fmt_short_date,
+    _fmt_tz_with_offset,
     _import_pandas,
     _import_polars,
     _render_box,
@@ -706,7 +707,7 @@ class TimeSeriesArray:
         meta_lines.append(f"{'Dimensions:':<{label_w}}{dim_str}")
         meta_lines.append(f"{'Shape:':<{label_w}}{self.shape}")
         meta_lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
-        meta_lines.append(f"{'Timezone:':<{label_w}}{self.timezone}")
+        meta_lines.append(f"{'Timezone:':<{label_w}}{_fmt_tz_with_offset(self.timezone, self.primary_time_dim.labels)}")
         if self.name:
             meta_lines.append(f"{'Name:':<{label_w}}{self.name}")
         if self.unit:
@@ -733,7 +734,7 @@ class TimeSeriesArray:
         meta_rows.append(("Dimensions", ", ".join(dim_parts)))
         meta_rows.append(("Shape", str(self.shape)))
         meta_rows.append(("Frequency", escape(str(self.frequency))))
-        meta_rows.append(("Timezone", escape(self.timezone)))
+        meta_rows.append(("Timezone", escape(_fmt_tz_with_offset(self.timezone, self.primary_time_dim.labels))))
         if self.name:
             meta_rows.append(("Name", escape(self.name)))
         if self.unit:

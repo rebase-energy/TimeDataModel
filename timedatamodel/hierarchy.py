@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Iterator
 
 import numpy as np
 
-from ._base import _convert_unit_values, _fmt_short_date, _render_box
+from ._base import _convert_unit_values, _fmt_short_date, _fmt_tz_with_offset, _render_box
 from .enums import Frequency
 from .location import Location
 from .timeseries import TimeSeries
@@ -618,7 +618,8 @@ class HierarchicalTimeSeries:
             f"{'Nodes:':<{label_w}}{self.n_nodes} ({self.n_leaves} leaves)"
         )
         meta_lines.append(f"{'Frequency:':<{label_w}}{self._frequency}")
-        meta_lines.append(f"{'Timezone:':<{label_w}}{self._timezone}")
+        _tz_timestamps = [self._begin] if self._begin is not None else []
+        meta_lines.append(f"{'Timezone:':<{label_w}}{_fmt_tz_with_offset(self._timezone, _tz_timestamps)}")
         if self._unit:
             meta_lines.append(f"{'Unit:':<{label_w}}{self._unit}")
         meta_lines.append(f"{'Aggregation:':<{label_w}}{self._aggregation}")
@@ -695,7 +696,8 @@ class HierarchicalTimeSeries:
         meta_rows.append(("Levels", escape(", ".join(self._levels))))
         meta_rows.append(("Nodes", f"{self.n_nodes} ({self.n_leaves} leaves)"))
         meta_rows.append(("Frequency", escape(str(self._frequency))))
-        meta_rows.append(("Timezone", escape(self._timezone)))
+        _tz_timestamps = [self._begin] if self._begin is not None else []
+        meta_rows.append(("Timezone", escape(_fmt_tz_with_offset(self._timezone, _tz_timestamps))))
         if self._unit:
             meta_rows.append(("Unit", escape(self._unit)))
         meta_rows.append(("Aggregation", escape(str(self._aggregation))))

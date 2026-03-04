@@ -17,6 +17,8 @@ from ._base import (
     _build_repr_html,
     _convert_unit_values,
     _extract_timestamps_from_pandas_index,
+    _fmt_short_date,
+    _fmt_tz_with_offset,
     _get_pint_registry,
     _import_pandas,
     _import_polars,
@@ -447,7 +449,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         lines.append(f"{'Columns:':<{label_w}}{self.name or 'unnamed'}")
         lines.append(f"{'Shape:':<{label_w}}({len(self._timestamps)},)")
         lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
-        lines.append(f"{'Timezone:':<{label_w}}{self.timezone}")
+        lines.append(f"{'Timezone:':<{label_w}}{_fmt_tz_with_offset(self.timezone, self._timestamps)}")
         if self.unit:
             lines.append(f"{'Unit:':<{label_w}}{self.unit}")
         if self.data_type:
@@ -461,10 +463,15 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         return lines
 
     def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
-        return [
-            [str(self._timestamps[i]), self._fmt_value(self._values[i])]
-            for i in indices
-        ]
+        rows: list[list[str]] = []
+        for i in indices:
+            ts = self._timestamps[i]
+            if isinstance(ts, tuple):
+                ts_str = ", ".join(_fmt_short_date(t) for t in ts)
+            else:
+                ts_str = _fmt_short_date(ts)
+            rows.append([ts_str, self._fmt_value(self._values[i])])
+        return rows
 
     def _repr_html_(self) -> str:
         disp_name = escape(self.name or "unnamed")
@@ -474,7 +481,7 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             ("Columns", disp_name),
             ("Shape", f"({n:,},)"),
             ("Frequency", escape(str(self.frequency))),
-            ("Timezone", escape(self.timezone)),
+            ("Timezone", escape(_fmt_tz_with_offset(self.timezone, self._timestamps))),
         ]
         if self.unit:
             meta_rows.append(("Unit", escape(self.unit)))
@@ -491,10 +498,10 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
             ts = self._timestamps[i]
             if isinstance(ts, tuple):
                 ts_cells = "".join(
-                    f"<td>{escape(str(t))}</td>" for t in ts
+                    f"<td>{escape(_fmt_short_date(t))}</td>" for t in ts
                 )
             else:
-                ts_cells = f"<td>{escape(str(ts))}</td>"
+                ts_cells = f"<td>{escape(_fmt_short_date(ts))}</td>"
             val_cells = (
                 f"<td>{escape(self._fmt_value(self._values[i]))}</td>"
             )

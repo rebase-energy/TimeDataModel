@@ -63,6 +63,22 @@ def _fmt_short_date(dt: datetime) -> str:
     return dt_naive.strftime("%Y-%m-%d %H:%M")
 
 
+def _fmt_tz_with_offset(tz_str: str, timestamps: list) -> str:
+    """Return e.g. ``'UTC (+00:00)'`` when the first timestamp is tz-aware."""
+    if timestamps:
+        first = timestamps[0]
+        if isinstance(first, tuple):
+            first = first[0]
+        if hasattr(first, 'utcoffset') and first.utcoffset() is not None:
+            offset = first.utcoffset()
+            total_seconds = int(offset.total_seconds())
+            sign = '+' if total_seconds >= 0 else '-'
+            hours, remainder = divmod(abs(total_seconds), 3600)
+            minutes = remainder // 60
+            return f"{tz_str} ({sign}{hours:02d}:{minutes:02d})"
+    return tz_str
+
+
 def _import_pandas():
     try:
         import pandas as pd
