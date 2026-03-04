@@ -10,6 +10,7 @@ import numpy as np
 from ._base import (
     _MAX_COL_PREVIEW,
     _MAX_PREVIEW,
+    _format_meta_lines,
     _get_repr_css,
     _TimeSeriesBase,
     _build_repr_html,
@@ -695,48 +696,33 @@ class TimeSeriesArray:
 
     # ---- repr ----------------------------------------------------------------
 
-    def __repr__(self) -> str:
-        class_name = type(self).__name__
-        label_w = 18
-
-        # Dimensions line
+    def _repr_meta_pairs(self) -> list[tuple[str, str]]:
         dim_parts = [f"{d.name}: {len(d.labels)}" for d in self.dimensions]
-        dim_str = ", ".join(dim_parts)
-
-        meta_lines: list[str] = []
-        meta_lines.append(f"{'Name:':<{label_w}}{self.name or 'unnamed'}")
-        meta_lines.append(f"{'Dimensions:':<{label_w}}{dim_str}")
-        meta_lines.append(f"{'Shape:':<{label_w}}{self.shape}")
-        meta_lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
-        meta_lines.append(f"{'Timezone:':<{label_w}}{_fmt_tz_with_offset(self.timezone, self.primary_time_dim.labels)}")
+        pairs: list[tuple[str, str]] = [
+            ("Name", self.name or "unnamed"),
+            ("Dimensions", ", ".join(dim_parts)),
+            ("Shape", str(self.shape)),
+            ("Frequency", str(self.frequency)),
+            ("Timezone", _fmt_tz_with_offset(self.timezone, self.primary_time_dim.labels)),
+        ]
         if self.unit:
-            meta_lines.append(f"{'Unit:':<{label_w}}{self.unit}")
+            pairs.append(("Unit", self.unit))
         if self.data_type:
-            meta_lines.append(f"{'Data type:':<{label_w}}{self.data_type}")
-
+            pairs.append(("Data type", str(self.data_type)))
         total = self._values.size
         if total > 0:
             n_masked = int(self._values.mask.sum()) if self._values.mask.any() else 0
             if n_masked > 0:
                 pct = n_masked / total * 100
-                meta_lines.append(
-                    f"{'Masked:':<{label_w}}{n_masked}/{total} ({pct:.1f}%)"
-                )
+                pairs.append(("Masked", f"{n_masked}/{total} ({pct:.1f}%)"))
+        return pairs
 
-        return _render_box(class_name, meta_lines)
+    def __repr__(self) -> str:
+        return _render_box(type(self).__name__, _format_meta_lines(self._repr_meta_pairs()))
 
     def _repr_html_(self) -> str:
         n_dims = self.ndim
-        meta_rows: list[tuple[str, str]] = []
-
-        meta_rows.append(("Name", escape(self.name) if self.name else "unnamed"))
-        dim_parts = [f"{d.name}: {len(d.labels)}" for d in self.dimensions]
-        meta_rows.append(("Dimensions", ", ".join(dim_parts)))
-        meta_rows.append(("Shape", str(self.shape)))
-        meta_rows.append(("Frequency", escape(str(self.frequency))))
-        meta_rows.append(("Timezone", escape(_fmt_tz_with_offset(self.timezone, self.primary_time_dim.labels))))
-        if self.unit:
-            meta_rows.append(("Unit", escape(self.unit)))
+        meta_rows = self._repr_meta_pairs()
 
         if n_dims >= 2:
             # Classify dimensions: datetime → rows, others → columns
@@ -912,7 +898,7 @@ class TimeSeriesArray:
             html.append('<div class="ts-meta"><table>')
             for label, value in meta_rows:
                 html.append(
-                    f"<tr><td>{escape(label)}</td><td>{value}</td></tr>"
+                    f"<tr><td>{escape(label)}</td><td>{escape(value)}</td></tr>"
                 )
             html.append("</table></div>")
             html.append('<div class="ts-data"><table>')

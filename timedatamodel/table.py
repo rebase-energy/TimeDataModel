@@ -18,6 +18,8 @@ from ._base import (
     _convert_unit_values,
     _extract_timestamps_from_pandas_index,
     _fmt_short_date,
+    _fmt_timestamp,
+    _fmt_timestamp_cells,
     _fmt_tz_with_offset,
     _import_pandas,
     _import_polars,
@@ -610,79 +612,57 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
 
     # ---- repr hooks -------------------------------------------------------
 
-    def _repr_meta_lines(self) -> list[str]:
-        label_w = 18
-        lines: list[str] = []
-        lines.append(f"{'Name:':<{label_w}}unnamed")
+    def _repr_meta_pairs(self) -> list[tuple[str, str]]:
         cn = self.column_names
-        lines.append(f"{'Columns:':<{label_w}}{', '.join(cn)}")
-        n = len(self._timestamps)
-        lines.append(f"{'Length:':<{label_w}}{n} \u00d7 {self.n_columns}")
-        lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
-        lines.append(f"{'Timezone:':<{label_w}}{_fmt_tz_with_offset(self.timezone, self._timestamps)}")
+        pairs: list[tuple[str, str]] = [
+            ("Name", "unnamed"),
+            ("Columns", ", ".join(cn)),
+            ("Length", f"{len(self._timestamps)} \u00d7 {self.n_columns}"),
+            ("Frequency", str(self.frequency)),
+            ("Timezone", _fmt_tz_with_offset(self.timezone, self._timestamps)),
+        ]
 
         # Unit — show if any is set
         unit_vals = [self._get_attr(self.units, i) for i in range(self.n_columns)]
         if any(u is not None for u in unit_vals):
-            lines.append(f"{'Unit:':<{label_w}}{', '.join(str(u) if u else '-' for u in unit_vals)}")
+            pairs.append(("Unit", ", ".join(str(u) if u else "-" for u in unit_vals)))
 
         # Data type — show if any is set
         dt_vals = [self._get_attr(self.data_types, i) for i in range(self.n_columns)]
         if any(d is not None for d in dt_vals):
-            lines.append(f"{'Data type:':<{label_w}}{', '.join(str(d) if d else '-' for d in dt_vals)}")
+            pairs.append(("Data type", ", ".join(str(d) if d else "-" for d in dt_vals)))
 
         # Location — show if any is set
         loc_vals = [self._get_attr(self.locations, i) for i in range(self.n_columns)]
         if any(loc is not None for loc in loc_vals):
-            lines.append(f"{'Location:':<{label_w}}{', '.join(self._fmt_location(loc) or '-' for loc in loc_vals)}")
+            pairs.append(("Location", ", ".join(self._fmt_location(loc) or "-" for loc in loc_vals)))
 
         # Timeseries type — show if any is not FLAT
         tst_vals = [self._get_attr(self.timeseries_types, i) for i in range(self.n_columns)]
         if any(t != "FLAT" for t in tst_vals):
-            lines.append(f"{'Timeseries type:':<{label_w}}{', '.join(str(t) for t in tst_vals)}")
+            pairs.append(("Timeseries type", ", ".join(str(t) for t in tst_vals)))
 
         # Labels — show if any is non-empty
         lbl_vals = [self._get_attr(self.labels, i) for i in range(self.n_columns)]
         if any(lbl for lbl in lbl_vals):
-            lines.append(f"{'Labels:':<{label_w}}{', '.join(str(lbl) for lbl in lbl_vals)}")
+            pairs.append(("Labels", ", ".join(str(lbl) for lbl in lbl_vals)))
 
-        return lines
+        return pairs
 
     def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
         rows: list[list[str]] = []
         for i in indices:
-            ts = self._timestamps[i]
-            if isinstance(ts, tuple):
-                ts_str = ", ".join(_fmt_short_date(t) for t in ts)
-            else:
-                ts_str = _fmt_short_date(ts)
             rows.append(
-                [ts_str] + [self._fmt_value(float(v)) for v in self._values[i]]
+                [_fmt_timestamp(self._timestamps[i])] + [self._fmt_value(float(v)) for v in self._values[i]]
             )
         return rows
 
     def _repr_html_(self) -> str:
-        cn = self.column_names
-        ncols = self.n_columns
         n = len(self._timestamps)
-
-        label = ", ".join(escape(c) for c in cn)
-        meta_rows: list[tuple[str, str]] = [
-            ("Name", "unnamed"),
-            ("Columns", label),
-            ("Length", f"{n:,} \u00d7 {ncols}"),
-            ("Frequency", escape(str(self.frequency))),
-            ("Timezone", escape(_fmt_tz_with_offset(self.timezone, self._timestamps))),
-        ]
+        meta_rows = self._repr_meta_pairs()
 
         def _html_row(i: int) -> str:
-            ts = self._timestamps[i]
-            if isinstance(ts, tuple):
-                ts_cells = "".join(
-                    f"<td>{escape(_fmt_short_date(t))}</td>" for t in ts
-                )
-            else:
-                ts_cells = f"<td>{escape(_fmt_short_date(ts))}</td>"
+            ts_cells = _fmt_timestamp_cells(self._timestamps[i])
             val_cells = "".join(
                 f"<td>{escape(self._fmt_value(float(v)))}</td>"
                 for v in self._values[i]
@@ -693,7 +673,7 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             class_name=type(self).__name__,
             meta_rows=meta_rows,
             index_names=self.index_names,
-            column_names=cn,
+            column_names=self.column_names,
             n_rows=n,
             html_row_fn=_html_row,
         )

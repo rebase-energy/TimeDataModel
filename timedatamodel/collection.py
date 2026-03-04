@@ -4,8 +4,7 @@ from datetime import datetime
 from html import escape
 from typing import Iterator
 
-from ._base import _DataFrameMixin, _fmt_short_date, _import_polars, _render_box
-from ._theme import THEME
+from ._base import _DataFrameMixin, _fmt_short_date, _get_repr_css, _import_polars, _render_box
 from .coverage import CoverageBar
 from .location import GeoArea, GeoLocation
 from .table import TimeSeriesTable
@@ -351,36 +350,9 @@ class TimeSeriesCollection(_DataFrameMixin):
         ]
         headers = ["name", "type", "freq", "tz", "length", "begin", "end"]
 
-        title = type(self).__name__
-
-        lt = THEME["light"]
-        dk = THEME["dark"]
-        css = f"""\
-<style>
-.tsc-repr {{ font-family: monospace; font-size: 13px; max-width: 720px; }}
-.tsc-repr .tsc-header {{
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid {lt["header_border"]};
-  background: {lt["header_bg"]}; color: {lt["header_text"]};
-}}
-.tsc-repr table {{ border-collapse: collapse; width: 100%; }}
-.tsc-repr th {{
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid {lt["col_header_border"]};
-  color: {lt["col_header_text"]}; font-weight: 600;
-}}
-.tsc-repr td {{ padding: 2px 10px; }}
-.tsc-repr tr:hover {{ background: {lt["hover_bg"]}; }}
-@media (prefers-color-scheme: dark) {{
-  .tsc-repr .tsc-header {{ background: {dk["header_bg"]}; color: {dk["header_text"]}; border-color: {dk["header_border"]}; }}
-  .tsc-repr th {{ color: {dk["col_header_text"]}; border-color: {dk["col_header_border"]}; }}
-  .tsc-repr td {{ color: {dk["data_text"]}; }}
-  .tsc-repr tr:hover {{ background: {dk["hover_bg"]}; }}
-}}
-</style>"""
-
-        html = [css, '<div class="tsc-repr">']
-        html.append(f'<div class="tsc-header">{escape(title)}</div>')
-        html.append("<table>")
+        html = [_get_repr_css(), '<div class="ts-repr">']
+        html.append(f'<div class="ts-header">{escape(type(self).__name__)}</div>')
+        html.append('<div class="ts-data"><table style="text-align: left;">')
         html.append(
             "<tr>" + "".join(f"<th>{escape(h)}</th>" for h in headers) + "</tr>"
         )
@@ -390,7 +362,7 @@ class TimeSeriesCollection(_DataFrameMixin):
                 + "".join(f"<td>{escape(row[h])}</td>" for h in headers)
                 + "</tr>"
             )
-        html.append("</table></div>")
+        html.append("</table></div></div>")
         return "\n".join(html)
 
     def coverage_bar(self) -> CoverageBar:

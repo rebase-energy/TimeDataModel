@@ -83,6 +83,25 @@ def _fmt_short_date(dt: datetime) -> str:
     return dt_naive.strftime("%Y-%m-%d %H:%M")
 
 
+def _fmt_timestamp(ts: datetime | tuple[datetime, ...]) -> str:
+    """Format a single or multi-index timestamp for terminal repr."""
+    if isinstance(ts, tuple):
+        return ", ".join(_fmt_short_date(t) for t in ts)
+    return _fmt_short_date(ts)
+
+
+def _fmt_timestamp_cells(ts: datetime | tuple[datetime, ...]) -> str:
+    """Format a single or multi-index timestamp as HTML ``<td>`` cells."""
+    if isinstance(ts, tuple):
+        return "".join(f"<td>{escape(_fmt_short_date(t))}</td>" for t in ts)
+    return f"<td>{escape(_fmt_short_date(ts))}</td>"
+
+
+def _format_meta_lines(pairs: list[tuple[str, str]], label_w: int = 18) -> list[str]:
+    """Convert (label, value) pairs to formatted terminal meta lines."""
+    return [f"{label + ':':<{label_w}}{value}" for label, value in pairs]
+
+
 def _fmt_tz_with_offset(tz_str: str, timestamps: list) -> str:
     """Return e.g. ``'UTC (+00:00)'`` when the first timestamp is tz-aware."""
     if timestamps:
@@ -257,7 +276,7 @@ def _build_repr_html(
     # Meta section
     html.append('<div class="ts-meta"><table>')
     for label, value in meta_rows:
-        html.append(f"<tr><td>{escape(label)}</td><td>{value}</td></tr>")
+        html.append(f"<tr><td>{escape(label)}</td><td>{escape(value)}</td></tr>")
     html.append("</table></div>")
 
     # Data section
@@ -381,6 +400,10 @@ class _TimeSeriesBase:
         return warnings
 
     # ---- repr (shared) ---------------------------------------------------
+
+    def _repr_meta_lines(self) -> list[str]:
+        """Build terminal meta lines from ``_repr_meta_pairs()``."""
+        return _format_meta_lines(self._repr_meta_pairs())
 
     def __repr__(self) -> str:
         class_name = type(self).__name__

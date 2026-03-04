@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING, Iterator
 
 import numpy as np
 
-from ._base import _convert_unit_values, _fmt_short_date, _fmt_tz_with_offset, _render_box
-from ._theme import THEME
+from ._base import _convert_unit_values, _fmt_short_date, _fmt_tz_with_offset, _format_meta_lines, _get_repr_css, _render_box
 from .enums import Frequency
 from .location import Location
 from .timeseries import TimeSeriesList
@@ -588,6 +587,20 @@ class HierarchicalTimeSeries:
 
     _MAX_LEAF_ROWS = 7
 
+    def _repr_meta_pairs(self) -> list[tuple[str, str]]:
+        _tz_timestamps = [self._begin] if self._begin is not None else []
+        pairs: list[tuple[str, str]] = [
+            ("Name", self._name or "unnamed"),
+            ("Levels", ", ".join(self._levels)),
+            ("Nodes", f"{self.n_nodes} ({self.n_leaves} leaves)"),
+            ("Frequency", str(self._frequency)),
+            ("Timezone", _fmt_tz_with_offset(self._timezone, _tz_timestamps)),
+        ]
+        if self._unit:
+            pairs.append(("Unit", self._unit))
+        pairs.append(("Aggregation", str(self._aggregation)))
+        return pairs
+
     def _leaf_summary_rows(self) -> list[dict[str, str]]:
         """Build summary rows for leaf nodes."""
         leaf_nodes = self.leaves()
@@ -606,26 +619,20 @@ class HierarchicalTimeSeries:
             })
         return rows
 
+    def _leaf_display_rows(self) -> list[dict[str, str]]:
+        """Return leaf rows with head/tail truncation applied."""
+        rows = self._leaf_summary_rows()
+        if len(rows) <= self._MAX_LEAF_ROWS:
+            return rows
+        headers = ["name", "level", "length", "begin", "end"]
+        return rows[:3] + [{h: "..." for h in headers}] + rows[-3:]
+
     def __repr__(self) -> str:
         class_name = type(self).__name__
-        label_w = 18
-
-        # Meta lines
-        meta_lines: list[str] = []
-        meta_lines.append(f"{'Name:':<{label_w}}{self._name or 'unnamed'}")
-        meta_lines.append(f"{'Levels:':<{label_w}}{', '.join(self._levels)}")
-        meta_lines.append(
-            f"{'Nodes:':<{label_w}}{self.n_nodes} ({self.n_leaves} leaves)"
-        )
-        meta_lines.append(f"{'Frequency:':<{label_w}}{self._frequency}")
-        _tz_timestamps = [self._begin] if self._begin is not None else []
-        meta_lines.append(f"{'Timezone:':<{label_w}}{_fmt_tz_with_offset(self._timezone, _tz_timestamps)}")
-        if self._unit:
-            meta_lines.append(f"{'Unit:':<{label_w}}{self._unit}")
-        meta_lines.append(f"{'Aggregation:':<{label_w}}{self._aggregation}")
+        meta_lines = _format_meta_lines(self._repr_meta_pairs())
 
         # Leaf table
-        rows = self._leaf_summary_rows()
+        rows = self._leaf_display_rows()
         headers = ["name", "level", "length", "begin", "end"]
         col_widths = {h: len(h) for h in headers}
         for row in rows:
@@ -637,107 +644,41 @@ class HierarchicalTimeSeries:
 
         header_line = _fmt_row({h: h for h in headers})
 
-        # Truncate if too many leaves
-        max_rows = self._MAX_LEAF_ROWS
-        if len(rows) <= max_rows:
-            data_lines = [_fmt_row(r) for r in rows]
-        else:
-            head = rows[:3]
-            tail = rows[-3:]
-            data_lines = [_fmt_row(r) for r in head]
-            data_lines.append(
-                "  ".join(f"{'...':<{col_widths[h]}}" for h in headers)
-            )
-            data_lines.extend(_fmt_row(r) for r in tail)
-
         # Combine all content lines
-        content_lines: list[str | None] = []
-        for ml in meta_lines:
-            content_lines.append(ml)
+        content_lines: list[str | None] = list(meta_lines)
         content_lines.append(None)  # separator
         content_lines.append(header_line)
         content_lines.append(None)  # separator
-        for dl in data_lines:
-            content_lines.append(dl)
+        for row in rows:
+            content_lines.append(_fmt_row(row))
 
         return _render_box(class_name, content_lines)
 
     def _repr_html_(self) -> str:
-        class_name = type(self).__name__
-        title = class_name
+        meta_rows = self._repr_meta_pairs()
 
-        lt = THEME["light"]
-        dk = THEME["dark"]
-        css = f"""\
-<style>
-.tsh-repr {{ font-family: monospace; font-size: 13px; max-width: 720px; display: inline-block; }}
-.tsh-repr .tsh-header {{
-  font-weight: bold; font-size: 14px;
-  padding: 6px 10px; border-bottom: 2px solid {lt["header_border"]};
-  background: {lt["header_bg"]}; color: {lt["header_text"]};
-}}
-.tsh-repr .tsh-meta {{ padding: 6px 10px; background: {lt["meta_bg"]}; }}
-.tsh-repr .tsh-meta table {{ border-collapse: collapse; }}
-.tsh-repr .tsh-meta td {{ padding: 1px 8px 1px 0; white-space: nowrap; }}
-.tsh-repr .tsh-meta td:first-child {{ color: {lt["meta_label"]}; font-weight: 600; }}
-.tsh-repr table.tsh-leaves {{ border-collapse: collapse; }}
-.tsh-repr .tsh-leaves th {{
-  text-align: left; padding: 3px 10px; border-bottom: 1px solid {lt["col_header_border"]};
-  color: {lt["col_header_text"]}; font-weight: 600;
-}}
-.tsh-repr .tsh-leaves td {{ padding: 2px 10px; }}
-.tsh-repr .tsh-leaves tr:hover {{ background: {lt["hover_bg"]}; }}
-@media (prefers-color-scheme: dark) {{
-  .tsh-repr .tsh-header {{ background: {dk["header_bg"]}; color: {dk["header_text"]}; border-color: {dk["header_border"]}; }}
-  .tsh-repr .tsh-meta {{ background: {dk["meta_bg"]}; }}
-  .tsh-repr .tsh-meta td:first-child {{ color: {dk["meta_label"]}; }}
-  .tsh-repr .tsh-leaves th {{ color: {dk["col_header_text"]}; border-color: {dk["col_header_border"]}; }}
-  .tsh-repr .tsh-leaves td {{ color: {dk["data_text"]}; }}
-  .tsh-repr .tsh-leaves tr:hover {{ background: {dk["hover_bg"]}; }}
-}}
-</style>"""
-
-        # Meta table
-        meta_rows: list[tuple[str, str]] = []
-        meta_rows.append(("Name", escape(self._name) if self._name else "unnamed"))
-        meta_rows.append(("Levels", escape(", ".join(self._levels))))
-        meta_rows.append(("Nodes", f"{self.n_nodes} ({self.n_leaves} leaves)"))
-        meta_rows.append(("Frequency", escape(str(self._frequency))))
-        _tz_timestamps = [self._begin] if self._begin is not None else []
-        meta_rows.append(("Timezone", escape(_fmt_tz_with_offset(self._timezone, _tz_timestamps))))
-        if self._unit:
-            meta_rows.append(("Unit", escape(self._unit)))
-        meta_rows.append(("Aggregation", escape(str(self._aggregation))))
-
-        html = [css, '<div class="tsh-repr">']
-        html.append(f'<div class="tsh-header">{escape(title)}</div>')
-        html.append('<div class="tsh-meta"><table>')
+        html = [_get_repr_css(), '<div class="ts-repr">']
+        html.append(f'<div class="ts-header">{escape(type(self).__name__)}</div>')
+        html.append('<div class="ts-meta"><table>')
         for label, value in meta_rows:
-            html.append(f"<tr><td>{escape(label)}</td><td>{value}</td></tr>")
+            html.append(f"<tr><td>{escape(label)}</td><td>{escape(value)}</td></tr>")
         html.append("</table></div>")
 
         # Leaf table
         headers = ["name", "level", "length", "begin", "end"]
-        rows = self._leaf_summary_rows()
+        display_rows = self._leaf_display_rows()
 
-        html.append('<table class="tsh-leaves">')
+        html.append('<div class="ts-data"><table style="text-align: left;">')
         html.append(
             "<tr>" + "".join(f"<th>{escape(h)}</th>" for h in headers) + "</tr>"
         )
-        max_rows = self._MAX_LEAF_ROWS
-        if len(rows) <= max_rows:
-            display_rows = rows
-        else:
-            display_rows = rows[:3] + [
-                {h: "\u2026" for h in headers}
-            ] + rows[-3:]
         for row in display_rows:
             html.append(
                 "<tr>"
                 + "".join(f"<td>{escape(row[h])}</td>" for h in headers)
                 + "</tr>"
             )
-        html.append("</table></div>")
+        html.append("</table></div></div>")
         return "\n".join(html)
 
     def tree(self) -> HierarchyTree:

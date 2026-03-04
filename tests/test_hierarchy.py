@@ -395,10 +395,10 @@ class TestDisplay:
 
     def test_repr_html(self, norway_hierarchy):
         html = norway_hierarchy._repr_html_()
-        assert "tsh-repr" in html
-        assert "tsh-header" in html
-        assert "tsh-meta" in html
-        assert "tsh-leaves" in html
+        assert "ts-repr" in html
+        assert "ts-header" in html
+        assert "ts-meta" in html
+        assert "ts-data" in html
         assert "Norway Energy" in html
         assert "Oslo" in html
 

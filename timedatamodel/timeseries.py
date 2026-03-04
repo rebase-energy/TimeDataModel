@@ -18,6 +18,8 @@ from ._base import (
     _convert_unit_values,
     _extract_timestamps_from_pandas_index,
     _fmt_short_date,
+    _fmt_timestamp,
+    _fmt_timestamp_cells,
     _fmt_tz_with_offset,
     _get_pint_registry,
     _import_pandas,
@@ -443,72 +445,46 @@ class TimeSeriesList(_TimeSeriesBase, _DataFrameMixin):
 
     # ---- repr hooks -------------------------------------------------------
 
-    def _repr_meta_lines(self) -> list[str]:
-        label_w = 18
-        lines: list[str] = []
-        lines.append(f"{'Name:':<{label_w}}{self.name or 'unnamed'}")
-        lines.append(f"{'Length:':<{label_w}}{len(self._timestamps)}")
-        lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
-        lines.append(f"{'Timezone:':<{label_w}}{_fmt_tz_with_offset(self.timezone, self._timestamps)}")
+    def _repr_meta_pairs(self) -> list[tuple[str, str]]:
+        pairs: list[tuple[str, str]] = [
+            ("Name", self.name or "unnamed"),
+            ("Length", str(len(self._timestamps))),
+            ("Frequency", str(self.frequency)),
+            ("Timezone", _fmt_tz_with_offset(self.timezone, self._timestamps)),
+        ]
         if self.unit:
-            lines.append(f"{'Unit:':<{label_w}}{self.unit}")
+            pairs.append(("Unit", self.unit))
         if self.data_type:
-            lines.append(f"{'Data type:':<{label_w}}{self.data_type}")
+            pairs.append(("Data type", str(self.data_type)))
         if self.location:
-            lines.append(f"{'Location:':<{label_w}}{self._fmt_location(self.location)}")
+            pairs.append(("Location", self._fmt_location(self.location)))
+        if self.description:
+            pairs.append(("Description", self.description))
         if self.timeseries_type and self.timeseries_type != "FLAT":
-            lines.append(f"{'Timeseries type:':<{label_w}}{self.timeseries_type}")
+            pairs.append(("Timeseries type", str(self.timeseries_type)))
         if self.labels:
-            lines.append(f"{'Labels:':<{label_w}}{self.labels}")
-        return lines
+            pairs.append(("Labels", str(self.labels)))
+        return pairs
 
     def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
         rows: list[list[str]] = []
         for i in indices:
-            ts = self._timestamps[i]
-            if isinstance(ts, tuple):
-                ts_str = ", ".join(_fmt_short_date(t) for t in ts)
-            else:
-                ts_str = _fmt_short_date(ts)
-            rows.append([ts_str, self._fmt_value(self._values[i])])
+            rows.append([_fmt_timestamp(self._timestamps[i]), self._fmt_value(self._values[i])])
         return rows
 
     def _repr_html_(self) -> str:
-        disp_name = escape(self.name or "unnamed")
         n = len(self._timestamps)
-
-        meta_rows: list[tuple[str, str]] = [
-            ("Name", disp_name),
-            ("Length", f"{n:,}"),
-            ("Frequency", escape(str(self.frequency))),
-            ("Timezone", escape(_fmt_tz_with_offset(self.timezone, self._timestamps))),
-        ]
-        if self.unit:
-            meta_rows.append(("Unit", escape(self.unit)))
-        if self.data_type:
-            meta_rows.append(("Data type", escape(str(self.data_type))))
-        if self.location:
-            meta_rows.append(("Location", escape(self._fmt_location(self.location))))
-        if self.description:
-            meta_rows.append(("Description", escape(self.description)))
-        if self.labels:
-            meta_rows.append(("Labels", escape(str(self.labels))))
+        meta_rows = self._repr_meta_pairs()
 
         def _html_row(i: int) -> str:
-            ts = self._timestamps[i]
-            if isinstance(ts, tuple):
-                ts_cells = "".join(
-                    f"<td>{escape(_fmt_short_date(t))}</td>" for t in ts
-                )
-            else:
-                ts_cells = f"<td>{escape(_fmt_short_date(ts))}</td>"
+            ts_cells = _fmt_timestamp_cells(self._timestamps[i])
             val_cells = (
                 f"<td>{escape(self._fmt_value(self._values[i]))}</td>"
             )
             return f"<tr>{ts_cells}{val_cells}</tr>"
 
         return _build_repr_html(
-            class_name="TimeSeriesList",
+            class_name=type(self).__name__,
             meta_rows=meta_rows,
             index_names=self.index_names,
             column_names=self.column_names,
