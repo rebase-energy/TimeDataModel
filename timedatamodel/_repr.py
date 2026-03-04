@@ -1236,12 +1236,13 @@ class _TimeSeriesCollectionReprMixin:
         html.append(
             "<tr>" + "".join(f"<th>{escape(h)}</th>" for h in headers) + "</tr>"
         )
+        nowrap = {"begin", "end"}
         for row in rows:
-            html.append(
-                "<tr>"
-                + "".join(f"<td>{escape(row[h])}</td>" for h in headers)
-                + "</tr>"
-            )
+            cells = []
+            for h in headers:
+                style = ' style="white-space:nowrap"' if h in nowrap else ""
+                cells.append(f"<td{style}>{escape(row[h])}</td>")
+            html.append("<tr>" + "".join(cells) + "</tr>")
         html.append("</table></div></div>")
         return "\n".join(html)
 
