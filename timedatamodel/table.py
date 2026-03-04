@@ -4,29 +4,22 @@ import csv
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from html import escape
 from pathlib import Path
 from typing import Callable, Iterator, overload
 
 import numpy as np
 
 from ._base import (
-    _MAX_PREVIEW,
     _DataFrameMixin,
     _TimeSeriesBase,
-    _build_repr_html,
     _convert_unit_values,
     _extract_timestamps_from_pandas_index,
-    _fmt_short_date,
-    _fmt_timestamp,
-    _fmt_timestamp_cells,
-    _fmt_tz_with_offset,
     _import_pandas,
     _import_polars,
     _validate_timestamp_sequence,
     _xarray_labels_to_list,
 )
-from .coverage import CoverageBar
+from ._repr import _TimeSeriesTableReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import (
     GeoArea,
@@ -45,7 +38,7 @@ def _carry_over(attr: list, new_ncols: int, default_factory) -> list:
 
 
 @dataclass(slots=True, repr=False, eq=False)
-class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
+class TimeSeriesTable(_TimeSeriesBase, _TimeSeriesTableReprMixin, _DataFrameMixin):
     frequency: Frequency
     timezone: str = "UTC"
     names: list[str | None] = field(default_factory=lambda: [None])
@@ -159,17 +152,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
     def has_missing(self) -> bool:
         """True if any value is NaN."""
         return bool(np.isnan(self._values).any()) if self._values.size else False
-
-    def _coverage_masks(self) -> list[tuple[str, list[bool]]]:
-        masks: list[tuple[str, list[bool]]] = []
-        for col, name in enumerate(self.column_names):
-            col_data = self._values[:, col]
-            masks.append((name, [not np.isnan(v) for v in col_data]))
-        return masks
-
-    def coverage_bar(self) -> CoverageBar:
-        """Return a displayable coverage bar."""
-        return CoverageBar(self._coverage_masks(), self.begin, self.end)
 
     # ---- helpers for constructing new instances ---------------------------
 
@@ -609,74 +591,6 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
     def __round__(self, n: int = 0) -> TimeSeriesTable:
         arr = self._values.astype(np.float64, copy=True)
         return self._clone_with(list(self._timestamps), np.round(arr, n))
-
-    # ---- repr hooks -------------------------------------------------------
-
-    def _repr_meta_pairs(self) -> list[tuple[str, str]]:
-        cn = self.column_names
-        pairs: list[tuple[str, str]] = [
-            ("Name", "unnamed"),
-            ("Columns", ", ".join(cn)),
-            ("Length", f"{len(self._timestamps)} \u00d7 {self.n_columns}"),
-            ("Frequency", str(self.frequency)),
-            ("Timezone", _fmt_tz_with_offset(self.timezone, self._timestamps)),
-        ]
-
-        # Unit — show if any is set
-        unit_vals = [self._get_attr(self.units, i) for i in range(self.n_columns)]
-        if any(u is not None for u in unit_vals):
-            pairs.append(("Unit", ", ".join(str(u) if u else "-" for u in unit_vals)))
-
-        # Data type — show if any is set
-        dt_vals = [self._get_attr(self.data_types, i) for i in range(self.n_columns)]
-        if any(d is not None for d in dt_vals):
-            pairs.append(("Data type", ", ".join(str(d) if d else "-" for d in dt_vals)))
-
-        # Location — show if any is set
-        loc_vals = [self._get_attr(self.locations, i) for i in range(self.n_columns)]
-        if any(loc is not None for loc in loc_vals):
-            pairs.append(("Location", ", ".join(self._fmt_location(loc) or "-" for loc in loc_vals)))
-
-        # Timeseries type — show if any is not FLAT
-        tst_vals = [self._get_attr(self.timeseries_types, i) for i in range(self.n_columns)]
-        if any(t != "FLAT" for t in tst_vals):
-            pairs.append(("Timeseries type", ", ".join(str(t) for t in tst_vals)))
-
-        # Labels — show if any is non-empty
-        lbl_vals = [self._get_attr(self.labels, i) for i in range(self.n_columns)]
-        if any(lbl for lbl in lbl_vals):
-            pairs.append(("Labels", ", ".join(str(lbl) for lbl in lbl_vals)))
-
-        return pairs
-
-    def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
-        rows: list[list[str]] = []
-        for i in indices:
-            rows.append(
-                [_fmt_timestamp(self._timestamps[i])] + [self._fmt_value(float(v)) for v in self._values[i]]
-            )
-        return rows
-
-    def _repr_html_(self) -> str:
-        n = len(self._timestamps)
-        meta_rows = self._repr_meta_pairs()
-
-        def _html_row(i: int) -> str:
-            ts_cells = _fmt_timestamp_cells(self._timestamps[i])
-            val_cells = "".join(
-                f"<td>{escape(self._fmt_value(float(v)))}</td>"
-                for v in self._values[i]
-            )
-            return f"<tr>{ts_cells}{val_cells}</tr>"
-
-        return _build_repr_html(
-            class_name=type(self).__name__,
-            meta_rows=meta_rows,
-            index_names=self.index_names,
-            column_names=self.column_names,
-            n_rows=n,
-            html_row_fn=_html_row,
-        )
 
     # ---- numpy / pandas / polars -----------------------------------------
 

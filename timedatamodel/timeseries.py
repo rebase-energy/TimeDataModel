@@ -4,30 +4,23 @@ import csv
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from html import escape
 from pathlib import Path
 from typing import Callable, Iterator, overload
 
 import numpy as np
 
 from ._base import (
-    _MAX_PREVIEW,
     _DataFrameMixin,
     _TimeSeriesBase,
-    _build_repr_html,
     _convert_unit_values,
     _extract_timestamps_from_pandas_index,
-    _fmt_short_date,
-    _fmt_timestamp,
-    _fmt_timestamp_cells,
-    _fmt_tz_with_offset,
     _get_pint_registry,
     _import_pandas,
     _import_polars,
     _validate_timestamp_sequence,
     _xarray_labels_to_list,
 )
-from .coverage import CoverageBar
+from ._repr import _TimeSeriesListReprMixin
 from .datapoint import DataPoint
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import (
@@ -40,7 +33,7 @@ from .location import (
 
 
 @dataclass(slots=True, repr=False, eq=False)
-class TimeSeriesList(_TimeSeriesBase, _DataFrameMixin):
+class TimeSeriesList(_TimeSeriesBase, _TimeSeriesListReprMixin, _DataFrameMixin):
     frequency: Frequency
     timezone: str = "UTC"
     name: str | None = None
@@ -119,13 +112,6 @@ class TimeSeriesList(_TimeSeriesBase, _DataFrameMixin):
     def has_missing(self) -> bool:
         """True if any value is None."""
         return any(v is None for v in self._values)
-
-    def _coverage_masks(self) -> list[tuple[str, list[bool]]]:
-        return [(self.name or "value", [v is not None for v in self._values])]
-
-    def coverage_bar(self) -> CoverageBar:
-        """Return a displayable coverage bar."""
-        return CoverageBar(self._coverage_masks(), self.begin, self.end)
 
     @property
     def pint_unit(self):
@@ -441,55 +427,6 @@ class TimeSeriesList(_TimeSeriesBase, _DataFrameMixin):
             timestamps=list(self._timestamps),
             values=self._from_float_array(np.round(arr, n)),
             **self._meta_kwargs(),
-        )
-
-    # ---- repr hooks -------------------------------------------------------
-
-    def _repr_meta_pairs(self) -> list[tuple[str, str]]:
-        pairs: list[tuple[str, str]] = [
-            ("Name", self.name or "unnamed"),
-            ("Length", str(len(self._timestamps))),
-            ("Frequency", str(self.frequency)),
-            ("Timezone", _fmt_tz_with_offset(self.timezone, self._timestamps)),
-        ]
-        if self.unit:
-            pairs.append(("Unit", self.unit))
-        if self.data_type:
-            pairs.append(("Data type", str(self.data_type)))
-        if self.location:
-            pairs.append(("Location", self._fmt_location(self.location)))
-        if self.description:
-            pairs.append(("Description", self.description))
-        if self.timeseries_type and self.timeseries_type != "FLAT":
-            pairs.append(("Timeseries type", str(self.timeseries_type)))
-        if self.labels:
-            pairs.append(("Labels", str(self.labels)))
-        return pairs
-
-    def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
-        rows: list[list[str]] = []
-        for i in indices:
-            rows.append([_fmt_timestamp(self._timestamps[i]), self._fmt_value(self._values[i])])
-        return rows
-
-    def _repr_html_(self) -> str:
-        n = len(self._timestamps)
-        meta_rows = self._repr_meta_pairs()
-
-        def _html_row(i: int) -> str:
-            ts_cells = _fmt_timestamp_cells(self._timestamps[i])
-            val_cells = (
-                f"<td>{escape(self._fmt_value(self._values[i]))}</td>"
-            )
-            return f"<tr>{ts_cells}{val_cells}</tr>"
-
-        return _build_repr_html(
-            class_name=type(self).__name__,
-            meta_rows=meta_rows,
-            index_names=self.index_names,
-            column_names=self.column_names,
-            n_rows=n,
-            html_row_fn=_html_row,
         )
 
     # ---- numpy / pandas / polars -----------------------------------------

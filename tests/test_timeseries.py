@@ -2798,19 +2798,19 @@ class TestReprWidth:
         tdm.set_repr_width(None)
 
     def test_truncate_short_unchanged(self):
-        from timedatamodel._base import _truncate
+        from timedatamodel._repr import _truncate
         assert _truncate("hello", 10) == "hello"
 
     def test_truncate_exact_length(self):
-        from timedatamodel._base import _truncate
+        from timedatamodel._repr import _truncate
         assert _truncate("hello", 5) == "hello"
 
     def test_truncate_long_gets_ellipsis(self):
-        from timedatamodel._base import _truncate
+        from timedatamodel._repr import _truncate
         assert _truncate("hello world", 8) == "hello..."
 
     def test_truncate_minimum(self):
-        from timedatamodel._base import _truncate
+        from timedatamodel._repr import _truncate
         assert _truncate("abcdef", 4) == "a..."
 
     def test_default_no_limit(self):

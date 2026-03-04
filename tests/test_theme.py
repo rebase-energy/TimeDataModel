@@ -11,7 +11,7 @@ from timedatamodel._theme import (
     reset_theme,
     set_theme,
 )
-from timedatamodel._base import _get_repr_css
+from timedatamodel._repr import _get_repr_css
 
 
 @pytest.fixture(autouse=True)

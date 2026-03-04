@@ -1,17 +1,16 @@
 from __future__ import annotations
 
 from datetime import datetime
-from html import escape
 from typing import Iterator
 
-from ._base import _DataFrameMixin, _fmt_short_date, _get_repr_css, _import_polars, _render_box
-from .coverage import CoverageBar
+from ._base import _DataFrameMixin, _import_polars
+from ._repr import _TimeSeriesCollectionReprMixin
 from .location import GeoArea, GeoLocation
 from .table import TimeSeriesTable
 from .timeseries import TimeSeriesList
 
 
-class TimeSeriesCollection(_DataFrameMixin):
+class TimeSeriesCollection(_TimeSeriesCollectionReprMixin, _DataFrameMixin):
     """Container for TimeSeriesList and/or TimeSeriesTable objects that don't share an index.
 
     Items are stored internally as an ordered ``dict[str, TimeSeriesList | TimeSeriesTable]``.
@@ -294,168 +293,3 @@ class TimeSeriesCollection(_DataFrameMixin):
         """Shorthand for ``to_numpy()``."""
         return self.to_numpy()
 
-    # ---- display -----------------------------------------------------------
-
-    def _item_summary(self, key: str, item: TimeSeriesList | TimeSeriesTable) -> dict:
-        """Summarize a single item for repr tables."""
-        kind = type(item).__name__
-        freq = str(item.frequency) if hasattr(item, "frequency") else "-"
-        tz = item.timezone if hasattr(item, "timezone") else "-"
-        n = len(item)
-        begin = item.begin
-        end = item.end
-        begin_s = _fmt_short_date(begin) if begin else "-"
-        end_s = _fmt_short_date(end) if end else "-"
-        return {
-            "name": key,
-            "type": kind,
-            "freq": freq,
-            "tz": tz,
-            "length": str(n),
-            "begin": begin_s,
-            "end": end_s,
-        }
-
-    def __repr__(self) -> str:
-        class_name = type(self).__name__
-        if not self._series:
-            return f"{type(self).__name__}(empty)"
-
-        rows = [
-            self._item_summary(k, v) for k, v in self._series.items()
-        ]
-        headers = ["name", "type", "freq", "tz", "length", "begin", "end"]
-        col_widths = {h: len(h) for h in headers}
-        for row in rows:
-            for h in headers:
-                col_widths[h] = max(col_widths[h], len(row[h]))
-
-        def _fmt_row(vals: dict) -> str:
-            return "  ".join(f"{vals[h]:<{col_widths[h]}}" for h in headers)
-
-        header_line = _fmt_row({h: h for h in headers})
-        content_lines: list[str | None] = [header_line]
-        content_lines.append(None)  # separator
-        for row in rows:
-            content_lines.append(_fmt_row(row))
-
-        return _render_box(class_name, content_lines)
-
-    def _repr_html_(self) -> str:
-        if not self._series:
-            return "<div><b>TimeSeriesCollection</b> (empty)</div>"
-
-        rows = [
-            self._item_summary(k, v) for k, v in self._series.items()
-        ]
-        headers = ["name", "type", "freq", "tz", "length", "begin", "end"]
-
-        html = [_get_repr_css(), '<div class="ts-repr">']
-        html.append(f'<div class="ts-header">{escape(type(self).__name__)}</div>')
-        html.append('<div class="ts-data"><table style="text-align: left;">')
-        html.append(
-            "<tr>" + "".join(f"<th>{escape(h)}</th>" for h in headers) + "</tr>"
-        )
-        for row in rows:
-            html.append(
-                "<tr>"
-                + "".join(f"<td>{escape(row[h])}</td>" for h in headers)
-                + "</tr>"
-            )
-        html.append("</table></div></div>")
-        return "\n".join(html)
-
-    def coverage_bar(self) -> CoverageBar:
-        """Return a multi-row CoverageBar spanning the global time range."""
-        masks: list[tuple[str, list[bool]]] = []
-        all_begins: list[datetime] = []
-        all_ends: list[datetime] = []
-
-        for key, item in self._series.items():
-            begin = item.begin
-            end = item.end
-            if begin is not None and end is not None:
-                # Unwrap tuples for multi-index
-                b = begin[0] if isinstance(begin, tuple) else begin
-                e = end[0] if isinstance(end, tuple) else end
-                all_begins.append(b)
-                all_ends.append(e)
-
-        if not all_begins:
-            return CoverageBar([], None, None)
-
-        global_begin = min(all_begins)
-        global_end = max(all_ends)
-        global_span = (global_end - global_begin).total_seconds()
-
-        n_bins = CoverageBar._TERM_BINS
-
-        for key, item in self._series.items():
-            begin = item.begin
-            end = item.end
-
-            if isinstance(item, TimeSeriesList):
-                label = key
-                if begin is None or end is None or global_span == 0:
-                    masks.append((label, [False] * n_bins))
-                    continue
-                b = begin[0] if isinstance(begin, tuple) else begin
-                e = end[0] if isinstance(end, tuple) else end
-                item_masks = item._coverage_masks()
-                _, raw_mask = item_masks[0]
-                # Map raw mask onto global bins
-                bin_mask = self._rebin_to_global(
-                    raw_mask, b, e, global_begin, global_span, n_bins
-                )
-                masks.append((label, bin_mask))
-
-            elif isinstance(item, TimeSeriesTable):
-                if begin is None or end is None or global_span == 0:
-                    for col_name in item.column_names:
-                        label = f"{key}/{col_name}"
-                        masks.append((label, [False] * n_bins))
-                    continue
-                b = begin[0] if isinstance(begin, tuple) else begin
-                e = end[0] if isinstance(end, tuple) else end
-                for col_name, raw_mask in item._coverage_masks():
-                    label = f"{key}/{col_name}"
-                    bin_mask = self._rebin_to_global(
-                        raw_mask, b, e, global_begin, global_span, n_bins
-                    )
-                    masks.append((label, bin_mask))
-
-        return CoverageBar(masks, global_begin, global_end)
-
-    @staticmethod
-    def _rebin_to_global(
-        raw_mask: list[bool],
-        item_begin: datetime,
-        item_end: datetime,
-        global_begin: datetime,
-        global_span: float,
-        n_bins: int,
-    ) -> list[bool]:
-        """Map an item's coverage mask onto global bins."""
-        if not raw_mask or global_span == 0:
-            return [False] * n_bins
-
-        result = [False] * n_bins
-        item_span = (item_end - item_begin).total_seconds()
-        n_points = len(raw_mask)
-
-        for i, present in enumerate(raw_mask):
-            if not present:
-                continue
-            # Position of this point in the item's time range
-            if n_points == 1:
-                t_offset = (item_begin - global_begin).total_seconds()
-            else:
-                t_offset = (
-                    (item_begin - global_begin).total_seconds()
-                    + item_span * i / (n_points - 1)
-                )
-            bin_idx = int(t_offset / global_span * n_bins)
-            bin_idx = min(bin_idx, n_bins - 1)
-            result[bin_idx] = True
-
-        return result

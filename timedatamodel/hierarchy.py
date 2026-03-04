@@ -4,12 +4,12 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
-from html import escape
 from typing import TYPE_CHECKING, Iterator
 
 import numpy as np
 
-from ._base import _convert_unit_values, _fmt_short_date, _fmt_tz_with_offset, _format_meta_lines, _get_repr_css, _render_box
+from ._base import _convert_unit_values
+from ._repr import HierarchyTree, _HierarchicalTimeSeriesReprMixin
 from .enums import Frequency
 from .location import Location
 from .timeseries import TimeSeriesList
@@ -92,7 +92,7 @@ def _set_parents(node: HierarchyNode, parent: HierarchyNode | None) -> None:
         _set_parents(child, node)
 
 
-class HierarchicalTimeSeries:
+class HierarchicalTimeSeries(_HierarchicalTimeSeriesReprMixin):
     """A tree of time series organised into named hierarchy levels."""
 
     __slots__ = (
@@ -583,167 +583,3 @@ class HierarchicalTimeSeries:
     def __iter__(self) -> Iterator[HierarchyNode]:
         return self.walk()
 
-    # ---- display ----------------------------------------------------------
-
-    _MAX_LEAF_ROWS = 7
-
-    def _repr_meta_pairs(self) -> list[tuple[str, str]]:
-        _tz_timestamps = [self._begin] if self._begin is not None else []
-        pairs: list[tuple[str, str]] = [
-            ("Name", self._name or "unnamed"),
-            ("Levels", ", ".join(self._levels)),
-            ("Nodes", f"{self.n_nodes} ({self.n_leaves} leaves)"),
-            ("Frequency", str(self._frequency)),
-            ("Timezone", _fmt_tz_with_offset(self._timezone, _tz_timestamps)),
-        ]
-        if self._unit:
-            pairs.append(("Unit", self._unit))
-        pairs.append(("Aggregation", str(self._aggregation)))
-        return pairs
-
-    def _leaf_summary_rows(self) -> list[dict[str, str]]:
-        """Build summary rows for leaf nodes."""
-        leaf_nodes = self.leaves()
-        rows: list[dict[str, str]] = []
-        for node in leaf_nodes:
-            ts = node.timeseries
-            length = str(len(ts)) if ts is not None else "0"
-            begin = _fmt_short_date(ts.begin) if ts and ts.begin else "-"
-            end = _fmt_short_date(ts.end) if ts and ts.end else "-"
-            rows.append({
-                "name": node.key,
-                "level": node.level,
-                "length": length,
-                "begin": begin,
-                "end": end,
-            })
-        return rows
-
-    def _leaf_display_rows(self) -> list[dict[str, str]]:
-        """Return leaf rows with head/tail truncation applied."""
-        rows = self._leaf_summary_rows()
-        if len(rows) <= self._MAX_LEAF_ROWS:
-            return rows
-        headers = ["name", "level", "length", "begin", "end"]
-        return rows[:3] + [{h: "..." for h in headers}] + rows[-3:]
-
-    def __repr__(self) -> str:
-        class_name = type(self).__name__
-        meta_lines = _format_meta_lines(self._repr_meta_pairs())
-
-        # Leaf table
-        rows = self._leaf_display_rows()
-        headers = ["name", "level", "length", "begin", "end"]
-        col_widths = {h: len(h) for h in headers}
-        for row in rows:
-            for h in headers:
-                col_widths[h] = max(col_widths[h], len(row[h]))
-
-        def _fmt_row(vals: dict[str, str]) -> str:
-            return "  ".join(f"{vals[h]:<{col_widths[h]}}" for h in headers)
-
-        header_line = _fmt_row({h: h for h in headers})
-
-        # Combine all content lines
-        content_lines: list[str | None] = list(meta_lines)
-        content_lines.append(None)  # separator
-        content_lines.append(header_line)
-        content_lines.append(None)  # separator
-        for row in rows:
-            content_lines.append(_fmt_row(row))
-
-        return _render_box(class_name, content_lines)
-
-    def _repr_html_(self) -> str:
-        meta_rows = self._repr_meta_pairs()
-
-        html = [_get_repr_css(), '<div class="ts-repr">']
-        html.append(f'<div class="ts-header">{escape(type(self).__name__)}</div>')
-        html.append('<div class="ts-meta"><table>')
-        for label, value in meta_rows:
-            html.append(f"<tr><td>{escape(label)}</td><td>{escape(value)}</td></tr>")
-        html.append("</table></div>")
-
-        # Leaf table
-        headers = ["name", "level", "length", "begin", "end"]
-        display_rows = self._leaf_display_rows()
-
-        html.append('<div class="ts-data"><table style="text-align: left;">')
-        html.append(
-            "<tr>" + "".join(f"<th>{escape(h)}</th>" for h in headers) + "</tr>"
-        )
-        for row in display_rows:
-            html.append(
-                "<tr>"
-                + "".join(f"<td>{escape(row[h])}</td>" for h in headers)
-                + "</tr>"
-            )
-        html.append("</table></div></div>")
-        return "\n".join(html)
-
-    def tree(self) -> HierarchyTree:
-        """Return a displayable tree visualization."""
-        return HierarchyTree(self._root)
-
-
-
-class HierarchyTree:
-    """Displayable tree visualization for a HierarchicalTimeSeries."""
-
-    __slots__ = ("_root",)
-
-    def __init__(self, root: HierarchyNode) -> None:
-        self._root = root
-
-    def __repr__(self) -> str:
-        lines: list[str] = []
-        self._build_tree(self._root, "", True, lines)
-        return "\n".join(lines)
-
-    @staticmethod
-    def _build_tree(
-        node: HierarchyNode,
-        prefix: str,
-        is_last: bool,
-        lines: list[str],
-    ) -> None:
-        connector = "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
-        label = node.key
-        if node.is_leaf and node.timeseries is not None:
-            label += f" [{len(node.timeseries)} pts]"
-        elif not node.is_leaf:
-            label += f" ({node.level})"
-        lines.append(f"{prefix}{connector}{label}")
-        new_prefix = prefix + ("    " if is_last else "\u2502   ")
-        for i, child in enumerate(node.children):
-            HierarchyTree._build_tree(
-                child, new_prefix, i == len(node.children) - 1, lines
-            )
-
-    def _repr_html_(self) -> str:
-        css = """\
-<style>
-.tsh-tree { font-family: monospace; font-size: 13px; }
-.tsh-tree details { margin-left: 16px; }
-.tsh-tree summary { cursor: pointer; padding: 1px 0; }
-.tsh-tree .tsh-leaf { margin-left: 16px; padding: 1px 0; }
-</style>"""
-        return css + '\n<div class="tsh-tree">\n' + self._html_node(self._root) + "</div>"
-
-    @staticmethod
-    def _html_node(node: HierarchyNode) -> str:
-        if node.is_leaf:
-            label = escape(node.key)
-            if node.timeseries is not None:
-                label += f" [{len(node.timeseries)} pts]"
-            return f'<div class="tsh-leaf">{label}</div>\n'
-        label = f"{escape(node.key)} ({escape(node.level)})"
-        children_html = "".join(
-            HierarchyTree._html_node(c) for c in node.children
-        )
-        return (
-            f"<details open>"
-            f"<summary>{label}</summary>\n"
-            f"{children_html}"
-            f"</details>\n"
-        )
