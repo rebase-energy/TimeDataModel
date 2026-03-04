@@ -319,8 +319,6 @@ class TimeSeriesCollection(_DataFrameMixin):
 
     def __repr__(self) -> str:
         class_name = type(self).__name__
-        if self._name:
-            class_name = f"{class_name}: {self._name}"
         if not self._series:
             return f"{type(self).__name__}(empty)"
 
@@ -354,8 +352,6 @@ class TimeSeriesCollection(_DataFrameMixin):
         headers = ["name", "type", "freq", "tz", "length", "begin", "end"]
 
         title = type(self).__name__
-        if self._name:
-            title = f"{title}: {escape(self._name)}"
 
         lt = THEME["light"]
         dk = THEME["dark"]

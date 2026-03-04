@@ -704,12 +704,11 @@ class TimeSeriesArray:
         dim_str = ", ".join(dim_parts)
 
         meta_lines: list[str] = []
+        meta_lines.append(f"{'Name:':<{label_w}}{self.name or 'unnamed'}")
         meta_lines.append(f"{'Dimensions:':<{label_w}}{dim_str}")
         meta_lines.append(f"{'Shape:':<{label_w}}{self.shape}")
         meta_lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
         meta_lines.append(f"{'Timezone:':<{label_w}}{_fmt_tz_with_offset(self.timezone, self.primary_time_dim.labels)}")
-        if self.name:
-            meta_lines.append(f"{'Name:':<{label_w}}{self.name}")
         if self.unit:
             meta_lines.append(f"{'Unit:':<{label_w}}{self.unit}")
         if self.data_type:
@@ -730,13 +729,12 @@ class TimeSeriesArray:
         n_dims = self.ndim
         meta_rows: list[tuple[str, str]] = []
 
+        meta_rows.append(("Name", escape(self.name) if self.name else "unnamed"))
         dim_parts = [f"{d.name}: {len(d.labels)}" for d in self.dimensions]
         meta_rows.append(("Dimensions", ", ".join(dim_parts)))
         meta_rows.append(("Shape", str(self.shape)))
         meta_rows.append(("Frequency", escape(str(self.frequency))))
         meta_rows.append(("Timezone", escape(_fmt_tz_with_offset(self.timezone, self.primary_time_dim.labels))))
-        if self.name:
-            meta_rows.append(("Name", escape(self.name)))
         if self.unit:
             meta_rows.append(("Unit", escape(self.unit)))
 

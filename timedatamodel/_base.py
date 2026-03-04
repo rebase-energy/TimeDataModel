@@ -185,17 +185,17 @@ def _repr_css() -> str:
     dk = THEME["dark"]
     return f"""\
 <style>
-.ts-repr {{ font-family: monospace; font-size: 13px; max-width: 640px; display: inline-block; }}
+.ts-repr {{ font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }}
 .ts-repr .ts-header {{
   font-weight: bold; font-size: 14px;
   padding: 6px 10px; border-bottom: 2px solid {lt["header_border"]};
   background: {lt["header_bg"]}; color: {lt["header_text"]};
 }}
-.ts-repr .ts-meta {{ padding: 6px 10px; background: {lt["meta_bg"]}; }}
-.ts-repr .ts-meta table {{ border-collapse: collapse; }}
+.ts-repr .ts-meta {{ padding: 6px 10px; background: {lt["meta_bg"]}; overflow: hidden; min-width: 0; }}
+.ts-repr .ts-meta table {{ border-collapse: collapse; width: 100%; table-layout: fixed; }}
 .ts-repr .ts-meta td {{ padding: 1px 8px 1px 0; white-space: nowrap; }}
-.ts-repr .ts-meta td:first-child {{ color: {lt["meta_label"]}; font-weight: 600; }}
-.ts-repr .ts-meta td:last-child {{ color: {lt["meta_value"]}; }}
+.ts-repr .ts-meta td:first-child {{ color: {lt["meta_label"]}; font-weight: 600; width: 90px; }}
+.ts-repr .ts-meta td:last-child {{ color: {lt["meta_value"]}; overflow: hidden; text-overflow: ellipsis; }}
 .ts-repr .ts-data {{ padding: 6px 10px; }}
 .ts-repr .ts-data table {{
   border-collapse: collapse; text-align: right;

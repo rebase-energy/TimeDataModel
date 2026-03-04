@@ -613,8 +613,9 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
     def _repr_meta_lines(self) -> list[str]:
         label_w = 18
         lines: list[str] = []
+        lines.append(f"{'Name:':<{label_w}}unnamed")
         cn = self.column_names
-        lines.append(f"{'Names:':<{label_w}}{', '.join(cn)}")
+        lines.append(f"{'Columns:':<{label_w}}{', '.join(cn)}")
         n = len(self._timestamps)
         lines.append(f"{'Length:':<{label_w}}{n} \u00d7 {self.n_columns}")
         lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
@@ -667,7 +668,8 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
 
         label = ", ".join(escape(c) for c in cn)
         meta_rows: list[tuple[str, str]] = [
-            ("Names", label),
+            ("Name", "unnamed"),
+            ("Columns", label),
             ("Length", f"{n:,} \u00d7 {ncols}"),
             ("Frequency", escape(str(self.frequency))),
             ("Timezone", escape(_fmt_tz_with_offset(self.timezone, self._timestamps))),

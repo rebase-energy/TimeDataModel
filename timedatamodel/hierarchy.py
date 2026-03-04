@@ -612,8 +612,7 @@ class HierarchicalTimeSeries:
 
         # Meta lines
         meta_lines: list[str] = []
-        if self._name:
-            meta_lines.append(f"{'Name:':<{label_w}}{self._name}")
+        meta_lines.append(f"{'Name:':<{label_w}}{self._name or 'unnamed'}")
         meta_lines.append(f"{'Levels:':<{label_w}}{', '.join(self._levels)}")
         meta_lines.append(
             f"{'Nodes:':<{label_w}}{self.n_nodes} ({self.n_leaves} leaves)"
@@ -666,8 +665,6 @@ class HierarchicalTimeSeries:
     def _repr_html_(self) -> str:
         class_name = type(self).__name__
         title = class_name
-        if self._name:
-            title = f"{class_name}: {escape(self._name)}"
 
         lt = THEME["light"]
         dk = THEME["dark"]
@@ -702,8 +699,7 @@ class HierarchicalTimeSeries:
 
         # Meta table
         meta_rows: list[tuple[str, str]] = []
-        if self._name:
-            meta_rows.append(("Name", escape(self._name)))
+        meta_rows.append(("Name", escape(self._name) if self._name else "unnamed"))
         meta_rows.append(("Levels", escape(", ".join(self._levels))))
         meta_rows.append(("Nodes", f"{self.n_nodes} ({self.n_leaves} leaves)"))
         meta_rows.append(("Frequency", escape(str(self._frequency))))
