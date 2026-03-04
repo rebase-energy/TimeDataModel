@@ -379,26 +379,26 @@ class TimeSeriesArray:
         mask = np.isnan(raw)
         values = np.ma.MaskedArray(raw, mask=mask)
 
-        freq = frequency if frequency is not None else Frequency(da.attrs.get("frequency", str(Frequency.NONE)))
-        tz = timezone if timezone is not None else da.attrs.get("timezone", "UTC")
-        nm = name if name is not None else da.name
-        un = unit if unit is not None else da.attrs.get("unit")
-        desc = description if description is not None else da.attrs.get("description")
-        dt_ = data_type if data_type is not None else (
+        resolved_frequency = frequency if frequency is not None else Frequency(da.attrs.get("frequency", str(Frequency.NONE)))
+        resolved_timezone = timezone if timezone is not None else da.attrs.get("timezone", "UTC")
+        resolved_name = name if name is not None else da.name
+        resolved_unit = unit if unit is not None else da.attrs.get("unit")
+        resolved_description = description if description is not None else da.attrs.get("description")
+        resolved_data_type = data_type if data_type is not None else (
             DataType(da.attrs["data_type"]) if "data_type" in da.attrs else None
         )
-        attrs = attributes if attributes is not None else (
+        resolved_attributes = attributes if attributes is not None else (
             json.loads(da.attrs["attributes"]) if "attributes" in da.attrs else {}
         )
 
         return cls(
-            freq,
-            timezone=tz,
-            name=nm,
-            unit=un,
-            description=desc,
-            data_type=dt_,
-            attributes=attrs,
+            resolved_frequency,
+            timezone=resolved_timezone,
+            name=resolved_name,
+            unit=resolved_unit,
+            description=resolved_description,
+            data_type=resolved_data_type,
+            attributes=resolved_attributes,
             dimensions=dimensions,
             values=values,
         )

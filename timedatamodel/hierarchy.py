@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
@@ -192,9 +193,9 @@ class HierarchicalTimeSeries:
         """Collect unique level names in BFS order."""
         seen: set[str] = set()
         order: list[str] = []
-        queue: list[HierarchyNode] = [self._root]
+        queue: deque[HierarchyNode] = deque([self._root])
         while queue:
-            node = queue.pop(0)
+            node = queue.popleft()
             if node.level not in seen:
                 seen.add(node.level)
                 order.append(node.level)
@@ -299,7 +300,6 @@ class HierarchicalTimeSeries:
             leaf_key = "/".join(path)
 
             if timestamp_column is not None:
-                from datetime import datetime as _dt
                 timestamps = group_df[timestamp_column].tolist()
             else:
                 timestamps = group_df.index.tolist()

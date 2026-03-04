@@ -919,7 +919,47 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             index_names=index_names,
         )
 
-    def update_df(self, df: "pd.DataFrame") -> TimeSeriesTable:
+    @classmethod
+    def from_polars(
+        cls,
+        df,
+        frequency: Frequency,
+        timestamp_column: str = "timestamp",
+        *,
+        timezone: str = "UTC",
+        names: list[str | None] | None = None,
+        units: list[str | None] | None = None,
+        descriptions: list[str | None] | None = None,
+        data_types: list[DataType | None] | None = None,
+        locations: list[Location | None] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
+        attributes: list[dict[str, str]] | None = None,
+        labels: list[dict[str, str]] | None = None,
+    ) -> TimeSeriesTable:
+        """Create a TimeSeriesTable from a polars DataFrame."""
+        timestamps = df[timestamp_column].to_list()
+        value_cols = [c for c in df.columns if c != timestamp_column]
+        if names is None:
+            names = value_cols
+        values = np.column_stack(
+            [df[c].to_numpy(allow_copy=True) for c in value_cols]
+        ).astype(np.float64)
+        return cls(
+            frequency,
+            timezone=timezone,
+            timestamps=timestamps,
+            values=values,
+            names=names,
+            units=units,
+            descriptions=descriptions,
+            data_types=data_types,
+            locations=locations,
+            timeseries_types=timeseries_types,
+            attributes=attributes,
+            labels=labels,
+        )
+
+    def update_from_pandas(self, df: "pd.DataFrame") -> TimeSeriesTable:
         """Create a new TimeSeriesTable from a DataFrame, preserving metadata."""
         pd = _import_pandas()
         timestamps, index_names = _extract_timestamps_from_pandas_index(df)
@@ -948,6 +988,10 @@ class TimeSeriesTable(_TimeSeriesBase, _DataFrameMixin):
             labels=_carry_over(self.labels, new_ncols, dict),
             index_names=index_names,
         )
+
+    def update_df(self, df: "pd.DataFrame") -> TimeSeriesTable:
+        """Shorthand for ``update_from_pandas(df)`` — always returns a new TimeSeriesTable."""
+        return self.update_from_pandas(df)
 
     def update_arr(self, arr: np.ndarray) -> TimeSeriesTable:
         """Create a new TimeSeriesTable with *arr* as values, keeping timestamps and metadata."""

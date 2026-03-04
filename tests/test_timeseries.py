@@ -2390,6 +2390,44 @@ class TestXarrayTimeSeriesTable:
             tdm.TimeSeriesTable.from_xarray(da)
 
 
+# ---- Table from_polars / update_from_pandas Tests -------------------------
+
+
+class TestTableFromPolars:
+    def test_round_trip(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(3)]
+        values = np.array([[1.0, 10.0], [2.0, 20.0], [3.0, 30.0]])
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=values,
+            names=["power", "temperature"],
+        )
+        df = table.to_polars_dataframe()
+        table2 = tdm.TimeSeriesTable.from_polars(df, tdm.Frequency.PT1H)
+        assert len(table2) == 3
+        assert table2.column_names == ("power", "temperature")
+        np.testing.assert_array_equal(table2.to_numpy(), values)
+
+
+class TestTableUpdateFromPandas:
+    def test_update_from_pandas_delegates(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(3)]
+        values = np.array([[1.0], [2.0], [3.0]])
+        table = tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=values,
+            names=["power"],
+        )
+        df = table.to_pandas_dataframe()
+        t1 = table.update_from_pandas(df)
+        t2 = table.update_df(df)
+        np.testing.assert_array_equal(t1.to_numpy(), t2.to_numpy())
+
+
 # ---- Table Apply Tests ---------------------------------------------------
 
 

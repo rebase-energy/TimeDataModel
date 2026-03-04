@@ -42,12 +42,11 @@ class CoverageBar:
         label_w = max(len(name) for name, _ in self._masks) + 2
 
         lines: list[str] = []
-        bar_len = 0
         for name, mask in self._masks:
             binned = self._bin_coverage(mask, n_bins)
             bar = "".join("\u2588" if b else "\u2591" for b in binned)
-            bar_len = len(binned)
             lines.append(f"{name:<{label_w}}{bar}")
+        bar_len = len(self._bin_coverage(self._masks[0][1], n_bins))
 
         start_str = _fmt_short_date(self._begin) if self._begin else ""
         end_str = _fmt_short_date(self._end) if self._end else ""
