@@ -14,7 +14,7 @@
     "| `GeoLocation` | A validated (latitude, longitude) point |\n",
     "| `GeoArea` | A shapely `Polygon` region (optional `shapely` dependency) |\n",
     "\n",
-    "Both can be attached to `TimeSeries` and `TimeSeriesTable` objects."
+    "Both can be attached to `TimeSeriesList` and `TimeSeriesTable` objects."
    ]
   },
   {
@@ -103,7 +103,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "## Attaching location to a TimeSeries\n",
+    "## Attaching location to a TimeSeriesList\n",
     "\n",
     "Pass a `GeoLocation` via the `location` parameter. It shows up in the rich repr."
    ]
@@ -113,7 +113,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "ts_oslo = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timezone=\"Europe/Oslo\",\n    timestamps=timestamps,\n    values=(5.0 + rng.normal(0, 2, 24)).tolist(),\n    name=\"temperature\",\n    unit=\"°C\",\n    description=\"Hourly temperature at Oslo Blindern\",\n    data_type=tdm.DataType.MEASUREMENT,\n    location=oslo,\n)\nts_oslo"
+   "source": "ts_oslo = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timezone=\"Europe/Oslo\",\n    timestamps=timestamps,\n    values=(5.0 + rng.normal(0, 2, 24)).tolist(),\n    name=\"temperature\",\n    unit=\"°C\",\n    description=\"Hourly temperature at Oslo Blindern\",\n    data_type=tdm.DataType.OBSERVATION,\n    location=oslo,\n)\nts_oslo"
   },
   {
    "cell_type": "code",
@@ -139,7 +139,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "table = tdm.TimeSeriesTable(\n    tdm.Frequency.PT1H,\n    timezone=\"Europe/Oslo\",\n    timestamps=timestamps,\n    values=np.column_stack([\n        5.0 + rng.normal(0, 2, 24),\n        2.0 + rng.normal(0, 3, 24),\n        -8.0 + rng.normal(0, 4, 24),\n    ]),\n    names=[\"Oslo\", \"Bergen\", \"Tromsø\"],\n    units=[\"°C\", \"°C\", \"°C\"],\n    locations=[oslo, bergen, tromsoe],\n    data_types=[tdm.DataType.MEASUREMENT],\n)\ntable"
+   "source": "table = tdm.TimeSeriesTable(\n    tdm.Frequency.PT1H,\n    timezone=\"Europe/Oslo\",\n    timestamps=timestamps,\n    values=np.column_stack([\n        5.0 + rng.normal(0, 2, 24),\n        2.0 + rng.normal(0, 3, 24),\n        -8.0 + rng.normal(0, 4, 24),\n    ]),\n    names=[\"Oslo\", \"Bergen\", \"Tromsø\"],\n    units=[\"°C\", \"°C\", \"°C\"],\n    locations=[oslo, bergen, tromsoe],\n    data_types=[tdm.DataType.OBSERVATION],\n)\ntable"
   },
   {
    "cell_type": "code",
@@ -255,7 +255,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "## Attaching a GeoArea to a TimeSeries\n",
+    "## Attaching a GeoArea to a TimeSeriesList\n",
     "\n",
     "Both `GeoLocation` and `GeoArea` are accepted by the `location` parameter."
    ]
@@ -265,7 +265,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "try:\n    if southern_norway is not None:\n        ts_area = tdm.TimeSeries(\n            tdm.Frequency.PT1H,\n            timestamps=timestamps,\n            values=(120 + rng.normal(0, 15, 24)).tolist(),\n            name=\"wind_south\",\n            unit=\"MW\",\n            description=\"Aggregated wind production in southern Norway\",\n            location=southern_norway,\n        )\n        ts_area\nexcept ImportError:\n    print(\"shapely not installed — skipping\")"
+   "source": "try:\n    if southern_norway is not None:\n        ts_area = tdm.TimeSeriesList(\n            tdm.Frequency.PT1H,\n            timestamps=timestamps,\n            values=(120 + rng.normal(0, 15, 24)).tolist(),\n            name=\"wind_south\",\n            unit=\"MW\",\n            description=\"Aggregated wind production in southern Norway\",\n            location=southern_norway,\n        )\n        ts_area\nexcept ImportError:\n    print(\"shapely not installed — skipping\")"
   },
   {
    "cell_type": "markdown",
@@ -306,7 +306,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "json_str = ts_oslo.to_json()\nts_back = tdm.TimeSeries.from_json(json_str, location=oslo)\n\nprint(f\"Name:     {ts_back.name}\")\nprint(f\"Location: {ts_back.location}\")\nprint(f\"Match:    {ts_back.location == oslo}\")"
+   "source": "json_str = ts_oslo.to_json()\nts_back = tdm.TimeSeriesList.from_json(json_str, location=oslo)\n\nprint(f\"Name:     {ts_back.name}\")\nprint(f\"Location: {ts_back.location}\")\nprint(f\"Match:    {ts_back.location == oslo}\")"
   },
   {
    "cell_type": "markdown",
@@ -324,7 +324,7 @@
     "| Polygon regions | `GeoArea.from_coordinates(coords)` — requires shapely |\n",
     "| Quick box | `GeoArea.bounding_box(center, radius_km)` |\n",
     "| Spatial queries | `area.contains_point()`, `area.overlaps()`, `loc.is_within()` |\n",
-    "| Attach to series | `TimeSeries(..., location=loc)`, `TimeSeriesTable(..., locations=[...])` |\n",
+    "| Attach to series | `TimeSeriesList(..., location=loc)`, `TimeSeriesTable(..., locations=[...])` |\n",
     "\n",
     "Next up: **nb_10** demonstrates hierarchical time series — organising series into tree structures with bottom-up aggregation."
    ]

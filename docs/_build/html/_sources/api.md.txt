@@ -23,10 +23,10 @@
    :show-inheritance:
 ```
 
-## TimeSeriesCube
+## TimeSeriesArray
 
 ```{eval-rst}
-.. autoclass:: timedatamodel.TimeSeriesCube
+.. autoclass:: timedatamodel.TimeSeriesArray
    :members:
    :show-inheritance:
 ```

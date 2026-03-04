@@ -20,7 +20,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "## Coverage bars on a TimeSeries\n",
+    "## Coverage bars on a TimeSeriesList\n",
     "\n",
     "Create a week of hourly data with a simulated outage (hours 50-70 missing)."
    ]
@@ -30,7 +30,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "rng = np.random.default_rng(42)\nvalues_full = (100 + rng.normal(0, 15, 168)).tolist()\n\nvalues_with_gap = [\n    None if 50 <= i < 70 else v\n    for i, v in enumerate(values_full)\n]\n\nts_sensor = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timestamps=week_hours,\n    values=values_with_gap,\n    name=\"sensor_A\",\n    unit=\"MW\",\n    data_type=tdm.DataType.MEASUREMENT,\n)\n\nprint(f\"Has missing: {ts_sensor.has_missing}\")\nprint(f\"Total points: {len(ts_sensor)}, missing: {sum(1 for v in ts_sensor.values if v is None)}\")"
+   "source": "rng = np.random.default_rng(42)\nvalues_full = (100 + rng.normal(0, 15, 168)).tolist()\n\nvalues_with_gap = [\n    None if 50 <= i < 70 else v\n    for i, v in enumerate(values_full)\n]\n\nts_sensor = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timestamps=week_hours,\n    values=values_with_gap,\n    name=\"sensor_A\",\n    unit=\"MW\",\n    data_type=tdm.DataType.OBSERVATION,\n)\n\nprint(f\"Has missing: {ts_sensor.has_missing}\")\nprint(f\"Total points: {len(ts_sensor)}, missing: {sum(1 for v in ts_sensor.values if v is None)}\")"
   },
   {
    "cell_type": "code",
@@ -60,18 +60,14 @@
   {
    "cell_type": "markdown",
    "metadata": {},
-   "source": [
-    "## Coverage bars on a TimeSeriesCube\n",
-    "\n",
-    "Cubes show one bar per label in the non-time dimension."
-   ]
+   "source": "## Coverage bars on a TimeSeriesArray\n\nArrays show one bar per label in the non-time dimension."
   },
   {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "cube_data = np.array([\n    [v if v is not None else np.nan for v in sensor_a],\n    [v if v is not None else np.nan for v in sensor_b],\n    [v if v is not None else np.nan for v in sensor_c],\n])\n\ncube = tdm.TimeSeriesCube(\n    tdm.Frequency.PT1H,\n    dimensions=[\n        tdm.Dimension(\"sensor\", [\"A\", \"B\", \"C\"]),\n        tdm.Dimension(\"valid_time\", week_hours),\n    ],\n    values=cube_data,\n    name=\"sensor_grid\",\n    unit=\"MW\",\n)\ncube.coverage_bar()"
+   "source": "cube_data = np.array([\n    [v if v is not None else np.nan for v in sensor_a],\n    [v if v is not None else np.nan for v in sensor_b],\n    [v if v is not None else np.nan for v in sensor_c],\n])\n\ncube = tdm.TimeSeriesArray(\n    tdm.Frequency.PT1H,\n    dimensions=[\n        tdm.Dimension(\"sensor\", [\"A\", \"B\", \"C\"]),\n        tdm.Dimension(\"valid_time\", week_hours),\n    ],\n    values=cube_data,\n    name=\"sensor_grid\",\n    unit=\"MW\",\n)\ncube.coverage_bar()"
   },
   {
    "cell_type": "markdown",
@@ -87,7 +83,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "ts_short = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timestamps=week_hours[:72],\n    values=values_full[:72],\n    name=\"short_range\",\n    unit=\"MW\",\n)\n\ncollection = tdm.TimeSeriesCollection(\n    [ts_sensor, ts_short],\n    name=\"Sensor comparison\",\n)\ncollection.coverage_bar()"
+   "source": "ts_short = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timestamps=week_hours[:72],\n    values=values_full[:72],\n    name=\"short_range\",\n    unit=\"MW\",\n)\n\ncollection = tdm.TimeSeriesCollection(\n    [ts_sensor, ts_short],\n    name=\"Sensor comparison\",\n)\ncollection.coverage_bar()"
   },
   {
    "cell_type": "markdown",
@@ -122,7 +118,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "bad_timestamps = [\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),  # duplicate!\n    datetime(2024, 1, 15, 4, tzinfo=timezone.utc),  # gap: skipped hours 2-3\n    datetime(2024, 1, 15, 5, tzinfo=timezone.utc),\n]\n\nts_bad = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timestamps=bad_timestamps,\n    values=[10.0, 20.0, 30.0, 40.0, 50.0],\n    name=\"bad_data\",\n)\n\nfor w in ts_bad.validate():\n    print(f\"  WARNING: {w}\")"
+   "source": "bad_timestamps = [\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),  # duplicate!\n    datetime(2024, 1, 15, 4, tzinfo=timezone.utc),  # gap: skipped hours 2-3\n    datetime(2024, 1, 15, 5, tzinfo=timezone.utc),\n]\n\nts_bad = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timestamps=bad_timestamps,\n    values=[10.0, 20.0, 30.0, 40.0, 50.0],\n    name=\"bad_data\",\n)\n\nfor w in ts_bad.validate():\n    print(f\"  WARNING: {w}\")"
   },
   {
    "cell_type": "markdown",
@@ -138,21 +134,12 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "gap_ranges = {\n    \"turbine_1\": [],\n    \"turbine_2\": [(30, 45)],\n    \"turbine_3\": [(10, 20), (80, 100)],\n    \"turbine_4\": [(0, 50)],\n    \"turbine_5\": [(60, 65), (120, 130), (150, 160)],\n}\n\nsensors = []\nfor name, gaps in gap_ranges.items():\n    vals = values_full.copy()\n    for start, end in gaps:\n        for i in range(start, end):\n            vals[i] = None\n    sensors.append(\n        tdm.TimeSeries(\n            tdm.Frequency.PT1H,\n            timestamps=week_hours,\n            values=vals,\n            name=name,\n            unit=\"MW\",\n        )\n    )\n\naudit = tdm.TimeSeriesCollection(sensors, name=\"Turbine fleet audit\")\naudit.coverage_bar()"
+   "source": "gap_ranges = {\n    \"turbine_1\": [],\n    \"turbine_2\": [(30, 45)],\n    \"turbine_3\": [(10, 20), (80, 100)],\n    \"turbine_4\": [(0, 50)],\n    \"turbine_5\": [(60, 65), (120, 130), (150, 160)],\n}\n\nsensors = []\nfor name, gaps in gap_ranges.items():\n    vals = values_full.copy()\n    for start, end in gaps:\n        for i in range(start, end):\n            vals[i] = None\n    sensors.append(\n        tdm.TimeSeriesList(\n            tdm.Frequency.PT1H,\n            timestamps=week_hours,\n            values=vals,\n            name=name,\n            unit=\"MW\",\n        )\n    )\n\naudit = tdm.TimeSeriesCollection(sensors, name=\"Turbine fleet audit\")\naudit.coverage_bar()"
   },
   {
    "cell_type": "markdown",
    "metadata": {},
-   "source": [
-    "## Summary\n",
-    "\n",
-    "- `coverage_bar()` is available on `TimeSeries`, `TimeSeriesTable`, `TimeSeriesCube`, and `TimeSeriesCollection`\n",
-    "- It renders as a color-coded SVG in notebooks and Unicode blocks in terminals\n",
-    "- `validate()` catches non-monotonic timestamps and frequency inconsistencies\n",
-    "- `has_missing` is a quick boolean check for any gaps\n",
-    "\n",
-    "Next up: **nb_08** demonstrates I/O and interoperability with pandas, numpy, polars, JSON, and CSV."
-   ]
+   "source": "## Summary\n\n- `coverage_bar()` is available on `TimeSeriesList`, `TimeSeriesTable`, `TimeSeriesArray`, and `TimeSeriesCollection`\n- It renders as a color-coded SVG in notebooks and Unicode blocks in terminals\n- `validate()` catches non-monotonic timestamps and frequency inconsistencies\n- `has_missing` is a quick boolean check for any gaps\n\nNext up: **nb_08** demonstrates I/O and interoperability with pandas, numpy, polars, JSON, and CSV."
   }
  ],
  "metadata": {

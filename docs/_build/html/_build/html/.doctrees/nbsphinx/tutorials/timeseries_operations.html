@@ -1,0 +1,461 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TimeSeries Operations &mdash; timedatamodel</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/custom.css?v=bed8cb9f" />
+
+  
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            timedatamodel
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/getting_started.html">Getting Started with TimeDataModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/unit_handling_and_validation.html">Unit Handling and Validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/timeseries_operations.html">TimeSeriesList Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/multivariate_timeseries.html">Multivariate Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/arrays_and_collections.html">Arrays and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/data_quality_and_coverage.html">Data Quality and Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/io_and_interoperability.html">I/O and Interoperability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/geographical_support.html">Geographical Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials/hierarchical_timeseries.html">Hierarchical Time Series</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">timedatamodel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">TimeSeries Operations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/_build/html/.doctrees/nbsphinx/tutorials/timeseries_operations.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="TimeSeries-Operations">
+<h1>TimeSeries Operations<a class="headerlink" href="#TimeSeries-Operations" title="Link to this heading"></a></h1>
+<p>A <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> is not just a data container — it supports arithmetic, comparisons, and transformations. This notebook demonstrates how to manipulate time series data without dropping down to raw arrays.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
+
+<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
+
+<span class="n">generation</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span>
+        <span class="mf">120.0</span><span class="p">,</span> <span class="mf">115.0</span><span class="p">,</span> <span class="mf">108.0</span><span class="p">,</span> <span class="mf">105.0</span><span class="p">,</span> <span class="mf">102.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span>
+        <span class="mf">110.0</span><span class="p">,</span> <span class="mf">135.0</span><span class="p">,</span> <span class="mf">160.0</span><span class="p">,</span> <span class="mf">175.0</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">,</span> <span class="mf">178.0</span><span class="p">,</span>
+        <span class="mf">172.0</span><span class="p">,</span> <span class="mf">170.0</span><span class="p">,</span> <span class="mf">168.0</span><span class="p">,</span> <span class="mf">165.0</span><span class="p">,</span> <span class="mf">175.0</span><span class="p">,</span> <span class="mf">190.0</span><span class="p">,</span>
+        <span class="mf">200.0</span><span class="p">,</span> <span class="mf">195.0</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">,</span> <span class="mf">165.0</span><span class="p">,</span> <span class="mf">145.0</span><span class="p">,</span> <span class="mf">130.0</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;generation&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">MEASUREMENT</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">consumption</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span>
+        <span class="mf">90.0</span><span class="p">,</span> <span class="mf">85.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span> <span class="mf">78.0</span><span class="p">,</span> <span class="mf">77.0</span><span class="p">,</span> <span class="mf">80.0</span><span class="p">,</span>
+        <span class="mf">95.0</span><span class="p">,</span> <span class="mf">120.0</span><span class="p">,</span> <span class="mf">145.0</span><span class="p">,</span> <span class="mf">155.0</span><span class="p">,</span> <span class="mf">160.0</span><span class="p">,</span> <span class="mf">158.0</span><span class="p">,</span>
+        <span class="mf">155.0</span><span class="p">,</span> <span class="mf">150.0</span><span class="p">,</span> <span class="mf">148.0</span><span class="p">,</span> <span class="mf">150.0</span><span class="p">,</span> <span class="mf">160.0</span><span class="p">,</span> <span class="mf">170.0</span><span class="p">,</span>
+        <span class="mf">165.0</span><span class="p">,</span> <span class="mf">155.0</span><span class="p">,</span> <span class="mf">140.0</span><span class="p">,</span> <span class="mf">120.0</span><span class="p">,</span> <span class="mf">105.0</span><span class="p">,</span> <span class="mf">95.0</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;consumption&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">MEASUREMENT</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[1]</span><span class="ansi-green-fg">, line 3</span>
+<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">datetime</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">import</span> datetime, timedelta, timezone
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">3</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">timedatamodel</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">tdm</span>
+<span class="ansi-green-fg">      5</span> base = datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, tzinfo=timezone.utc)
+<span class="ansi-green-fg">      6</span> timestamps = [base + timedelta(hours=i) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">24</span>)]
+
+<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;timedatamodel&#39;
+</pre></div></div>
+</div>
+<section id="Scalar-arithmetic">
+<h2>Scalar arithmetic<a class="headerlink" href="#Scalar-arithmetic" title="Link to this heading"></a></h2>
+<p>Scale, offset, negate, or round values with natural Python operators. The result is a new <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> with metadata preserved.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">generation_kw</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">*</span> <span class="mi">1000</span>
+<span class="n">generation_kw</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[2]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> generation_kw = <span class="ansi-yellow-bg">generation</span> * <span class="ansi-green-fg">1000</span>
+<span class="ansi-green-fg">      2</span> generation_kw
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">offset</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">+</span> <span class="mf">10.0</span>
+<span class="n">negated</span> <span class="o">=</span> <span class="o">-</span><span class="n">generation</span>
+<span class="n">rounded</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">generation</span> <span class="o">/</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original first value:  </span><span class="si">{</span><span class="n">generation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;+ 10:                  </span><span class="si">{</span><span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Negated:               </span><span class="si">{</span><span class="n">negated</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Divided by 3, rounded: </span><span class="si">{</span><span class="n">rounded</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[3]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> offset = <span class="ansi-yellow-bg">generation</span> + <span class="ansi-green-fg">10.0</span>
+<span class="ansi-green-fg">      2</span> negated = -generation
+<span class="ansi-green-fg">      3</span> rounded = <span style="color: rgb(0,135,0)">round</span>(generation / <span class="ansi-green-fg">3</span>, <span class="ansi-green-fg">1</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
+</div>
+</section>
+<section id="Element-wise-arithmetic-between-two-TimeSeries">
+<h2>Element-wise arithmetic between two TimeSeries<a class="headerlink" href="#Element-wise-arithmetic-between-two-TimeSeries" title="Link to this heading"></a></h2>
+<p>Subtract consumption from generation to get net surplus. Both series must share the same timestamps.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">surplus</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">-</span> <span class="n">consumption</span>
+<span class="n">surplus</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[4]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> surplus = <span class="ansi-yellow-bg">generation</span> - consumption
+<span class="ansi-green-fg">      2</span> surplus
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
+</div>
+</section>
+<section id="Comparison-operators">
+<h2>Comparison operators<a class="headerlink" href="#Comparison-operators" title="Link to this heading"></a></h2>
+<p>Comparisons return a <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> of 1.0 / 0.0 (or NaN for missing). Useful for flagging thresholds.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">high_gen</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">&gt;</span> <span class="mf">170.0</span>
+<span class="n">high_gen</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[5]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> high_gen = <span class="ansi-yellow-bg">generation</span> &gt; <span class="ansi-green-fg">170.0</span>
+<span class="ansi-green-fg">      2</span> high_gen
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gen_exceeds_cons</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">&gt;</span> <span class="n">consumption</span>
+<span class="n">gen_exceeds_cons</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[6]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> gen_exceeds_cons = <span class="ansi-yellow-bg">generation</span> &gt; consumption
+<span class="ansi-green-fg">      2</span> gen_exceeds_cons
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
+</div>
+</section>
+<section id="abs()-—-absolute-values">
+<h2><code class="docutils literal notranslate"><span class="pre">abs()</span></code> — absolute values<a class="headerlink" href="#abs()-—-absolute-values" title="Link to this heading"></a></h2>
+<p>Handy when you have signed deviations or residuals.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">deviation</span> <span class="o">=</span> <span class="n">generation</span> <span class="o">-</span> <span class="n">consumption</span>
+<span class="n">abs_deviation</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">deviation</span><span class="p">)</span>
+<span class="n">abs_deviation</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[7]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> deviation = <span class="ansi-yellow-bg">generation</span> - consumption
+<span class="ansi-green-fg">      2</span> abs_deviation = <span style="color: rgb(0,135,0)">abs</span>(deviation)
+<span class="ansi-green-fg">      3</span> abs_deviation.head(<span class="ansi-green-fg">6</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
+</div>
+</section>
+<section id="head(),-tail(),-and-copy()">
+<h2><code class="docutils literal notranslate"><span class="pre">head()</span></code>, <code class="docutils literal notranslate"><span class="pre">tail()</span></code>, and <code class="docutils literal notranslate"><span class="pre">copy()</span></code><a class="headerlink" href="#head(),-tail(),-and-copy()" title="Link to this heading"></a></h2>
+<p>Quickly preview or duplicate a series.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;First 3:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">generation</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">timestamp</span><span class="si">:</span><span class="s2">%H:%M</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Last 3:&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">generation</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">timestamp</span><span class="si">:</span><span class="s2">%H:%M</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">value</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+First 3:
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[8]</span><span class="ansi-green-fg">, line 2</span>
+<span class="ansi-green-fg">      1</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">First 3:</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> dp <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span class="ansi-yellow-bg">generation</span>.head(<span class="ansi-green-fg">3</span>):
+<span class="ansi-green-fg">      3</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>dp.timestamp<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">%H:%M</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>dp.value<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> MW</span><span class="ansi-yellow-fg">&#34;</span>)
+<span class="ansi-green-fg">      5</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-bold" style="color: rgb(175,95,0)">\n</span><span class="ansi-yellow-fg">Last 3:</span><span class="ansi-yellow-fg">&#34;</span>)
+
+<span class="ansi-red-fg">NameError</span>: name &#39;generation&#39; is not defined
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Handling-missing-values-in-arithmetic">
+<h2>Handling missing values in arithmetic<a class="headerlink" href="#Handling-missing-values-in-arithmetic" title="Link to this heading"></a></h2>
+<p>Missing values (<code class="docutils literal notranslate"><span class="pre">None</span></code>) propagate through operations as NaN, just like numpy.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_with_gaps</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeries</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">[:</span><span class="mi">6</span><span class="p">],</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">110.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">105.0</span><span class="p">,</span> <span class="mf">108.0</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sensor&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">doubled</span> <span class="o">=</span> <span class="n">ts_with_gaps</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="k">for</span> <span class="n">dp</span> <span class="ow">in</span> <span class="n">doubled</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">timestamp</span><span class="si">:</span><span class="s2">%H:%M</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">dp</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
+<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[9]</span><span class="ansi-green-fg">, line 1</span>
+<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_with_gaps = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
+<span class="ansi-green-fg">      2</span>     tdm.Frequency.PT1H,
+<span class="ansi-green-fg">      3</span>     timestamps=timestamps[:<span class="ansi-green-fg">6</span>],
+<span class="ansi-green-fg">      4</span>     values=[<span class="ansi-green-fg">100.0</span>, <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>, <span class="ansi-green-fg">110.0</span>, <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>, <span class="ansi-green-fg">105.0</span>, <span class="ansi-green-fg">108.0</span>],
+<span class="ansi-green-fg">      5</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">sensor</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      6</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
+<span class="ansi-green-fg">      7</span> )
+<span class="ansi-green-fg">      9</span> doubled = ts_with_gaps * <span class="ansi-green-fg">2</span>
+<span class="ansi-green-fg">     10</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> dp <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> doubled:
+
+<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+</pre></div></div>
+</div>
+</section>
+<section id="Summary">
+<h2>Summary<a class="headerlink" href="#Summary" title="Link to this heading"></a></h2>
+<p>You can treat <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> like a numeric object:</p>
+<ul class="simple">
+<li><p>Scalar ops: <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, <code class="docutils literal notranslate"><span class="pre">-ts</span></code>, <code class="docutils literal notranslate"><span class="pre">abs()</span></code>, <code class="docutils literal notranslate"><span class="pre">round()</span></code></p></li>
+<li><p>Element-wise ops between aligned series</p></li>
+<li><p>Comparisons: <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code>, <code class="docutils literal notranslate"><span class="pre">==</span></code>, <code class="docutils literal notranslate"><span class="pre">!=</span></code></p></li>
+<li><p>Missing values propagate cleanly</p></li>
+</ul>
+<p>Next up: <strong>nb_05</strong> introduces multivariate time series with <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Rebase Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

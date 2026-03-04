@@ -30,7 +30,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "rng = np.random.default_rng(42)\n\nwind = 80 + 40 * np.sin(np.linspace(0, 2 * np.pi, 24)) + rng.normal(0, 5, 24)\nsolar = np.clip(60 * np.sin(np.linspace(-0.5, np.pi + 0.5, 24)), 0, None) + rng.normal(0, 2, 24)\nsolar = np.clip(solar, 0, None)\nhydro = 50 + rng.normal(0, 3, 24)\n\nvalues = np.column_stack([wind, solar, hydro])\n\ntable = tdm.TimeSeriesTable(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=values,\n    names=[\"wind\", \"solar\", \"hydro\"],\n    units=[\"MW\", \"MW\", \"MW\"],\n    data_types=[tdm.DataType.MEASUREMENT, tdm.DataType.MEASUREMENT, tdm.DataType.MEASUREMENT],\n)\ntable"
+   "source": "rng = np.random.default_rng(42)\n\nwind = 80 + 40 * np.sin(np.linspace(0, 2 * np.pi, 24)) + rng.normal(0, 5, 24)\nsolar = np.clip(60 * np.sin(np.linspace(-0.5, np.pi + 0.5, 24)), 0, None) + rng.normal(0, 2, 24)\nsolar = np.clip(solar, 0, None)\nhydro = 50 + rng.normal(0, 3, 24)\n\nvalues = np.column_stack([wind, solar, hydro])\n\ntable = tdm.TimeSeriesTable(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=values,\n    names=[\"wind\", \"solar\", \"hydro\"],\n    units=[\"MW\", \"MW\", \"MW\"],\n    data_types=[tdm.DataType.OBSERVATION, tdm.DataType.OBSERVATION, tdm.DataType.OBSERVATION],\n)\ntable"
   },
   {
    "cell_type": "markdown",
@@ -58,7 +58,7 @@
    "source": [
     "## Selecting a single column\n",
     "\n",
-    "`select_column()` extracts one column as a univariate `TimeSeries`, carrying over its metadata."
+    "`select_column()` extracts one column as a univariate `TimeSeriesList`, carrying over its metadata."
    ]
   },
   {
@@ -87,7 +87,7 @@
    "source": [
     "## Merging univariate series into a table\n",
     "\n",
-    "`TimeSeries.merge()` is the reverse operation — combine several univariate series that share the same timestamps."
+    "`TimeSeriesList.merge()` is the reverse operation — combine several univariate series that share the same timestamps."
    ]
   },
   {
@@ -95,7 +95,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "ts_a = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timestamps=timestamps,\n    values=wind.tolist(),\n    name=\"wind\",\n    unit=\"MW\",\n)\nts_b = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timestamps=timestamps,\n    values=solar.tolist(),\n    name=\"solar\",\n    unit=\"MW\",\n)\nts_c = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timestamps=timestamps,\n    values=hydro.tolist(),\n    name=\"hydro\",\n    unit=\"MW\",\n)\n\nmerged = tdm.TimeSeries.merge([ts_a, ts_b, ts_c])\nmerged"
+   "source": "ts_a = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timestamps=timestamps,\n    values=wind.tolist(),\n    name=\"wind\",\n    unit=\"MW\",\n)\nts_b = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timestamps=timestamps,\n    values=solar.tolist(),\n    name=\"solar\",\n    unit=\"MW\",\n)\nts_c = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timestamps=timestamps,\n    values=hydro.tolist(),\n    name=\"hydro\",\n    unit=\"MW\",\n)\n\nmerged = tdm.TimeSeriesList.merge([ts_a, ts_b, ts_c])\nmerged"
   },
   {
    "cell_type": "markdown",
@@ -185,17 +185,7 @@
   {
    "cell_type": "markdown",
    "metadata": {},
-   "source": [
-    "## Summary\n",
-    "\n",
-    "- `TimeSeriesTable` stores multiple aligned columns with per-column metadata\n",
-    "- `select_column()` extracts a single column as a `TimeSeries`\n",
-    "- `TimeSeries.merge()` combines univariate series into a table\n",
-    "- `to_univariate_list()` decomposes a table back to individual series\n",
-    "- Scalar arithmetic applies across all columns\n",
-    "\n",
-    "Next up: **nb_06** covers `TimeSeriesCube` and `TimeSeriesCollection` for higher-dimensional data."
-   ]
+   "source": "## Summary\n\n- `TimeSeriesTable` stores multiple aligned columns with per-column metadata\n- `select_column()` extracts a single column as a `TimeSeriesList`\n- `TimeSeriesList.merge()` combines univariate series into a table\n- `to_univariate_list()` decomposes a table back to individual series\n- Scalar arithmetic applies across all columns\n\nNext up: **nb_06** covers `TimeSeriesArray` and `TimeSeriesCollection` for higher-dimensional data."
   }
  ],
  "metadata": {

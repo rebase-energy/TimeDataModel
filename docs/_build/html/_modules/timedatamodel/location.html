@@ -44,6 +44,7 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage.html">Basic Usage</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
@@ -51,9 +52,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/unit_handling_and_validation.html">Unit Handling and Validation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorials/timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/timeseries_operations.html">TimeSeriesList Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/multivariate_timeseries.html">Multivariate Time Series</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorials/cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/arrays_and_collections.html">Arrays and Collections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/data_quality_and_coverage.html">Data Quality and Coverage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/io_and_interoperability.html">I/O and Interoperability</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/geographical_support.html">Geographical Support</a></li>
@@ -300,6 +301,61 @@
 
 
 <span class="n">Location</span> <span class="o">=</span> <span class="n">GeoLocation</span> <span class="o">|</span> <span class="n">GeoArea</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_location_to_json</span><span class="p">(</span><span class="n">location</span><span class="p">:</span> <span class="n">Location</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Serialize a location object to a JSON-safe dict.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">location</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">GeoLocation</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoLocation&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;latitude&quot;</span><span class="p">:</span> <span class="n">location</span><span class="o">.</span><span class="n">latitude</span><span class="p">,</span>
+            <span class="s2">&quot;longitude&quot;</span><span class="p">:</span> <span class="n">location</span><span class="o">.</span><span class="n">longitude</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">GeoArea</span><span class="p">):</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">]</span> <span class="k">for</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">location</span><span class="o">.</span><span class="n">polygon</span><span class="o">.</span><span class="n">exterior</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;GeoArea&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">location</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="n">coords</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unsupported location type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">location</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_location_from_json</span><span class="p">(</span><span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Location</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Deserialize a location dict produced by _location_to_json().&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">payload</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;location payload must be a dict or None, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;GeoLocation&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">GeoLocation</span><span class="p">(</span>
+            <span class="n">latitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;latitude&quot;</span><span class="p">]),</span>
+            <span class="n">longitude</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;longitude&quot;</span><span class="p">]),</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">&quot;GeoArea&quot;</span><span class="p">:</span>
+        <span class="n">raw_coords</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;coordinates&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw_coords</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">raw_coords</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;GeoArea payload must contain at least 3 coordinate pairs&quot;</span>
+            <span class="p">)</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">float</span><span class="p">(</span><span class="n">lat</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">lon</span><span class="p">))</span> <span class="k">for</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span> <span class="ow">in</span> <span class="n">raw_coords</span><span class="p">]</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">GeoArea</span><span class="o">.</span><span class="n">from_coordinates</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown location type: </span><span class="si">{</span><span class="n">kind</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 
            </div>

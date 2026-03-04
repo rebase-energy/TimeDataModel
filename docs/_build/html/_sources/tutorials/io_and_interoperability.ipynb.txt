@@ -6,7 +6,7 @@
    "source": [
     "# I/O and Interoperability\n",
     "\n",
-    "TimeDataModel is designed to sit between your domain logic and the broader Python data ecosystem. This notebook shows how to move data seamlessly between `TimeSeries` / `TimeSeriesTable` and pandas, numpy, polars, JSON, and CSV."
+    "TimeDataModel is designed to sit between your domain logic and the broader Python data ecosystem. This notebook shows how to move data seamlessly between `TimeSeriesList` / `TimeSeriesTable` and pandas, numpy, polars, JSON, and CSV."
    ]
   },
   {
@@ -14,7 +14,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "from datetime import datetime, timedelta, timezone\n\nimport numpy as np\n\nimport timedatamodel as tdm\n\nbase = datetime(2024, 1, 15, tzinfo=timezone.utc)\ntimestamps = [base + timedelta(hours=i) for i in range(24)]\nvalues = [100.0 + 50 * np.sin(2 * np.pi * i / 24) for i in range(24)]\n\nts = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=values,\n    name=\"power\",\n    unit=\"MW\",\n    description=\"Synthetic daily power curve\",\n    data_type=tdm.DataType.SYNTHETIC,\n)"
+   "source": "from datetime import datetime, timedelta, timezone\n\nimport numpy as np\n\nimport timedatamodel as tdm\n\nbase = datetime(2024, 1, 15, tzinfo=timezone.utc)\ntimestamps = [base + timedelta(hours=i) for i in range(24)]\nvalues = [100.0 + 50 * np.sin(2 * np.pi * i / 24) for i in range(24)]\n\nts = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=values,\n    name=\"power\",\n    unit=\"MW\",\n    description=\"Synthetic daily power curve\",\n    data_type=tdm.DataType.SIMULATION,\n)"
   },
   {
    "cell_type": "markdown",
@@ -63,7 +63,7 @@
    "source": [
     "## Pandas — import with `from_pandas()`\n",
     "\n",
-    "Create a TimeSeries from any pandas DataFrame that has a DatetimeIndex. Frequency and timezone are auto-inferred when possible."
+    "Create a TimeSeriesList from any pandas DataFrame that has a DatetimeIndex. Frequency and timezone are auto-inferred when possible."
    ]
   },
   {
@@ -71,7 +71,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "import pandas as pd\n\nidx = pd.date_range(\"2024-06-01\", periods=48, freq=\"h\", tz=\"UTC\")\ndf_external = pd.DataFrame({\"load\": np.random.default_rng(42).normal(150, 20, 48)}, index=idx)\n\nts_from_pd = tdm.TimeSeries.from_pandas(df_external, unit=\"MW\", data_type=tdm.DataType.MEASUREMENT)\nts_from_pd"
+   "source": "import pandas as pd\n\nidx = pd.date_range(\"2024-06-01\", periods=48, freq=\"h\", tz=\"UTC\")\ndf_external = pd.DataFrame({\"load\": np.random.default_rng(42).normal(150, 20, 48)}, index=idx)\n\nts_from_pd = tdm.TimeSeriesList.from_pandas(df_external, unit=\"MW\", data_type=tdm.DataType.OBSERVATION)\nts_from_pd"
   },
   {
    "cell_type": "markdown",
@@ -113,7 +113,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "try:\n    df_pl = ts.to_polars_dataframe()\n    print(df_pl.head())\n\n    ts_from_pl = tdm.TimeSeries.from_polars(df_pl, tdm.Frequency.PT1H, unit=\"MW\")\n    print(f\"\\nRound-trip length: {len(ts_from_pl)}\")\nexcept ImportError:\n    print(\"polars not installed — skip this cell or: pip install timedatamodel[polars]\")"
+   "source": "try:\n    df_pl = ts.to_polars_dataframe()\n    print(df_pl.head())\n\n    ts_from_pl = tdm.TimeSeriesList.from_polars(df_pl, tdm.Frequency.PT1H, unit=\"MW\")\n    print(f\"\\nRound-trip length: {len(ts_from_pl)}\")\nexcept ImportError:\n    print(\"polars not installed — skip this cell or: pip install timedatamodel[polars]\")"
   },
   {
    "cell_type": "markdown",
@@ -139,7 +139,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "ts_restored = tdm.TimeSeries.from_json(json_str)\nprint(f\"Name:      {ts_restored.name}\")\nprint(f\"Unit:      {ts_restored.unit}\")\nprint(f\"Frequency: {ts_restored.frequency}\")\nprint(f\"Length:    {len(ts_restored)}\")\nprint(f\"Equals original: {ts.equals(ts_restored)}\")"
+   "source": "ts_restored = tdm.TimeSeriesList.from_json(json_str)\nprint(f\"Name:      {ts_restored.name}\")\nprint(f\"Unit:      {ts_restored.unit}\")\nprint(f\"Frequency: {ts_restored.frequency}\")\nprint(f\"Length:    {len(ts_restored)}\")\nprint(f\"Equals original: {ts.equals(ts_restored)}\")"
   },
   {
    "cell_type": "markdown",
@@ -190,7 +190,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "with tempfile.TemporaryDirectory() as tmp:\n    csv_path = Path(tmp) / \"power.csv\"\n    ts.to_csv(csv_path)\n    ts_from_csv = tdm.TimeSeries.from_csv(csv_path, tdm.Frequency.PT1H, unit=\"MW\")\n\nprint(f\"Length: {len(ts_from_csv)}\")\nprint(f\"Name:   {ts_from_csv.name}\")\nts_from_csv.head()"
+   "source": "with tempfile.TemporaryDirectory() as tmp:\n    csv_path = Path(tmp) / \"power.csv\"\n    ts.to_csv(csv_path)\n    ts_from_csv = tdm.TimeSeriesList.from_csv(csv_path, tdm.Frequency.PT1H, unit=\"MW\")\n\nprint(f\"Length: {len(ts_from_csv)}\")\nprint(f\"Name:   {ts_from_csv.name}\")\nts_from_csv.head()"
   },
   {
    "cell_type": "markdown",
@@ -198,7 +198,7 @@
    "source": [
     "## Multi-index round-trip\n",
     "\n",
-    "TimeSeries supports tuple-based timestamps for hierarchical indexing. This is preserved through pandas and JSON round-trips."
+    "TimeSeriesList supports tuple-based timestamps for hierarchical indexing. This is preserved through pandas and JSON round-trips."
    ]
   },
   {
@@ -206,14 +206,14 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "issue_times = [\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n]\nvalid_times = [\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 2, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 13, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 14, tzinfo=timezone.utc),\n]\n\nts_multi = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timestamps=list(zip(issue_times, valid_times)),\n    values=[100.0, 105.0, 110.0, 95.0, 100.0, 108.0],\n    name=\"forecast\",\n    unit=\"MW\",\n    index_names=[\"issue_time\", \"valid_time\"],\n)\n\ndf_multi = ts_multi.to_pandas_dataframe()\ndf_multi"
+   "source": "issue_times = [\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n]\nvalid_times = [\n    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 2, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 13, tzinfo=timezone.utc),\n    datetime(2024, 1, 15, 14, tzinfo=timezone.utc),\n]\n\nts_multi = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timestamps=list(zip(issue_times, valid_times)),\n    values=[100.0, 105.0, 110.0, 95.0, 100.0, 108.0],\n    name=\"forecast\",\n    unit=\"MW\",\n    index_names=[\"issue_time\", \"valid_time\"],\n)\n\ndf_multi = ts_multi.to_pandas_dataframe()\ndf_multi"
   },
   {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "ts_multi_back = tdm.TimeSeries.from_pandas(df_multi, tdm.Frequency.PT1H, unit=\"MW\")\nprint(f\"Index names: {ts_multi_back.index_names}\")\nprint(f\"Multi-index: {ts_multi_back.is_multi_index}\")\nprint(f\"Equals original: {ts_multi.equals(ts_multi_back)}\")"
+   "source": "ts_multi_back = tdm.TimeSeriesList.from_pandas(df_multi, tdm.Frequency.PT1H, unit=\"MW\")\nprint(f\"Index names: {ts_multi_back.index_names}\")\nprint(f\"Multi-index: {ts_multi_back.is_multi_index}\")\nprint(f\"Equals original: {ts_multi.equals(ts_multi_back)}\")"
   },
   {
    "cell_type": "markdown",

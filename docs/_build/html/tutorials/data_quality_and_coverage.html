@@ -25,7 +25,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="I/O and Interoperability" href="io_and_interoperability.html" />
-    <link rel="prev" title="Cubes and Collections" href="cubes_and_collections.html" /> 
+    <link rel="prev" title="Arrays and Collections" href="arrays_and_collections.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,6 +50,7 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic Usage</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
@@ -57,13 +58,13 @@
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="unit_handling_and_validation.html">Unit Handling and Validation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeriesList Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multivariate_timeseries.html">Multivariate Time Series</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arrays_and_collections.html">Arrays and Collections</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Data Quality and Coverage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Coverage-bars-on-a-TimeSeries">Coverage bars on a TimeSeries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Coverage-bars-on-a-TimeSeriesList">Coverage bars on a TimeSeriesList</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Coverage-bars-on-a-TimeSeriesTable">Coverage bars on a TimeSeriesTable</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Coverage-bars-on-a-TimeSeriesCube">Coverage bars on a TimeSeriesCube</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Coverage-bars-on-a-TimeSeriesArray">Coverage bars on a TimeSeriesArray</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Coverage-bars-on-a-TimeSeriesCollection">Coverage bars on a TimeSeriesCollection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Validation">Validation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Catching-problems">Catching problems</a></li>
@@ -109,64 +110,47 @@
   <section id="Data-Quality-and-Coverage">
 <h1>Data Quality and Coverage<a class="headerlink" href="#Data-Quality-and-Coverage" title="Link to this heading"></a></h1>
 <p>Real-world time series often have gaps — sensor outages, missing transmissions, or maintenance windows. TimeDataModel provides built-in tools to visualize coverage and validate data integrity.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from datetime import datetime, timedelta, timezone
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
 
-import numpy as np
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-import timedatamodel as tdm
+<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
 
-base = datetime(2024, 1, 15, tzinfo=timezone.utc)
-week_hours = [base + timedelta(hours=i) for i in range(168)]
+<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">week_hours</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">168</span><span class="p">)]</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[1]</span><span class="ansi-green-fg">, line 5</span>
-<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">datetime</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">import</span> datetime, timedelta, timezone
-<span class="ansi-green-fg">      3</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">numpy</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">np</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">5</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">timedatamodel</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">tdm</span>
-<span class="ansi-green-fg">      7</span> base = datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, tzinfo=timezone.utc)
-<span class="ansi-green-fg">      8</span> week_hours = [base + timedelta(hours=i) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">168</span>)]
-
-<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;timedatamodel&#39;
-</pre></div></div>
-</div>
-<section id="Coverage-bars-on-a-TimeSeries">
-<h2>Coverage bars on a TimeSeries<a class="headerlink" href="#Coverage-bars-on-a-TimeSeries" title="Link to this heading"></a></h2>
+<section id="Coverage-bars-on-a-TimeSeriesList">
+<h2>Coverage bars on a TimeSeriesList<a class="headerlink" href="#Coverage-bars-on-a-TimeSeriesList" title="Link to this heading"></a></h2>
 <p>Create a week of hourly data with a simulated outage (hours 50-70 missing).</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rng = np.random.default_rng(42)
-values_full = (100 + rng.normal(0, 15, 168)).tolist()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">values_full</span> <span class="o">=</span> <span class="p">(</span><span class="mi">100</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">168</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
-values_with_gap = [
-    None if 50 &lt;= i &lt; 70 else v
-    for i, v in enumerate(values_full)
-]
+<span class="n">values_with_gap</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kc">None</span> <span class="k">if</span> <span class="mi">50</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">70</span> <span class="k">else</span> <span class="n">v</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values_full</span><span class="p">)</span>
+<span class="p">]</span>
 
-ts_sensor = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timestamps=week_hours,
-    values=values_with_gap,
-    name=&quot;sensor_A&quot;,
-    unit=&quot;MW&quot;,
-    data_type=tdm.DataType.MEASUREMENT,
-)
+<span class="n">ts_sensor</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">week_hours</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">values_with_gap</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sensor_A&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">,</span>
+<span class="p">)</span>
 
-print(f&quot;Has missing: {ts_sensor.has_missing}&quot;)
-print(f&quot;Total points: {len(ts_sensor)}, missing: {sum(1 for v in ts_sensor.values if v is None)}&quot;)
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has missing: </span><span class="si">{</span><span class="n">ts_sensor</span><span class="o">.</span><span class="n">has_missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total points: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts_sensor</span><span class="p">)</span><span class="si">}</span><span class="s2">, missing: </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">ts_sensor</span><span class="o">.</span><span class="n">values</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -175,48 +159,88 @@ print(f&quot;Total points: {len(ts_sensor)}, missing: {sum(1 for v in ts_sensor.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[2]</span><span class="ansi-green-fg">, line 9</span>
-<span class="ansi-green-fg">      2</span> values_full = (<span class="ansi-green-fg">100</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">168</span>)).tolist()
-<span class="ansi-green-fg">      4</span> values_with_gap = [
-<span class="ansi-green-fg">      5</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> <span class="ansi-green-fg">50</span> &lt;= i &lt; <span class="ansi-green-fg">70</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> v
-<span class="ansi-green-fg">      6</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i, v <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">enumerate</span>(values_full)
-<span class="ansi-green-fg">      7</span> ]
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">9</span> ts_sensor = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
-<span class="ansi-green-fg">     10</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">     11</span>     timestamps=week_hours,
-<span class="ansi-green-fg">     12</span>     values=values_with_gap,
-<span class="ansi-green-fg">     13</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">sensor_A</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     14</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     15</span>     data_type=tdm.DataType.MEASUREMENT,
-<span class="ansi-green-fg">     16</span> )
-<span class="ansi-green-fg">     18</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Has missing: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_sensor.has_missing<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">     19</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Total points: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">len</span>(ts_sensor)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">, missing: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">sum</span>(<span class="ansi-green-fg">1</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">for</span><span style="color: rgb(188,188,188)"> </span>v<span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(175,0,255)">in</span><span style="color: rgb(188,188,188)"> </span>ts_sensor.values<span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">if</span><span style="color: rgb(188,188,188)"> </span>v<span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(175,0,255)">is</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">None</span>)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+Has missing: True
+Total points: 168, missing: 20
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_sensor.coverage_bar()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_sensor</span><span class="o">.</span><span class="n">coverage_bar</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[3]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-yellow-bg">ts_sensor</span>.coverage_bar()
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts_sensor&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 44" width="100%" style="max-width:600px;font-family:monospace;font-size:12px;">
+<text x="114" y="15" text-anchor="end" fill="#333">sensor_A</text>
+<rect x="120.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="272.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="280.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="288.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="296.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="304.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="312.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="320.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<text x="120" y="40" text-anchor="start" fill="#666">2024-01-15 00:00</text>
+<text x="600" y="40" text-anchor="end" fill="#666">2024-01-21 23:00</text>
+</svg></div>
 </div>
 </section>
 <section id="Coverage-bars-on-a-TimeSeriesTable">
@@ -226,117 +250,446 @@ print(f&quot;Total points: {len(ts_sensor)}, missing: {sum(1 for v in ts_sensor.
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>sensor_a = values_with_gap
-sensor_b = [
-    None if 100 &lt;= i &lt; 130 else v
-    for i, v in enumerate(values_full)
-]
-sensor_c = [
-    None if (20 &lt;= i &lt; 30 or 140 &lt;= i &lt; 155) else v
-    for i, v in enumerate(values_full)
-]
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sensor_a</span> <span class="o">=</span> <span class="n">values_with_gap</span>
+<span class="n">sensor_b</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kc">None</span> <span class="k">if</span> <span class="mi">100</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">130</span> <span class="k">else</span> <span class="n">v</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values_full</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">sensor_c</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="kc">None</span> <span class="k">if</span> <span class="p">(</span><span class="mi">20</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">30</span> <span class="ow">or</span> <span class="mi">140</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">155</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">values_full</span><span class="p">)</span>
+<span class="p">]</span>
 
-vals = np.column_stack([
-    [v if v is not None else np.nan for v in sensor_a],
-    [v if v is not None else np.nan for v in sensor_b],
-    [v if v is not None else np.nan for v in sensor_c],
-])
+<span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span>
+    <span class="p">[</span><span class="n">v</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sensor_a</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">v</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sensor_b</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">v</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sensor_c</span><span class="p">],</span>
+<span class="p">])</span>
 
-table = tdm.TimeSeriesTable(
-    tdm.Frequency.PT1H,
-    timestamps=week_hours,
-    values=vals,
-    names=[&quot;sensor_A&quot;, &quot;sensor_B&quot;, &quot;sensor_C&quot;],
-    units=[&quot;MW&quot;, &quot;MW&quot;, &quot;MW&quot;],
-)
-table.coverage_bar()
+<span class="n">table</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesTable</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">week_hours</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">vals</span><span class="p">,</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;sensor_A&quot;</span><span class="p">,</span> <span class="s2">&quot;sensor_B&quot;</span><span class="p">,</span> <span class="s2">&quot;sensor_C&quot;</span><span class="p">],</span>
+    <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">table</span><span class="o">.</span><span class="n">coverage_bar</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[4]</span><span class="ansi-green-fg">, line 17</span>
-<span class="ansi-green-fg">      6</span> sensor_c = [
-<span class="ansi-green-fg">      7</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> (<span class="ansi-green-fg">20</span> &lt;= i &lt; <span class="ansi-green-fg">30</span> <span class="ansi-bold" style="color: rgb(175,0,255)">or</span> <span class="ansi-green-fg">140</span> &lt;= i &lt; <span class="ansi-green-fg">155</span>) <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> v
-<span class="ansi-green-fg">      8</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i, v <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">enumerate</span>(values_full)
-<span class="ansi-green-fg">      9</span> ]
-<span class="ansi-green-fg">     11</span> vals = np.column_stack([
-<span class="ansi-green-fg">     12</span>     [v <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> np.nan <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> sensor_a],
-<span class="ansi-green-fg">     13</span>     [v <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> np.nan <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> sensor_b],
-<span class="ansi-green-fg">     14</span>     [v <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> np.nan <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> sensor_c],
-<span class="ansi-green-fg">     15</span> ])
-<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">17</span> table = <span class="ansi-yellow-bg">tdm</span>.TimeSeriesTable(
-<span class="ansi-green-fg">     18</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">     19</span>     timestamps=week_hours,
-<span class="ansi-green-fg">     20</span>     values=vals,
-<span class="ansi-green-fg">     21</span>     names=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">sensor_A</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">sensor_B</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">sensor_C</span><span class="ansi-yellow-fg">&#34;</span>],
-<span class="ansi-green-fg">     22</span>     units=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>],
-<span class="ansi-green-fg">     23</span> )
-<span class="ansi-green-fg">     24</span> table.coverage_bar()
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 88" width="100%" style="max-width:600px;font-family:monospace;font-size:12px;">
+<text x="114" y="15" text-anchor="end" fill="#333">sensor_A</text>
+<rect x="120.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="272.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="280.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="288.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="296.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="304.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="312.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="320.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<text x="114" y="37" text-anchor="end" fill="#333">sensor_B</text>
+<rect x="120.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="304.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="416.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="424.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="432.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="440.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="448.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="456.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="464.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="472.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="480.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="488.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<text x="114" y="59" text-anchor="end" fill="#333">sensor_C</text>
+<rect x="120.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="192.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="200.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="208.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="304.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="528.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="536.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="544.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="552.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="560.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<text x="120" y="84" text-anchor="start" fill="#666">2024-01-15 00:00</text>
+<text x="600" y="84" text-anchor="end" fill="#666">2024-01-21 23:00</text>
+</svg></div>
 </div>
 </section>
-<section id="Coverage-bars-on-a-TimeSeriesCube">
-<h2>Coverage bars on a TimeSeriesCube<a class="headerlink" href="#Coverage-bars-on-a-TimeSeriesCube" title="Link to this heading"></a></h2>
-<p>Cubes show one bar per label in the non-time dimension.</p>
+<section id="Coverage-bars-on-a-TimeSeriesArray">
+<h2>Coverage bars on a TimeSeriesArray<a class="headerlink" href="#Coverage-bars-on-a-TimeSeriesArray" title="Link to this heading"></a></h2>
+<p>Arrays show one bar per label in the non-time dimension.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>cube_data = np.array([
-    [v if v is not None else np.nan for v in sensor_a],
-    [v if v is not None else np.nan for v in sensor_b],
-    [v if v is not None else np.nan for v in sensor_c],
-])
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cube_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+    <span class="p">[</span><span class="n">v</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sensor_a</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">v</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sensor_b</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">v</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sensor_c</span><span class="p">],</span>
+<span class="p">])</span>
 
-cube = tdm.TimeSeriesCube(
-    tdm.Frequency.PT1H,
-    dimensions=[
-        tdm.Dimension(&quot;sensor&quot;, [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;]),
-        tdm.Dimension(&quot;valid_time&quot;, week_hours),
-    ],
-    values=cube_data,
-    name=&quot;sensor_grid&quot;,
-    unit=&quot;MW&quot;,
-)
-cube.coverage_bar()
+<span class="n">cube</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesArray</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;sensor&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">]),</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;valid_time&quot;</span><span class="p">,</span> <span class="n">week_hours</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">cube_data</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sensor_grid&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cube</span><span class="o">.</span><span class="n">coverage_bar</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[5]</span><span class="ansi-green-fg">, line 7</span>
-<span class="ansi-green-fg">      1</span> cube_data = np.array([
-<span class="ansi-green-fg">      2</span>     [v <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> np.nan <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> sensor_a],
-<span class="ansi-green-fg">      3</span>     [v <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> np.nan <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> sensor_b],
-<span class="ansi-green-fg">      4</span>     [v <span class="ansi-bold" style="color: rgb(0,135,0)">if</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">is</span> <span class="ansi-bold" style="color: rgb(175,0,255)">not</span> <span class="ansi-bold" style="color: rgb(0,135,0)">None</span> <span class="ansi-bold" style="color: rgb(0,135,0)">else</span> np.nan <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> v <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> sensor_c],
-<span class="ansi-green-fg">      5</span> ])
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">7</span> cube = <span class="ansi-yellow-bg">tdm</span>.TimeSeriesCube(
-<span class="ansi-green-fg">      8</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">      9</span>     dimensions=[
-<span class="ansi-green-fg">     10</span>         tdm.Dimension(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">sensor</span><span class="ansi-yellow-fg">&#34;</span>, [<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">A</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">B</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">C</span><span class="ansi-yellow-fg">&#34;</span>]),
-<span class="ansi-green-fg">     11</span>         tdm.Dimension(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">valid_time</span><span class="ansi-yellow-fg">&#34;</span>, week_hours),
-<span class="ansi-green-fg">     12</span>     ],
-<span class="ansi-green-fg">     13</span>     values=cube_data,
-<span class="ansi-green-fg">     14</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">sensor_grid</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     15</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     16</span> )
-<span class="ansi-green-fg">     17</span> cube.coverage_bar()
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 88" width="100%" style="max-width:600px;font-family:monospace;font-size:12px;">
+<text x="114" y="15" text-anchor="end" fill="#333">A</text>
+<rect x="120.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="272.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="280.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="288.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="296.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="304.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="312.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="320.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<text x="114" y="37" text-anchor="end" fill="#333">B</text>
+<rect x="120.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="304.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="416.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="424.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="432.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="440.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="448.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="456.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="464.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="472.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="480.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="488.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<text x="114" y="59" text-anchor="end" fill="#333">C</text>
+<rect x="120.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="192.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="200.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="208.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="304.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="528.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="536.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="544.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="552.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="560.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<text x="120" y="84" text-anchor="start" fill="#666">2024-01-15 00:00</text>
+<text x="600" y="84" text-anchor="end" fill="#666">2024-01-21 23:00</text>
+</svg></div>
 </div>
 </section>
 <section id="Coverage-bars-on-a-TimeSeriesCollection">
@@ -346,45 +699,153 @@ cube.coverage_bar()
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_short = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timestamps=week_hours[:72],
-    values=values_full[:72],
-    name=&quot;short_range&quot;,
-    unit=&quot;MW&quot;,
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_short</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">week_hours</span><span class="p">[:</span><span class="mi">72</span><span class="p">],</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">values_full</span><span class="p">[:</span><span class="mi">72</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;short_range&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 
-collection = tdm.TimeSeriesCollection(
-    [ts_sensor, ts_short],
-    name=&quot;Sensor comparison&quot;,
-)
-collection.coverage_bar()
+<span class="n">collection</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesCollection</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">ts_sensor</span><span class="p">,</span> <span class="n">ts_short</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Sensor comparison&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">collection</span><span class="o">.</span><span class="n">coverage_bar</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[6]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_short = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
-<span class="ansi-green-fg">      2</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">      3</span>     timestamps=week_hours[:<span class="ansi-green-fg">72</span>],
-<span class="ansi-green-fg">      4</span>     values=values_full[:<span class="ansi-green-fg">72</span>],
-<span class="ansi-green-fg">      5</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">short_range</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">      6</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">      7</span> )
-<span class="ansi-green-fg">      9</span> collection = tdm.TimeSeriesCollection(
-<span class="ansi-green-fg">     10</span>     [ts_sensor, ts_short],
-<span class="ansi-green-fg">     11</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Sensor comparison</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     12</span> )
-<span class="ansi-green-fg">     13</span> collection.coverage_bar()
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 66" width="100%" style="max-width:600px;font-family:monospace;font-size:12px;">
+<text x="114" y="15" text-anchor="end" fill="#333">sensor_A</text>
+<rect x="120.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="272.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="280.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="288.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="296.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="304.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="312.0" y="2" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="320.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<text x="114" y="37" text-anchor="end" fill="#333">short_range</text>
+<rect x="120.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="304.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="336.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="344.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="352.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="360.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="368.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="376.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="384.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="392.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="400.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="408.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="416.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="424.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="432.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="440.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="448.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="456.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="464.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="472.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="480.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="488.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="496.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="504.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="512.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="520.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="528.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="536.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="544.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="552.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="560.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="568.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="576.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="584.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="592.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<text x="120" y="62" text-anchor="start" fill="#666">2024-01-15 00:00</text>
+<text x="600" y="62" text-anchor="end" fill="#666">2024-01-21 23:00</text>
+</svg></div>
 </div>
 </section>
 <section id="Validation">
@@ -394,8 +855,8 @@ collection.coverage_bar()
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>warnings = ts_sensor.validate()
-print(f&quot;Warnings for ts_sensor: {warnings}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">warnings</span> <span class="o">=</span> <span class="n">ts_sensor</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warnings for ts_sensor: </span><span class="si">{</span><span class="n">warnings</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -404,13 +865,7 @@ print(f&quot;Warnings for ts_sensor: {warnings}&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[7]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> warnings = <span class="ansi-yellow-bg">ts_sensor</span>.validate()
-<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Warnings for ts_sensor: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>warnings<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts_sensor&#39; is not defined
+Warnings for ts_sensor: []
 </pre></div></div>
 </div>
 <section id="Catching-problems">
@@ -420,23 +875,23 @@ print(f&quot;Warnings for ts_sensor: {warnings}&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>bad_timestamps = [
-    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),  # duplicate!
-    datetime(2024, 1, 15, 4, tzinfo=timezone.utc),  # gap: skipped hours 2-3
-    datetime(2024, 1, 15, 5, tzinfo=timezone.utc),
-]
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bad_timestamps</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>  <span class="c1"># duplicate!</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>  <span class="c1"># gap: skipped hours 2-3</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+<span class="p">]</span>
 
-ts_bad = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timestamps=bad_timestamps,
-    values=[10.0, 20.0, 30.0, 40.0, 50.0],
-    name=&quot;bad_data&quot;,
-)
+<span class="n">ts_bad</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">bad_timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">,</span> <span class="mf">40.0</span><span class="p">,</span> <span class="mf">50.0</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bad_data&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 
-for w in ts_bad.validate():
-    print(f&quot;  WARNING: {w}&quot;)
+<span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">ts_bad</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  WARNING: </span><span class="si">{</span><span class="n">w</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -445,24 +900,8 @@ for w in ts_bad.validate():
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[8]</span><span class="ansi-green-fg">, line 9</span>
-<span class="ansi-green-fg">      1</span> bad_timestamps = [
-<span class="ansi-green-fg">      2</span>     datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">0</span>, tzinfo=timezone.utc),
-<span class="ansi-green-fg">      3</span>     datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">1</span>, tzinfo=timezone.utc),
-<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">      6</span>     datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">5</span>, tzinfo=timezone.utc),
-<span class="ansi-green-fg">      7</span> ]
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">9</span> ts_bad = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
-<span class="ansi-green-fg">     10</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">     11</span>     timestamps=bad_timestamps,
-<span class="ansi-green-fg">     12</span>     values=[<span class="ansi-green-fg">10.0</span>, <span class="ansi-green-fg">20.0</span>, <span class="ansi-green-fg">30.0</span>, <span class="ansi-green-fg">40.0</span>, <span class="ansi-green-fg">50.0</span>],
-<span class="ansi-green-fg">     13</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">bad_data</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     14</span> )
-<span class="ansi-green-fg">     16</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> w <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> ts_bad.validate():
-<span class="ansi-green-fg">     17</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">  WARNING: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>w<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+  WARNING: timestamps not strictly increasing at index 2: 2024-01-15 01:00:00+00:00 &gt;= 2024-01-15 01:00:00+00:00
+  WARNING: inconsistent frequency at index 2: expected 1:00:00, got 0:00:00
 </pre></div></div>
 </div>
 </section>
@@ -474,65 +913,355 @@ for w in ts_bad.validate():
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gap_ranges = {
-    &quot;turbine_1&quot;: [],
-    &quot;turbine_2&quot;: [(30, 45)],
-    &quot;turbine_3&quot;: [(10, 20), (80, 100)],
-    &quot;turbine_4&quot;: [(0, 50)],
-    &quot;turbine_5&quot;: [(60, 65), (120, 130), (150, 160)],
-}
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gap_ranges</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;turbine_1&quot;</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="s2">&quot;turbine_2&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">45</span><span class="p">)],</span>
+    <span class="s2">&quot;turbine_3&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">)],</span>
+    <span class="s2">&quot;turbine_4&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">)],</span>
+    <span class="s2">&quot;turbine_5&quot;</span><span class="p">:</span> <span class="p">[(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">65</span><span class="p">),</span> <span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">130</span><span class="p">),</span> <span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">160</span><span class="p">)],</span>
+<span class="p">}</span>
 
-sensors = []
-for name, gaps in gap_ranges.items():
-    vals = values_full.copy()
-    for start, end in gaps:
-        for i in range(start, end):
-            vals[i] = None
-    sensors.append(
-        tdm.TimeSeries(
-            tdm.Frequency.PT1H,
-            timestamps=week_hours,
-            values=vals,
-            name=name,
-            unit=&quot;MW&quot;,
-        )
-    )
+<span class="n">sensors</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">gaps</span> <span class="ow">in</span> <span class="n">gap_ranges</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">values_full</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">gaps</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+            <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">sensors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+            <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+            <span class="n">timestamps</span><span class="o">=</span><span class="n">week_hours</span><span class="p">,</span>
+            <span class="n">values</span><span class="o">=</span><span class="n">vals</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
-audit = tdm.TimeSeriesCollection(sensors, name=&quot;Turbine fleet audit&quot;)
-audit.coverage_bar()
+<span class="n">audit</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesCollection</span><span class="p">(</span><span class="n">sensors</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Turbine fleet audit&quot;</span><span class="p">)</span>
+<span class="n">audit</span><span class="o">.</span><span class="n">coverage_bar</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[9]</span><span class="ansi-green-fg">, line 16</span>
-<span class="ansi-green-fg">     13</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(start, end):
-<span class="ansi-green-fg">     14</span>             vals[i] = <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>
-<span class="ansi-green-fg">     15</span>     sensors.append(
-<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">16</span>         <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
-<span class="ansi-green-fg">     17</span>             tdm.Frequency.PT1H,
-<span class="ansi-green-fg">     18</span>             timestamps=week_hours,
-<span class="ansi-green-fg">     19</span>             values=vals,
-<span class="ansi-green-fg">     20</span>             name=name,
-<span class="ansi-green-fg">     21</span>             unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     22</span>         )
-<span class="ansi-green-fg">     23</span>     )
-<span class="ansi-green-fg">     25</span> audit = tdm.TimeSeriesCollection(sensors, name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Turbine fleet audit</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">     26</span> audit.coverage_bar()
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 132" width="100%" style="max-width:600px;font-family:monospace;font-size:12px;">
+<text x="114" y="15" text-anchor="end" fill="#333">turbine_1</text>
+<rect x="120.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="304.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="2" width="8.00" height="18" fill="#4CAF50" />
+<text x="114" y="37" text-anchor="end" fill="#333">turbine_2</text>
+<rect x="120.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="216.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="224.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="232.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="240.0" y="24" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="248.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="304.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="24" width="8.00" height="18" fill="#4CAF50" />
+<text x="114" y="59" text-anchor="end" fill="#333">turbine_3</text>
+<rect x="120.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="160.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="168.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="176.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="304.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="360.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="368.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="376.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="384.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="392.0" y="46" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="400.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="46" width="8.00" height="18" fill="#4CAF50" />
+<text x="114" y="81" text-anchor="end" fill="#333">turbine_4</text>
+<rect x="120.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="128.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="136.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="144.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="152.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="160.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="168.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="176.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="184.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="192.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="200.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="208.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="216.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="224.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="232.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="240.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="248.0" y="68" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="256.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="304.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="472.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="488.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="568.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="576.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="68" width="8.00" height="18" fill="#4CAF50" />
+<text x="114" y="103" text-anchor="end" fill="#333">turbine_5</text>
+<rect x="120.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="128.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="136.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="144.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="152.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="168.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="176.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="184.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="192.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="208.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="216.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="224.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="232.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="248.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="256.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="264.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="272.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="288.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="296.0" y="90" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="304.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="312.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="328.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="336.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="344.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="352.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="368.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="376.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="384.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="392.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="408.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="416.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="424.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="432.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="448.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="456.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="464.0" y="90" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="472.0" y="90" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="480.0" y="90" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="488.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="496.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="504.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="512.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="528.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="536.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="544.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="552.0" y="90" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="560.0" y="90" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="568.0" y="90" width="8.00" height="18" fill="#e0e0e0" />
+<rect x="576.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="584.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<rect x="592.0" y="90" width="8.00" height="18" fill="#4CAF50" />
+<text x="120" y="128" text-anchor="start" fill="#666">2024-01-15 00:00</text>
+<text x="600" y="128" text-anchor="end" fill="#666">2024-01-21 23:00</text>
+</svg></div>
 </div>
 </section>
 <section id="Summary">
 <h2>Summary<a class="headerlink" href="#Summary" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">coverage_bar()</span></code> is available on <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeSeriesCube</span></code>, and <code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coverage_bar()</span></code> is available on <code class="docutils literal notranslate"><span class="pre">TimeSeriesList</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code>, <code class="docutils literal notranslate"><span class="pre">TimeSeriesArray</span></code>, and <code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code></p></li>
 <li><p>It renders as a color-coded SVG in notebooks and Unicode blocks in terminals</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">validate()</span></code> catches non-monotonic timestamps and frequency inconsistencies</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">has_missing</span></code> is a quick boolean check for any gaps</p></li>
@@ -545,7 +1274,7 @@ audit.coverage_bar()
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="cubes_and_collections.html" class="btn btn-neutral float-left" title="Cubes and Collections" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="arrays_and_collections.html" class="btn btn-neutral float-left" title="Arrays and Collections" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="io_and_interoperability.html" class="btn btn-neutral float-right" title="I/O and Interoperability" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

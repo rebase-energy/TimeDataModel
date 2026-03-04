@@ -44,6 +44,7 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage.html">Basic Usage</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
@@ -51,9 +52,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/unit_handling_and_validation.html">Unit Handling and Validation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorials/timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/timeseries_operations.html">TimeSeriesList Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/multivariate_timeseries.html">Multivariate Time Series</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorials/cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/arrays_and_collections.html">Arrays and Collections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/data_quality_and_coverage.html">Data Quality and Coverage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/io_and_interoperability.html">I/O and Interoperability</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/geographical_support.html">Geographical Support</a></li>
@@ -140,16 +141,61 @@
 
 
 
+<span class="n">_DATATYPE_HIERARCHY</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;ACTUAL&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;OBSERVATION&quot;</span><span class="p">:</span> <span class="s2">&quot;ACTUAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DERIVED&quot;</span><span class="p">:</span> <span class="s2">&quot;ACTUAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CALCULATED&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;ESTIMATION&quot;</span><span class="p">:</span> <span class="s2">&quot;CALCULATED&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;FORECAST&quot;</span><span class="p">:</span> <span class="s2">&quot;ESTIMATION&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;PREDICTION&quot;</span><span class="p">:</span> <span class="s2">&quot;ESTIMATION&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SCENARIO&quot;</span><span class="p">:</span> <span class="s2">&quot;ESTIMATION&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SIMULATION&quot;</span><span class="p">:</span> <span class="s2">&quot;ESTIMATION&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RECONSTRUCTION&quot;</span><span class="p">:</span> <span class="s2">&quot;ESTIMATION&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;REFERENCE&quot;</span><span class="p">:</span> <span class="s2">&quot;CALCULATED&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BASELINE&quot;</span><span class="p">:</span> <span class="s2">&quot;REFERENCE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BENCHMARK&quot;</span><span class="p">:</span> <span class="s2">&quot;REFERENCE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;IDEAL&quot;</span><span class="p">:</span> <span class="s2">&quot;REFERENCE&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+
 <div class="viewcode-block" id="DataType">
 <a class="viewcode-back" href="../../api.html#timedatamodel.DataType">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DataType</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
-    <span class="n">MEASUREMENT</span> <span class="o">=</span> <span class="s2">&quot;MEASUREMENT&quot;</span>
+    <span class="n">ACTUAL</span> <span class="o">=</span> <span class="s2">&quot;ACTUAL&quot;</span>
+    <span class="n">OBSERVATION</span> <span class="o">=</span> <span class="s2">&quot;OBSERVATION&quot;</span>
+    <span class="n">DERIVED</span> <span class="o">=</span> <span class="s2">&quot;DERIVED&quot;</span>
+    <span class="n">CALCULATED</span> <span class="o">=</span> <span class="s2">&quot;CALCULATED&quot;</span>
     <span class="n">ESTIMATION</span> <span class="o">=</span> <span class="s2">&quot;ESTIMATION&quot;</span>
     <span class="n">FORECAST</span> <span class="o">=</span> <span class="s2">&quot;FORECAST&quot;</span>
+    <span class="n">PREDICTION</span> <span class="o">=</span> <span class="s2">&quot;PREDICTION&quot;</span>
     <span class="n">SCENARIO</span> <span class="o">=</span> <span class="s2">&quot;SCENARIO&quot;</span>
-    <span class="n">SYNTHETIC</span> <span class="o">=</span> <span class="s2">&quot;SYNTHETIC&quot;</span>
-    <span class="n">CLIMATE</span> <span class="o">=</span> <span class="s2">&quot;CLIMATE&quot;</span>
-    <span class="n">ACTUAL</span> <span class="o">=</span> <span class="s2">&quot;ACTUAL&quot;</span></div>
+    <span class="n">SIMULATION</span> <span class="o">=</span> <span class="s2">&quot;SIMULATION&quot;</span>
+    <span class="n">RECONSTRUCTION</span> <span class="o">=</span> <span class="s2">&quot;RECONSTRUCTION&quot;</span>
+    <span class="n">REFERENCE</span> <span class="o">=</span> <span class="s2">&quot;REFERENCE&quot;</span>
+    <span class="n">BASELINE</span> <span class="o">=</span> <span class="s2">&quot;BASELINE&quot;</span>
+    <span class="n">BENCHMARK</span> <span class="o">=</span> <span class="s2">&quot;BENCHMARK&quot;</span>
+    <span class="n">IDEAL</span> <span class="o">=</span> <span class="s2">&quot;IDEAL&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataType</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">_DATATYPE_HIERARCHY</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">DataType</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">children</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">DataType</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">DataType</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">_DATATYPE_HIERARCHY</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_leaf</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">root</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataType</span><span class="p">:</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">while</span> <span class="n">node</span><span class="o">.</span><span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">parent</span>
+        <span class="k">return</span> <span class="n">node</span></div>
 
 
 

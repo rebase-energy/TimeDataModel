@@ -44,6 +44,7 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../usage.html">Basic Usage</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
@@ -51,9 +52,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/unit_handling_and_validation.html">Unit Handling and Validation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorials/timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/timeseries_operations.html">TimeSeriesList Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/multivariate_timeseries.html">Multivariate Time Series</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorials/cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorials/arrays_and_collections.html">Arrays and Collections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/data_quality_and_coverage.html">Data Quality and Coverage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/io_and_interoperability.html">I/O and Interoperability</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorials/geographical_support.html">Geographical Support</a></li>
@@ -91,18 +92,19 @@
   <h1>Source code for timedatamodel.hierarchy</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">StrEnum</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">html</span><span class="w"> </span><span class="kn">import</span> <span class="n">escape</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Iterator</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_convert_unit_values</span><span class="p">,</span> <span class="n">_fmt_short_date</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_convert_unit_values</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._repr</span><span class="w"> </span><span class="kn">import</span> <span class="n">HierarchyTree</span><span class="p">,</span> <span class="n">_HierarchicalTimeSeriesReprMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">Frequency</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.location</span><span class="w"> </span><span class="kn">import</span> <span class="n">Location</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.timeseries</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeSeries</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.timeseries</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeSeriesList</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">.collection</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeSeriesCollection</span>
@@ -134,7 +136,7 @@
     <span class="n">key</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">level</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">children</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">HierarchyNode</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-    <span class="n">timeseries</span><span class="p">:</span> <span class="n">TimeSeries</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">timeseries</span><span class="p">:</span> <span class="n">TimeSeriesList</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">location</span><span class="p">:</span> <span class="n">Location</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_parent</span><span class="p">:</span> <span class="n">HierarchyNode</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">repr</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
@@ -190,7 +192,7 @@
 
 <div class="viewcode-block" id="HierarchicalTimeSeries">
 <a class="viewcode-back" href="../../api.html#timedatamodel.HierarchicalTimeSeries">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">HierarchicalTimeSeries</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">HierarchicalTimeSeries</span><span class="p">(</span><span class="n">_HierarchicalTimeSeriesReprMixin</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A tree of time series organised into named hierarchy levels.&quot;&quot;&quot;</span>
 
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span>
@@ -273,7 +275,7 @@
                 <span class="n">converted_arr</span> <span class="o">=</span> <span class="n">_convert_unit_values</span><span class="p">(</span>
                     <span class="n">ts</span><span class="o">.</span><span class="n">_to_float_array</span><span class="p">(),</span> <span class="n">ts</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">target_unit</span>
                 <span class="p">)</span>
-                <span class="n">node</span><span class="o">.</span><span class="n">timeseries</span> <span class="o">=</span> <span class="n">TimeSeries</span><span class="p">(</span>
+                <span class="n">node</span><span class="o">.</span><span class="n">timeseries</span> <span class="o">=</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
                     <span class="n">ts</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span>
                     <span class="n">timezone</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">timezone</span><span class="p">,</span>
                     <span class="n">timestamps</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">_timestamps</span><span class="p">),</span>
@@ -291,9 +293,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Collect unique level names in BFS order.&quot;&quot;&quot;</span>
         <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">order</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">queue</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">HierarchyNode</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">]</span>
+        <span class="n">queue</span><span class="p">:</span> <span class="n">deque</span><span class="p">[</span><span class="n">HierarchyNode</span><span class="p">]</span> <span class="o">=</span> <span class="n">deque</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">])</span>
         <span class="k">while</span> <span class="n">queue</span><span class="p">:</span>
-            <span class="n">node</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">level</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
                 <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
                 <span class="n">order</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
@@ -308,7 +310,7 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
         <span class="n">tree</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-        <span class="n">series_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TimeSeries</span><span class="p">],</span>
+        <span class="n">series_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TimeSeriesList</span><span class="p">],</span>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">levels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -386,8 +388,6 @@
         <span class="n">timezone</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;UTC&quot;</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HierarchicalTimeSeries</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Build from a long-format pandas DataFrame with hierarchy columns.&quot;&quot;&quot;</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">.enums</span><span class="w"> </span><span class="kn">import</span> <span class="n">Frequency</span>
-
         <span class="k">if</span> <span class="n">frequency</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">frequency</span> <span class="o">=</span> <span class="n">Frequency</span><span class="o">.</span><span class="n">NONE</span>
 
@@ -395,7 +395,7 @@
         <span class="n">grouped</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level_columns</span><span class="p">)</span>
 
         <span class="c1"># Build series for each leaf</span>
-        <span class="n">series_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TimeSeries</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">series_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TimeSeriesList</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">group_key</span><span class="p">,</span> <span class="n">group_df</span> <span class="ow">in</span> <span class="n">grouped</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group_key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -405,13 +405,12 @@
             <span class="n">leaf_key</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">timestamp_column</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span> <span class="k">as</span> <span class="n">_dt</span>
                 <span class="n">timestamps</span> <span class="o">=</span> <span class="n">group_df</span><span class="p">[</span><span class="n">timestamp_column</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">timestamps</span> <span class="o">=</span> <span class="n">group_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
             <span class="n">values_list</span> <span class="o">=</span> <span class="n">group_df</span><span class="p">[</span><span class="n">value_column</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-            <span class="n">ts</span> <span class="o">=</span> <span class="n">TimeSeries</span><span class="p">(</span>
+            <span class="n">ts</span> <span class="o">=</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
                 <span class="n">frequency</span><span class="p">,</span>
                 <span class="n">timezone</span><span class="o">=</span><span class="n">timezone</span><span class="p">,</span>
                 <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
@@ -596,7 +595,7 @@
         <span class="n">node</span><span class="p">:</span> <span class="n">HierarchyNode</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">method</span><span class="p">:</span> <span class="n">AggregationMethod</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">auto_align</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeSeries</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeSeriesList</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursive bottom-up aggregation.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root</span>
@@ -626,7 +625,7 @@
         <span class="n">agg_func</span> <span class="o">=</span> <span class="n">_AGG_FUNCS</span><span class="p">[</span><span class="n">method</span><span class="p">]</span>
         <span class="n">result_arr</span> <span class="o">=</span> <span class="n">agg_func</span><span class="p">(</span><span class="n">stacked</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">TimeSeries</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
             <span class="n">child_series</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span>
             <span class="n">timezone</span><span class="o">=</span><span class="n">child_series</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">timezone</span><span class="p">,</span>
             <span class="n">timestamps</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">child_series</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_timestamps</span><span class="p">),</span>
@@ -636,18 +635,18 @@
 
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_align_series</span><span class="p">(</span><span class="n">series_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TimeSeries</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TimeSeries</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_align_series</span><span class="p">(</span><span class="n">series_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TimeSeriesList</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">TimeSeriesList</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Align series to the union of all timestamps, filling NaN where missing.&quot;&quot;&quot;</span>
         <span class="n">all_ts</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">series_list</span><span class="p">:</span>
             <span class="n">all_ts</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_timestamps</span><span class="p">)</span>
         <span class="n">union_ts</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">all_ts</span><span class="p">)</span>
 
-        <span class="n">aligned</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TimeSeries</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">aligned</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TimeSeriesList</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">series_list</span><span class="p">:</span>
             <span class="n">ts_set</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_timestamps</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">_values</span><span class="p">))</span>
             <span class="n">new_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">ts_set</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">union_ts</span><span class="p">]</span>
-            <span class="n">aligned</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TimeSeries</span><span class="p">(</span>
+            <span class="n">aligned</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TimeSeriesList</span><span class="p">(</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">frequency</span><span class="p">,</span>
                 <span class="n">timezone</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">timezone</span><span class="p">,</span>
                 <span class="n">timestamps</span><span class="o">=</span><span class="n">union_ts</span><span class="p">,</span>
@@ -663,7 +662,7 @@
         <span class="n">level</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">method</span><span class="p">:</span> <span class="n">AggregationMethod</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">auto_align</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TimeSeries</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TimeSeriesList</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Aggregate every node at *level*.&quot;&quot;&quot;</span>
         <span class="n">nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_level</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">n</span><span class="o">.</span><span class="n">key</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">auto_align</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">}</span></div>
@@ -693,10 +692,10 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TimeSeriesTable</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Flatten to a TimeSeriesTable (requires shared timestamps).&quot;&quot;&quot;</span>
         <span class="n">collection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_collection</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
-        <span class="n">series_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">collection</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">TimeSeries</span><span class="p">)]</span>
+        <span class="n">series_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">collection</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">TimeSeriesList</span><span class="p">)]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">series_list</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no TimeSeries found to build table&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">TimeSeries</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">series_list</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;no TimeSeriesList found to build table&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">TimeSeriesList</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">series_list</span><span class="p">)</span></div>
 
 
     <span class="c1"># ---- sequence protocol ------------------------------------------------</span>
@@ -715,274 +714,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node</span><span class="p">(</span><span class="o">*</span><span class="n">parts</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">HierarchyNode</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">walk</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">walk</span><span class="p">()</span></div>
 
-    <span class="c1"># ---- display ----------------------------------------------------------</span>
-
-    <span class="n">_MAX_LEAF_ROWS</span> <span class="o">=</span> <span class="mi">7</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_leaf_summary_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build summary rows for leaf nodes.&quot;&quot;&quot;</span>
-        <span class="n">leaf_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaves</span><span class="p">()</span>
-        <span class="n">rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">leaf_nodes</span><span class="p">:</span>
-            <span class="n">ts</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">timeseries</span>
-            <span class="n">length</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">))</span> <span class="k">if</span> <span class="n">ts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;0&quot;</span>
-            <span class="n">begin</span> <span class="o">=</span> <span class="n">_fmt_short_date</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">begin</span><span class="p">)</span> <span class="k">if</span> <span class="n">ts</span> <span class="ow">and</span> <span class="n">ts</span><span class="o">.</span><span class="n">begin</span> <span class="k">else</span> <span class="s2">&quot;-&quot;</span>
-            <span class="n">end</span> <span class="o">=</span> <span class="n">_fmt_short_date</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="k">if</span> <span class="n">ts</span> <span class="ow">and</span> <span class="n">ts</span><span class="o">.</span><span class="n">end</span> <span class="k">else</span> <span class="s2">&quot;-&quot;</span>
-            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">key</span><span class="p">,</span>
-                <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">level</span><span class="p">,</span>
-                <span class="s2">&quot;length&quot;</span><span class="p">:</span> <span class="n">length</span><span class="p">,</span>
-                <span class="s2">&quot;begin&quot;</span><span class="p">:</span> <span class="n">begin</span><span class="p">,</span>
-                <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">end</span><span class="p">,</span>
-            <span class="p">})</span>
-        <span class="k">return</span> <span class="n">rows</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">class_name</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="n">label_w</span> <span class="o">=</span> <span class="mi">18</span>
-
-        <span class="c1"># Meta lines</span>
-        <span class="n">meta_lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">:</span>
-            <span class="n">meta_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Name:&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">label_w</span><span class="si">}}{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">meta_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Levels:&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">label_w</span><span class="si">}}{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_levels</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">meta_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Nodes:&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">label_w</span><span class="si">}}{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_nodes</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_leaves</span><span class="si">}</span><span class="s2"> leaves)&quot;</span>
-        <span class="p">)</span>
-        <span class="n">meta_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Frequency:&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">label_w</span><span class="si">}}{</span><span class="bp">self</span><span class="o">.</span><span class="n">_frequency</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">meta_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Timezone:&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">label_w</span><span class="si">}}{</span><span class="bp">self</span><span class="o">.</span><span class="n">_timezone</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span><span class="p">:</span>
-            <span class="n">meta_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Unit:&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">label_w</span><span class="si">}}{</span><span class="bp">self</span><span class="o">.</span><span class="n">_unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">meta_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;Aggregation:&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">label_w</span><span class="si">}}{</span><span class="bp">self</span><span class="o">.</span><span class="n">_aggregation</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Leaf table</span>
-        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_summary_rows</span><span class="p">()</span>
-        <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="s2">&quot;length&quot;</span><span class="p">,</span> <span class="s2">&quot;begin&quot;</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">]</span>
-        <span class="n">col_widths</span> <span class="o">=</span> <span class="p">{</span><span class="n">h</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">}</span>
-        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">:</span>
-                <span class="n">col_widths</span><span class="p">[</span><span class="n">h</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">col_widths</span><span class="p">[</span><span class="n">h</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">h</span><span class="p">]))</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">_fmt_row</span><span class="p">(</span><span class="n">vals</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;  &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">vals</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">col_widths</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="si">}}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">)</span>
-
-        <span class="n">header_line</span> <span class="o">=</span> <span class="n">_fmt_row</span><span class="p">({</span><span class="n">h</span><span class="p">:</span> <span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">})</span>
-
-        <span class="c1"># Truncate if too many leaves</span>
-        <span class="n">max_rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MAX_LEAF_ROWS</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">max_rows</span><span class="p">:</span>
-            <span class="n">data_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt_row</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">head</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
-            <span class="n">tail</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
-            <span class="n">data_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">_fmt_row</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">head</span><span class="p">]</span>
-            <span class="n">data_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="s2">&quot;  &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;...&#39;</span><span class="si">:</span><span class="s2">&lt;</span><span class="si">{</span><span class="n">col_widths</span><span class="p">[</span><span class="n">h</span><span class="p">]</span><span class="si">}}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="n">data_lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_fmt_row</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">tail</span><span class="p">)</span>
-
-        <span class="c1"># Combine all content lines</span>
-        <span class="n">content_lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">ml</span> <span class="ow">in</span> <span class="n">meta_lines</span><span class="p">:</span>
-            <span class="n">content_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ml</span><span class="p">)</span>
-        <span class="n">content_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># separator</span>
-        <span class="n">content_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header_line</span><span class="p">)</span>
-        <span class="n">content_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># separator</span>
-        <span class="k">for</span> <span class="n">dl</span> <span class="ow">in</span> <span class="n">data_lines</span><span class="p">:</span>
-            <span class="n">content_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dl</span><span class="p">)</span>
-
-        <span class="c1"># Compute box width</span>
-        <span class="n">padding</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="n">max_content_w</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
-            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">content_lines</span> <span class="k">if</span> <span class="n">line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span>
-            <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">box_inner</span> <span class="o">=</span> <span class="n">max_content_w</span> <span class="o">+</span> <span class="n">padding</span> <span class="o">*</span> <span class="mi">2</span>
-
-        <span class="c1"># Build output</span>
-        <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">class_name</span><span class="p">]</span>
-        <span class="n">top</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\u250c</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\u2500</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="n">box_inner</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\u2510</span><span class="s2">&quot;</span>
-        <span class="n">bot</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\u2514</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\u2500</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="n">box_inner</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\u2518</span><span class="s2">&quot;</span>
-        <span class="n">sep</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\u251c</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\u2500</span><span class="s2">&quot;</span> <span class="o">*</span> <span class="n">box_inner</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\u2524</span><span class="s2">&quot;</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">content_lines</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">cl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="s2">&quot;</span><span class="se">\u2502</span><span class="s2">&quot;</span>
-                    <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">padding</span>
-                    <span class="o">+</span> <span class="n">cl</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">max_content_w</span><span class="p">)</span>
-                    <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">padding</span>
-                    <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\u2502</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bot</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">class_name</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="n">title</span> <span class="o">=</span> <span class="n">class_name</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">:</span>
-            <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">escape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="n">css</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">&lt;style&gt;</span>
-<span class="s2">.tsh-repr { font-family: monospace; font-size: 13px; max-width: 720px; }</span>
-<span class="s2">.tsh-repr .tsh-header {</span>
-<span class="s2">  font-weight: bold; font-size: 14px;</span>
-<span class="s2">  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;</span>
-<span class="s2">  background: #f0f0f0; color: #1a1a1a;</span>
-<span class="s2">}</span>
-<span class="s2">.tsh-repr .tsh-meta { padding: 6px 10px; background: #fafafa; }</span>
-<span class="s2">.tsh-repr .tsh-meta table { border-collapse: collapse; }</span>
-<span class="s2">.tsh-repr .tsh-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }</span>
-<span class="s2">.tsh-repr .tsh-meta td:first-child { color: #666; font-weight: 600; }</span>
-<span class="s2">.tsh-repr table.tsh-leaves { border-collapse: collapse; width: 100%; }</span>
-<span class="s2">.tsh-repr .tsh-leaves th {</span>
-<span class="s2">  text-align: left; padding: 3px 10px; border-bottom: 1px solid #ccc;</span>
-<span class="s2">  color: #555; font-weight: 600;</span>
-<span class="s2">}</span>
-<span class="s2">.tsh-repr .tsh-leaves td { padding: 2px 10px; }</span>
-<span class="s2">.tsh-repr .tsh-leaves tr:hover { background: #f5f5f5; }</span>
-<span class="s2">&lt;/style&gt;&quot;&quot;&quot;</span>
-
-        <span class="c1"># Meta table</span>
-        <span class="n">meta_rows</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">:</span>
-            <span class="n">meta_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)))</span>
-        <span class="n">meta_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Levels&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_levels</span><span class="p">))))</span>
-        <span class="n">meta_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Nodes&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_nodes</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_leaves</span><span class="si">}</span><span class="s2"> leaves)&quot;</span><span class="p">))</span>
-        <span class="n">meta_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Frequency&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_frequency</span><span class="p">))))</span>
-        <span class="n">meta_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Timezone&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_timezone</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unit</span><span class="p">:</span>
-            <span class="n">meta_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Unit&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unit</span><span class="p">)))</span>
-        <span class="n">meta_rows</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Aggregation&quot;</span><span class="p">,</span> <span class="n">escape</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_aggregation</span><span class="p">))))</span>
-
-        <span class="n">html</span> <span class="o">=</span> <span class="p">[</span><span class="n">css</span><span class="p">,</span> <span class="s1">&#39;&lt;div class=&quot;tsh-repr&quot;&gt;&#39;</span><span class="p">]</span>
-        <span class="n">html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;div class=&quot;tsh-header&quot;&gt;</span><span class="si">{</span><span class="n">escape</span><span class="p">(</span><span class="n">title</span><span class="p">)</span><span class="si">}</span><span class="s1">&lt;/div&gt;&#39;</span><span class="p">)</span>
-        <span class="n">html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;div class=&quot;tsh-meta&quot;&gt;&lt;table&gt;&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">meta_rows</span><span class="p">:</span>
-            <span class="n">html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;tr&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">escape</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;td&gt;</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&lt;/td&gt;&lt;/tr&gt;&quot;</span><span class="p">)</span>
-        <span class="n">html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&lt;/table&gt;&lt;/div&gt;&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Leaf table</span>
-        <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="s2">&quot;length&quot;</span><span class="p">,</span> <span class="s2">&quot;begin&quot;</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">]</span>
-        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_leaf_summary_rows</span><span class="p">()</span>
-
-        <span class="n">html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&lt;table class=&quot;tsh-leaves&quot;&gt;&#39;</span><span class="p">)</span>
-        <span class="n">html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-            <span class="s2">&quot;&lt;tr&gt;&quot;</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;th&gt;</span><span class="si">{</span><span class="n">escape</span><span class="p">(</span><span class="n">h</span><span class="p">)</span><span class="si">}</span><span class="s2">&lt;/th&gt;&quot;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&lt;/tr&gt;&quot;</span>
-        <span class="p">)</span>
-        <span class="n">max_rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MAX_LEAF_ROWS</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">max_rows</span><span class="p">:</span>
-            <span class="n">display_rows</span> <span class="o">=</span> <span class="n">rows</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">display_rows</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span>
-                <span class="p">{</span><span class="n">h</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\u2026</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">}</span>
-            <span class="p">]</span> <span class="o">+</span> <span class="n">rows</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
-        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">display_rows</span><span class="p">:</span>
-            <span class="n">html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="s2">&quot;&lt;tr&gt;&quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;td&gt;</span><span class="si">{</span><span class="n">escape</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">h</span><span class="p">])</span><span class="si">}</span><span class="s2">&lt;/td&gt;&quot;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">headers</span><span class="p">)</span>
-                <span class="o">+</span> <span class="s2">&quot;&lt;/tr&gt;&quot;</span>
-            <span class="p">)</span>
-        <span class="n">html</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&lt;/table&gt;&lt;/div&gt;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
-
-<div class="viewcode-block" id="HierarchicalTimeSeries.tree">
-<a class="viewcode-back" href="../../api.html#timedatamodel.HierarchicalTimeSeries.tree">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">tree</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">HierarchyTree</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a displayable tree visualization.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">HierarchyTree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span></div>
-
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_tree</span><span class="p">(</span>
-        <span class="n">node</span><span class="p">:</span> <span class="n">HierarchyNode</span><span class="p">,</span>
-        <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">is_last</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">connector</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\u2514\u2500\u2500</span><span class="s2"> &quot;</span> <span class="k">if</span> <span class="n">is_last</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\u251c\u2500\u2500</span><span class="s2"> &quot;</span>
-        <span class="n">label</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">key</span>
-        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">timeseries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">timeseries</span><span class="p">)</span>
-            <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; [</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> pts]&quot;</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">:</span>
-            <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; (</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">)&quot;</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">connector</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">new_prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;    &quot;</span> <span class="k">if</span> <span class="n">is_last</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\u2502</span><span class="s2">   &quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">child</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">):</span>
-            <span class="n">HierarchicalTimeSeries</span><span class="o">.</span><span class="n">_repr_tree</span><span class="p">(</span>
-                <span class="n">child</span><span class="p">,</span> <span class="n">new_prefix</span><span class="p">,</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">lines</span>
-            <span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="HierarchyTree">
-<a class="viewcode-back" href="../../api.html#timedatamodel.HierarchyTree">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">HierarchyTree</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Displayable tree visualization for a HierarchicalTimeSeries.&quot;&quot;&quot;</span>
-
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_root&quot;</span><span class="p">,)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">:</span> <span class="n">HierarchyNode</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_root</span> <span class="o">=</span> <span class="n">root</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_build_tree</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_build_tree</span><span class="p">(</span>
-        <span class="n">node</span><span class="p">:</span> <span class="n">HierarchyNode</span><span class="p">,</span>
-        <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">is_last</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">connector</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\u2514\u2500\u2500</span><span class="s2"> &quot;</span> <span class="k">if</span> <span class="n">is_last</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\u251c\u2500\u2500</span><span class="s2"> &quot;</span>
-        <span class="n">label</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">key</span>
-        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span> <span class="ow">and</span> <span class="n">node</span><span class="o">.</span><span class="n">timeseries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; [</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">timeseries</span><span class="p">)</span><span class="si">}</span><span class="s2"> pts]&quot;</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">:</span>
-            <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; (</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">level</span><span class="si">}</span><span class="s2">)&quot;</span>
-        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">connector</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">new_prefix</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;    &quot;</span> <span class="k">if</span> <span class="n">is_last</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="se">\u2502</span><span class="s2">   &quot;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">child</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">):</span>
-            <span class="n">HierarchyTree</span><span class="o">.</span><span class="n">_build_tree</span><span class="p">(</span>
-                <span class="n">child</span><span class="p">,</span> <span class="n">new_prefix</span><span class="p">,</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">lines</span>
-            <span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_repr_html_</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">css</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
-<span class="s2">&lt;style&gt;</span>
-<span class="s2">.tsh-tree { font-family: monospace; font-size: 13px; }</span>
-<span class="s2">.tsh-tree details { margin-left: 16px; }</span>
-<span class="s2">.tsh-tree summary { cursor: pointer; padding: 1px 0; }</span>
-<span class="s2">.tsh-tree .tsh-leaf { margin-left: 16px; padding: 1px 0; }</span>
-<span class="s2">&lt;/style&gt;&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">css</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&lt;div class=&quot;tsh-tree&quot;&gt;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_html_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&lt;/div&gt;&quot;</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">_html_node</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">HierarchyNode</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">is_leaf</span><span class="p">:</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="n">escape</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">timeseries</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; [</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">timeseries</span><span class="p">)</span><span class="si">}</span><span class="s2"> pts]&quot;</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&lt;div class=&quot;tsh-leaf&quot;&gt;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s1">&lt;/div&gt;</span><span class="se">\n</span><span class="s1">&#39;</span>
-        <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">escape</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">escape</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">level</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
-        <span class="n">children_html</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">HierarchyTree</span><span class="o">.</span><span class="n">_html_node</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;&lt;details open&gt;&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;&lt;summary&gt;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&lt;/summary&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">children_html</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;&lt;/details&gt;</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="p">)</span></div>
 
 </pre></div>
 

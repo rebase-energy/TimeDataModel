@@ -1,0 +1,647 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Scratch – repr & visualisation testing\n",
+    "\n",
+    "Temporary notebook for testing `_repr_html_` / `__repr__` across all classes and visualisation helpers like `coverage_bar()` and `tree()`.\n",
+    "\n",
+    "**Delete when done.**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import sys\n",
+    "if \"google.colab\" in sys.modules:\n",
+    "    %pip install -q git+https://github.com/rebase-energy/TimeDataModel.git"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from datetime import datetime, timezone\n",
+    "\n",
+    "import numpy as np\n",
+    "\n",
+    "from timedatamodel import (\n",
+    "    AggregationMethod,\n",
+    "    CoverageBar,\n",
+    "    DataType,\n",
+    "    Dimension,\n",
+    "    Frequency,\n",
+    "    GeoLocation,\n",
+    "    HierarchicalTimeSeries,\n",
+    "    HierarchyNode,\n",
+    "    TimeSeriesList,\n",
+    "    TimeSeriesArray,\n",
+    "    TimeSeriesCollection,\n",
+    "    TimeSeriesTable,\n",
+    "    TimeSeriesType,\n",
+    "    get_theme,\n",
+    "    set_theme,\n",
+    "    reset_theme,\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Theme colors\n",
+    "\n",
+    "All repr and visualisation functions read from a shared theme (`theme.json`). Use `get_theme()` to inspect the current colors and `set_theme()` to override them. Changes take effect on the next repr call. Call `reset_theme()` to restore defaults."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Override colors here — uncomment and edit any line to experiment.\n",
+    "# Changes apply to all reprs rendered after this cell.\n",
+    "\n",
+    "set_theme({\n",
+    "    \"light\": {\n",
+    "        \"header_bg\": \"#f0f0f0\",\n",
+    "        \"header_text\": \"#1a1a1a\",\n",
+    "        \"header_border\": \"#4a4a4a\",\n",
+    "        \"meta_bg\": \"#fafafa\",\n",
+    "        \"meta_label\": \"#475569\",\n",
+    "        \"meta_value\": \"#1a1a1a\",\n",
+    "        \"col_header_text\": \"#555\",\n",
+    "        \"col_header_border\": \"#ccc\",\n",
+    "        \"data_text\": \"#1a1a1a\",\n",
+    "        \"index_text\": \"#1e293b\",\n",
+    "        \"hover_bg\": \"#f5f5f5\",\n",
+    "        \"ellipsis\": \"#999\",\n",
+    "        \"coverage_present\": \"#4CAF50\",\n",
+    "        \"coverage_absent\": \"#e0e0e0\",\n",
+    "        \"coverage_label\": \"#333\",\n",
+    "        \"coverage_date\": \"#666\",\n",
+    "    },\n",
+    "    \"dark\": {\n",
+    "        \"header_bg\": \"#1e293b\",\n",
+    "        \"header_text\": \"#e2e8f0\",\n",
+    "        \"header_border\": \"#475569\",\n",
+    "        \"meta_bg\": \"#0f172a\",\n",
+    "        \"meta_label\": \"#94a3b8\",\n",
+    "        \"meta_value\": \"#e2e8f0\",\n",
+    "        \"col_header_text\": \"#94a3b8\",\n",
+    "        \"col_header_border\": \"#334155\",\n",
+    "        \"data_text\": \"#e2e8f0\",\n",
+    "        \"index_text\": \"#cbd5e1\",\n",
+    "        \"hover_bg\": \"#1e293b\",\n",
+    "        \"ellipsis\": \"#64748b\",\n",
+    "    },\n",
+    "})\n",
+    "\n",
+    "# To restore defaults at any point:\n",
+    "# reset_theme()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Helper – generate hourly timestamps"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def hourly_ts(n=24, start=\"2024-01-15\"):\n",
+    "    base = datetime.fromisoformat(f\"{start}T00:00:00+00:00\")\n",
+    "    from datetime import timedelta\n",
+    "    return [base + timedelta(hours=i) for i in range(n)]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "## 1. TimeSeriesList"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ts = TimeSeriesList(\n",
+    "    Frequency.PT1H,\n",
+    "    timezone=\"UTC\",\n",
+    "    timestamps=hourly_ts(24),\n",
+    "    values=[120 + 5 * np.sin(i) for i in range(24)],\n",
+    "    name=\"power\",\n",
+    "    unit=\"MW\",\n",
+    "    data_type=DataType.OBSERVATION,\n",
+    "    description=\"Hourly power output from wind farm Alpha\",\n",
+    ")\n",
+    "ts"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(ts)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### TimeSeriesList – empty"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ts_empty = TimeSeriesList(Frequency.PT1H, timestamps=[], values=[], name=\"empty\")\n",
+    "ts_empty"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### TimeSeriesList – with NaN gaps"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "vals_gap = [float(i) for i in range(24)]\n",
+    "for i in [5, 6, 7, 15, 16]:\n",
+    "    vals_gap[i] = None\n",
+    "\n",
+    "ts_gap = TimeSeriesList(\n",
+    "    Frequency.PT1H,\n",
+    "    timestamps=hourly_ts(24),\n",
+    "    values=vals_gap,\n",
+    "    name=\"gappy_signal\",\n",
+    "    unit=\"kW\",\n",
+    ")\n",
+    "ts_gap"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### TimeSeriesList – short (no truncation)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ts_short = TimeSeriesList(\n",
+    "    Frequency.PT1H,\n",
+    "    timestamps=hourly_ts(5),\n",
+    "    values=[1.0, 2.0, 3.0, 4.0, 5.0],\n",
+    "    name=\"short\",\n",
+    ")\n",
+    "ts_short"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### TimeSeriesList – with location and labels"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ts_loc = TimeSeriesList(\n",
+    "    Frequency.PT1H,\n",
+    "    timestamps=hourly_ts(24),\n",
+    "    values=[100 + i * 0.5 for i in range(24)],\n",
+    "    name=\"temperature\",\n",
+    "    unit=\"°C\",\n",
+    "    location=GeoLocation(latitude=59.91, longitude=10.75),\n",
+    "    labels={\"source\": \"met.no\", \"station\": \"Oslo-Blindern\"},\n",
+    "    data_type=DataType.OBSERVATION,\n",
+    "    description=\"Air temperature at Blindern station\",\n",
+    ")\n",
+    "ts_loc"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "## 2. TimeSeriesTable"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "timestamps = hourly_ts(24)\n",
+    "tbl = TimeSeriesTable(\n",
+    "    Frequency.PT1H,\n",
+    "    timezone=\"UTC\",\n",
+    "    timestamps=timestamps,\n",
+    "    values=np.column_stack([\n",
+    "        [120 + 5 * np.sin(i) for i in range(24)],\n",
+    "        [80 + 3 * np.cos(i) for i in range(24)],\n",
+    "        [200 + 10 * np.sin(i + 1) for i in range(24)],\n",
+    "    ]),\n",
+    "    names=[\"wind_farm_A\", \"wind_farm_B\", \"solar_park_C\"],\n",
+    "    units=[\"MW\", \"MW\", \"MW\"],\n",
+    "    data_types=[DataType.OBSERVATION, DataType.OBSERVATION, DataType.FORECAST],\n",
+    ")\n",
+    "tbl"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(tbl)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "## 3. TimeSeriesCollection"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ts_a = TimeSeriesList(\n",
+    "    Frequency.PT1H, timestamps=hourly_ts(24), values=[float(i) for i in range(24)],\n",
+    "    name=\"series_A\", unit=\"MW\",\n",
+    ")\n",
+    "ts_b = TimeSeriesList(\n",
+    "    Frequency.P1D,\n",
+    "    timestamps=[datetime.fromisoformat(f\"2024-01-{d:02d}T00:00:00+00:00\") for d in range(1, 8)],\n",
+    "    values=[100.0, 105.0, 98.0, None, 110.0, 115.0, 108.0],\n",
+    "    name=\"series_B\", unit=\"GWh\",\n",
+    ")\n",
+    "\n",
+    "coll = TimeSeriesCollection(\n",
+    "    [ts_a, ts_b, tbl],\n",
+    "    name=\"My Collection\",\n",
+    "    description=\"A mix of different series\",\n",
+    ")\n",
+    "coll"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(coll)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "## 4. TimeSeriesArray (N-dimensional)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "time_labels = hourly_ts(12)\n",
+    "scenarios = [\"low\", \"mid\", \"high\"]\n",
+    "\n",
+    "arr = TimeSeriesArray(\n",
+    "    Frequency.PT1H,\n",
+    "    name=\"price_scenarios\",\n",
+    "    unit=\"EUR/MWh\",\n",
+    "    data_type=DataType.SCENARIO,\n",
+    "    dimensions=[\n",
+    "        Dimension(name=\"timestamp\", labels=time_labels),\n",
+    "        Dimension(name=\"scenario\", labels=scenarios),\n",
+    "    ],\n",
+    "    values=np.random.default_rng(42).uniform(30, 80, size=(12, 3)),\n",
+    ")\n",
+    "arr"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(arr)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### TimeSeriesArray – 1D"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "arr_1d = TimeSeriesArray(\n",
+    "    Frequency.PT1H,\n",
+    "    name=\"load\",\n",
+    "    unit=\"MW\",\n",
+    "    dimensions=[Dimension(name=\"timestamp\", labels=hourly_ts(8))],\n",
+    "    values=np.array([100, 105, 110, 108, 103, 99, 95, 92], dtype=float),\n",
+    ")\n",
+    "arr_1d"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "## 5. CoverageBar"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ts_gap.coverage_bar()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(ts_gap.coverage_bar())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "tbl.coverage_bar()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(tbl.coverage_bar())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "## 6. HierarchicalTimeSeries & tree()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "timestamps = hourly_ts(24)\n",
+    "rng = np.random.default_rng(0)\n",
+    "\n",
+    "def make_ts(name):\n",
+    "    return TimeSeriesList(\n",
+    "        Frequency.PT1H, timestamps=timestamps,\n",
+    "        values=rng.uniform(50, 200, 24).tolist(),\n",
+    "        name=name, unit=\"MW\", data_type=DataType.OBSERVATION,\n",
+    "    )\n",
+    "\n",
+    "tree_dict = {\n",
+    "    \"total\": {\n",
+    "        \"Norway\": {\"Bergen\": \"bergen\", \"Oslo\": \"oslo\", \"Trondheim\": \"trondheim\"},\n",
+    "        \"Sweden\": {\"Stockholm\": \"stockholm\", \"Gothenburg\": \"gothenburg\"},\n",
+    "    }\n",
+    "}\n",
+    "series_map = {\n",
+    "    \"bergen\": make_ts(\"Bergen\"),\n",
+    "    \"oslo\": make_ts(\"Oslo\"),\n",
+    "    \"trondheim\": make_ts(\"Trondheim\"),\n",
+    "    \"stockholm\": make_ts(\"Stockholm\"),\n",
+    "    \"gothenburg\": make_ts(\"Gothenburg\"),\n",
+    "}\n",
+    "\n",
+    "hts = HierarchicalTimeSeries.from_dict(\n",
+    "    tree_dict, series_map,\n",
+    "    levels=[\"region\", \"country\", \"city\"],\n",
+    "    name=\"Nordic Wind Power\",\n",
+    "    description=\"Hierarchical wind power across Nordic cities\",\n",
+    "    aggregation=AggregationMethod.SUM,\n",
+    ")\n",
+    "hts"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(hts)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### HierarchyTree – HTML"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "hts.tree()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(hts.tree())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "## 7. Wide TimeSeriesTable (many columns)\n",
+    "\n",
+    "Test whether the repr truncates columns when there are too many to fit."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "n_cols = 20\n",
+    "timestamps = hourly_ts(48)\n",
+    "rng = np.random.default_rng(7)\n",
+    "\n",
+    "tbl_wide = TimeSeriesTable(\n",
+    "    Frequency.PT1H,\n",
+    "    timezone=\"UTC\",\n",
+    "    timestamps=timestamps,\n",
+    "    values=rng.uniform(50, 300, size=(48, n_cols)),\n",
+    "    names=[f\"turbine_{i:02d}\" for i in range(n_cols)],\n",
+    "    units=[\"MW\"] * n_cols,\n",
+    ")\n",
+    "tbl_wide"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(tbl_wide)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Same data as pandas DataFrame (for comparison)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "tbl_wide.df"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "## 8. Side-by-side: light vs dark\n",
+    "\n",
+    "Quick way to preview both colour schemes without changing your OS setting — wrap the HTML repr in a `<div>` that forces a colour scheme."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from IPython.display import HTML\n",
+    "\n",
+    "light = f'<div style=\"color-scheme: light; padding: 10px;\">{ts._repr_html_()}</div>'\n",
+    "dark = f'<div style=\"color-scheme: dark; background: #0f172a; padding: 10px; border-radius: 8px;\">{ts._repr_html_()}</div>'\n",
+    "\n",
+    "HTML(f\"<h4>Light mode</h4>{light}<br><h4>Dark mode</h4>{dark}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": ".venv",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.14.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

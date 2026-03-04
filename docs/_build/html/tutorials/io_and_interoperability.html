@@ -50,6 +50,7 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic Usage</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
@@ -57,9 +58,9 @@
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="unit_handling_and_validation.html">Unit Handling and Validation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeriesList Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multivariate_timeseries.html">Multivariate Time Series</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arrays_and_collections.html">Arrays and Collections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data_quality_and_coverage.html">Data Quality and Coverage</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">I/O and Interoperability</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#NumPy">NumPy</a></li>
@@ -110,50 +111,33 @@
              
   <section id="I/O-and-Interoperability">
 <h1>I/O and Interoperability<a class="headerlink" href="#I/O-and-Interoperability" title="Link to this heading"></a></h1>
-<p>TimeDataModel is designed to sit between your domain logic and the broader Python data ecosystem. This notebook shows how to move data seamlessly between <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> / <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> and pandas, numpy, polars, JSON, and CSV.</p>
-<div class="nbinput docutils container">
+<p>TimeDataModel is designed to sit between your domain logic and the broader Python data ecosystem. This notebook shows how to move data seamlessly between <code class="docutils literal notranslate"><span class="pre">TimeSeriesList</span></code> / <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> and pandas, numpy, polars, JSON, and CSV.</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from datetime import datetime, timedelta, timezone
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
 
-import numpy as np
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-import timedatamodel as tdm
+<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
 
-base = datetime(2024, 1, 15, tzinfo=timezone.utc)
-timestamps = [base + timedelta(hours=i) for i in range(24)]
-values = [100.0 + 50 * np.sin(2 * np.pi * i / 24) for i in range(24)]
+<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
+<span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mf">100.0</span> <span class="o">+</span> <span class="mi">50</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="mi">24</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
 
-ts = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timezone=&quot;UTC&quot;,
-    timestamps=timestamps,
-    values=values,
-    name=&quot;power&quot;,
-    unit=&quot;MW&quot;,
-    description=&quot;Synthetic daily power curve&quot;,
-    data_type=tdm.DataType.SYNTHETIC,
-)
+<span class="n">ts</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Synthetic daily power curve&quot;</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">SIMULATION</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[1]</span><span class="ansi-green-fg">, line 5</span>
-<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">datetime</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">import</span> datetime, timedelta, timezone
-<span class="ansi-green-fg">      3</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">numpy</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">np</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">5</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">timedatamodel</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">tdm</span>
-<span class="ansi-green-fg">      7</span> base = datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, tzinfo=timezone.utc)
-<span class="ansi-green-fg">      8</span> timestamps = [base + timedelta(hours=i) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">24</span>)]
-
-<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;timedatamodel&#39;
-</pre></div></div>
 </div>
 <section id="NumPy">
 <h2>NumPy<a class="headerlink" href="#NumPy" title="Link to this heading"></a></h2>
@@ -162,11 +146,11 @@ ts = tdm.TimeSeries(
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>arr = ts.to_numpy()
-print(f&quot;Type:  {type(arr)}&quot;)
-print(f&quot;Shape: {arr.shape}&quot;)
-print(f&quot;Mean:  {arr.mean():.2f} MW&quot;)
-print(f&quot;Max:   {arr.max():.2f} MW&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">arr</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type:  </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean:  </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Max:   </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -175,14 +159,10 @@ print(f&quot;Max:   {arr.max():.2f} MW&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[2]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> arr = <span class="ansi-yellow-bg">ts</span>.to_numpy()
-<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Type:  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">type</span>(arr)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Shape: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>arr.shape<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
+Type:  &lt;class &#39;numpy.ndarray&#39;&gt;
+Shape: (24,)
+Mean:  100.00 MW
+Max:   150.00 MW
 </pre></div></div>
 </div>
 </section>
@@ -193,58 +173,149 @@ print(f&quot;Max:   {arr.max():.2f} MW&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>df = ts.to_pandas_dataframe()
-df.head()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_pandas_dataframe</span><span class="p">()</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[3]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> df = <span class="ansi-yellow-bg">ts</span>.to_pandas_dataframe()
-<span class="ansi-green-fg">      2</span> df.head()
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
 
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>power</th>
+    </tr>
+    <tr>
+      <th>timestamp</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2024-01-15 00:00:00+00:00</th>
+      <td>100.000000</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 01:00:00+00:00</th>
+      <td>112.940952</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 02:00:00+00:00</th>
+      <td>125.000000</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 03:00:00+00:00</th>
+      <td>135.355339</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 04:00:00+00:00</th>
+      <td>143.301270</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 </section>
 <section id="Pandas-—-import-with-from_pandas()">
 <h2>Pandas — import with <code class="docutils literal notranslate"><span class="pre">from_pandas()</span></code><a class="headerlink" href="#Pandas-—-import-with-from_pandas()" title="Link to this heading"></a></h2>
-<p>Create a TimeSeries from any pandas DataFrame that has a DatetimeIndex. Frequency and timezone are auto-inferred when possible.</p>
+<p>Create a TimeSeriesList from any pandas DataFrame that has a DatetimeIndex. Frequency and timezone are auto-inferred when possible.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import pandas as pd
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-idx = pd.date_range(&quot;2024-06-01&quot;, periods=48, freq=&quot;h&quot;, tz=&quot;UTC&quot;)
-df_external = pd.DataFrame({&quot;load&quot;: np.random.default_rng(42).normal(150, 20, 48)}, index=idx)
+<span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s2">&quot;2024-06-01&quot;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">48</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="n">tz</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">)</span>
+<span class="n">df_external</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;load&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">48</span><span class="p">)},</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">)</span>
 
-ts_from_pd = tdm.TimeSeries.from_pandas(df_external, unit=&quot;MW&quot;, data_type=tdm.DataType.MEASUREMENT)
-ts_from_pd
+<span class="n">ts_from_pd</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span><span class="n">df_external</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">)</span>
+<span class="n">ts_from_pd</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[4]</span><span class="ansi-green-fg">, line 6</span>
-<span class="ansi-green-fg">      3</span> idx = pd.date_range(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">2024-06-01</span><span class="ansi-yellow-fg">&#34;</span>, periods=<span class="ansi-green-fg">48</span>, freq=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">h</span><span class="ansi-yellow-fg">&#34;</span>, tz=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">UTC</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      4</span> df_external = pd.DataFrame({<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">load</span><span class="ansi-yellow-fg">&#34;</span>: np.random.default_rng(<span class="ansi-green-fg">42</span>).normal(<span class="ansi-green-fg">150</span>, <span class="ansi-green-fg">20</span>, <span class="ansi-green-fg">48</span>)}, index=idx)
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">6</span> ts_from_pd = <span class="ansi-yellow-bg">tdm</span>.TimeSeries.from_pandas(df_external, unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>, data_type=tdm.DataType.MEASUREMENT)
-<span class="ansi-green-fg">      7</span> ts_from_pd
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>load</td></tr>
+<tr><td>Length</td><td>48</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>load</th></tr>
+<tr><td>2024-06-01 00:00</td><td>156.094</td></tr>
+<tr><td>2024-06-01 01:00</td><td>129.2</td></tr>
+<tr><td>2024-06-01 02:00</td><td>165.009</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-06-02 21:00</td><td>154.374</td></tr>
+<tr><td>2024-06-02 22:00</td><td>167.429</td></tr>
+<tr><td>2024-06-02 23:00</td><td>154.472</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
@@ -261,23 +332,23 @@ ts_from_pd
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rng = np.random.default_rng(42)
-table = tdm.TimeSeriesTable(
-    tdm.Frequency.PT1H,
-    timestamps=timestamps,
-    values=np.column_stack([
-        100 + rng.normal(0, 10, 24),
-        50 + rng.normal(0, 5, 24),
-    ]),
-    names=[&quot;wind&quot;, &quot;solar&quot;],
-    units=[&quot;MW&quot;, &quot;MW&quot;],
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">table</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesTable</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span>
+        <span class="mi">100</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="mi">50</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>
+    <span class="p">]),</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;wind&quot;</span><span class="p">,</span> <span class="s2">&quot;solar&quot;</span><span class="p">],</span>
+    <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">],</span>
+<span class="p">)</span>
 
-df_table = table.to_pandas_dataframe()
-print(f&quot;Columns: {list(df_table.columns)}&quot;)
+<span class="n">df_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pandas_dataframe</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">df_table</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-table_back = tdm.TimeSeriesTable.from_pandas(df_table, units=[&quot;MW&quot;, &quot;MW&quot;])
-print(f&quot;Round-trip equals: {table.equals(table_back)}&quot;)
+<span class="n">table_back</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesTable</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span><span class="n">df_table</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Round-trip equals: </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">table_back</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -286,24 +357,8 @@ print(f&quot;Round-trip equals: {table.equals(table_back)}&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[5]</span><span class="ansi-green-fg">, line 2</span>
-<span class="ansi-green-fg">      1</span> rng = np.random.default_rng(<span class="ansi-green-fg">42</span>)
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span> table = <span class="ansi-yellow-bg">tdm</span>.TimeSeriesTable(
-<span class="ansi-green-fg">      3</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">      4</span>     timestamps=timestamps,
-<span class="ansi-green-fg">      5</span>     values=np.column_stack([
-<span class="ansi-green-fg">      6</span>         <span class="ansi-green-fg">100</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">10</span>, <span class="ansi-green-fg">24</span>),
-<span class="ansi-green-fg">      7</span>         <span class="ansi-green-fg">50</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">5</span>, <span class="ansi-green-fg">24</span>),
-<span class="ansi-green-fg">      8</span>     ]),
-<span class="ansi-green-fg">      9</span>     names=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">wind</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">solar</span><span class="ansi-yellow-fg">&#34;</span>],
-<span class="ansi-green-fg">     10</span>     units=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>],
-<span class="ansi-green-fg">     11</span> )
-<span class="ansi-green-fg">     13</span> df_table = table.to_pandas_dataframe()
-<span class="ansi-green-fg">     14</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Columns: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">list</span>(df_table.columns)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+Columns: [&#39;wind&#39;, &#39;solar&#39;]
+Round-trip equals: True
 </pre></div></div>
 </div>
 </section>
@@ -314,14 +369,14 @@ print(f&quot;Round-trip equals: {table.equals(table_back)}&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>try:
-    df_pl = ts.to_polars_dataframe()
-    print(df_pl.head())
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">df_pl</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_polars_dataframe</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df_pl</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
 
-    ts_from_pl = tdm.TimeSeries.from_polars(df_pl, tdm.Frequency.PT1H, unit=&quot;MW&quot;)
-    print(f&quot;\nRound-trip length: {len(ts_from_pl)}&quot;)
-except ImportError:
-    print(&quot;polars not installed — skip this cell or: pip install timedatamodel[polars]&quot;)
+    <span class="n">ts_from_pl</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="o">.</span><span class="n">from_polars</span><span class="p">(</span><span class="n">df_pl</span><span class="p">,</span> <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Round-trip length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts_from_pl</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;polars not installed — skip this cell or: pip install timedatamodel[polars]&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -330,15 +385,20 @@ except ImportError:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[6]</span><span class="ansi-green-fg">, line 2</span>
-<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">try</span>:
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span>     df_pl = <span class="ansi-yellow-bg">ts</span>.to_polars_dataframe()
-<span class="ansi-green-fg">      3</span>     <span style="color: rgb(0,135,0)">print</span>(df_pl.head())
-<span class="ansi-green-fg">      5</span>     ts_from_pl = tdm.TimeSeries.from_polars(df_pl, tdm.Frequency.PT1H, unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>)
+shape: (5, 2)
+┌─────────────────────────┬────────────┐
+│ timestamp               ┆ power      │
+│ ---                     ┆ ---        │
+│ datetime[μs, UTC]       ┆ f64        │
+╞═════════════════════════╪════════════╡
+│ 2024-01-15 00:00:00 UTC ┆ 100.0      │
+│ 2024-01-15 01:00:00 UTC ┆ 112.940952 │
+│ 2024-01-15 02:00:00 UTC ┆ 125.0      │
+│ 2024-01-15 03:00:00 UTC ┆ 135.355339 │
+│ 2024-01-15 04:00:00 UTC ┆ 143.30127  │
+└─────────────────────────┴────────────┘
 
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
+Round-trip length: 24
 </pre></div></div>
 </div>
 </section>
@@ -349,8 +409,8 @@ except ImportError:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>json_str = ts.to_json()
-print(json_str[:200], &quot;...&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">json_str</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">json_str</span><span class="p">[:</span><span class="mi">200</span><span class="p">],</span> <span class="s2">&quot;...&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -359,25 +419,19 @@ print(json_str[:200], &quot;...&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[7]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> json_str = <span class="ansi-yellow-bg">ts</span>.to_json()
-<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(json_str[:<span class="ansi-green-fg">200</span>], <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">...</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
+{&#34;timestamps&#34;: [&#34;2024-01-15T00:00:00+00:00&#34;, &#34;2024-01-15T01:00:00+00:00&#34;, &#34;2024-01-15T02:00:00+00:00&#34;, &#34;2024-01-15T03:00:00+00:00&#34;, &#34;2024-01-15T04:00:00+00:00&#34;, &#34;2024-01-15T05:00:00+00:00&#34;, &#34;2024-01-1 ...
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_restored = tdm.TimeSeries.from_json(json_str)
-print(f&quot;Name:      {ts_restored.name}&quot;)
-print(f&quot;Unit:      {ts_restored.unit}&quot;)
-print(f&quot;Frequency: {ts_restored.frequency}&quot;)
-print(f&quot;Length:    {len(ts_restored)}&quot;)
-print(f&quot;Equals original: {ts.equals(ts_restored)}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_restored</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name:      </span><span class="si">{</span><span class="n">ts_restored</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unit:      </span><span class="si">{</span><span class="n">ts_restored</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Frequency: </span><span class="si">{</span><span class="n">ts_restored</span><span class="o">.</span><span class="n">frequency</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length:    </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts_restored</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Equals original: </span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">ts_restored</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -386,14 +440,11 @@ print(f&quot;Equals original: {ts.equals(ts_restored)}&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[8]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_restored = <span class="ansi-yellow-bg">tdm</span>.TimeSeries.from_json(json_str)
-<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Name:      </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_restored.name<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Unit:      </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_restored.unit<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+Name:      power
+Unit:      MW
+Frequency: PT1H
+Length:    24
+Equals original: True
 </pre></div></div>
 </div>
 <section id="JSON-for-TimeSeriesTable">
@@ -402,10 +453,10 @@ print(f&quot;Equals original: {ts.equals(ts_restored)}&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>json_table = table.to_json()
-table_restored = tdm.TimeSeriesTable.from_json(json_table)
-print(f&quot;Columns: {table_restored.column_names}&quot;)
-print(f&quot;Equals original: {table.equals(table_restored)}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">json_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+<span class="n">table_restored</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesTable</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">json_table</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns: </span><span class="si">{</span><span class="n">table_restored</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Equals original: </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">table_restored</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -414,14 +465,8 @@ print(f&quot;Equals original: {table.equals(table_restored)}&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[9]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> json_table = <span class="ansi-yellow-bg">table</span>.to_json()
-<span class="ansi-green-fg">      2</span> table_restored = tdm.TimeSeriesTable.from_json(json_table)
-<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Columns: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>table_restored.column_names<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
+Columns: (&#39;wind&#39;, &#39;solar&#39;)
+Equals original: True
 </pre></div></div>
 </div>
 </section>
@@ -433,19 +478,19 @@ print(f&quot;Equals original: {table.equals(table_restored)}&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import tempfile
-from pathlib import Path
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-with tempfile.TemporaryDirectory() as tmp:
-    csv_path = Path(tmp) / &quot;power.csv&quot;
-    ts.to_csv(csv_path)
+<span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+    <span class="n">csv_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;power.csv&quot;</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
 
-    with open(csv_path) as f:
-        for i, line in enumerate(f):
-            print(line.rstrip())
-            if i &gt;= 4:
-                print(&quot;...&quot;)
-                break
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;...&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
 </pre></div>
 </div>
 </div>
@@ -454,129 +499,209 @@ with tempfile.TemporaryDirectory() as tmp:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[10]</span><span class="ansi-green-fg">, line 6</span>
-<span class="ansi-green-fg">      4</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> tempfile.TemporaryDirectory() <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> tmp:
-<span class="ansi-green-fg">      5</span>     csv_path = Path(tmp) / <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">power.csv</span><span class="ansi-yellow-fg">&#34;</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">6</span>     <span class="ansi-yellow-bg">ts</span>.to_csv(csv_path)
-<span class="ansi-green-fg">      8</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> <span style="color: rgb(0,135,0)">open</span>(csv_path) <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> f:
-<span class="ansi-green-fg">      9</span>         <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i, line <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">enumerate</span>(f):
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
+timestamp,power
+2024-01-15T00:00:00+00:00,100.0
+2024-01-15T01:00:00+00:00,112.94095225512604
+2024-01-15T02:00:00+00:00,125.0
+2024-01-15T03:00:00+00:00,135.35533905932738
+...
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>with tempfile.TemporaryDirectory() as tmp:
-    csv_path = Path(tmp) / &quot;power.csv&quot;
-    ts.to_csv(csv_path)
-    ts_from_csv = tdm.TimeSeries.from_csv(csv_path, tdm.Frequency.PT1H, unit=&quot;MW&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+    <span class="n">csv_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;power.csv&quot;</span>
+    <span class="n">ts</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
+    <span class="n">ts_from_csv</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="o">.</span><span class="n">from_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">)</span>
 
-print(f&quot;Length: {len(ts_from_csv)}&quot;)
-print(f&quot;Name:   {ts_from_csv.name}&quot;)
-ts_from_csv.head()
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts_from_csv</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name:   </span><span class="si">{</span><span class="n">ts_from_csv</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">ts_from_csv</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[11]</span><span class="ansi-green-fg">, line 3</span>
-<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">with</span> tempfile.TemporaryDirectory() <span class="ansi-bold" style="color: rgb(0,135,0)">as</span> tmp:
-<span class="ansi-green-fg">      2</span>     csv_path = Path(tmp) / <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">power.csv</span><span class="ansi-yellow-fg">&#34;</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">3</span>     <span class="ansi-yellow-bg">ts</span>.to_csv(csv_path)
-<span class="ansi-green-fg">      4</span>     ts_from_csv = tdm.TimeSeries.from_csv(csv_path, tdm.Frequency.PT1H, unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      6</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Length: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">len</span>(ts_from_csv)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
+Length: 24
+Name:   power
 </pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>5</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>100.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>112.941</td></tr>
+<tr><td>2024-01-15 02:00</td><td>125.0</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Multi-index-round-trip">
 <h2>Multi-index round-trip<a class="headerlink" href="#Multi-index-round-trip" title="Link to this heading"></a></h2>
-<p>TimeSeries supports tuple-based timestamps for hierarchical indexing. This is preserved through pandas and JSON round-trips.</p>
+<p>TimeSeriesList supports tuple-based timestamps for hierarchical indexing. This is preserved through pandas and JSON round-trips.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>issue_times = [
-    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),
-]
-valid_times = [
-    datetime(2024, 1, 15, 0, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 1, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 2, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 12, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 13, tzinfo=timezone.utc),
-    datetime(2024, 1, 15, 14, tzinfo=timezone.utc),
-]
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">issue_times</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="n">valid_times</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+    <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">),</span>
+<span class="p">]</span>
 
-ts_multi = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timestamps=list(zip(issue_times, valid_times)),
-    values=[100.0, 105.0, 110.0, 95.0, 100.0, 108.0],
-    name=&quot;forecast&quot;,
-    unit=&quot;MW&quot;,
-    index_names=[&quot;issue_time&quot;, &quot;valid_time&quot;],
-)
+<span class="n">ts_multi</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">issue_times</span><span class="p">,</span> <span class="n">valid_times</span><span class="p">)),</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">105.0</span><span class="p">,</span> <span class="mf">110.0</span><span class="p">,</span> <span class="mf">95.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">108.0</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;forecast&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="n">index_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;issue_time&quot;</span><span class="p">,</span> <span class="s2">&quot;valid_time&quot;</span><span class="p">],</span>
+<span class="p">)</span>
 
-df_multi = ts_multi.to_pandas_dataframe()
-df_multi
+<span class="n">df_multi</span> <span class="o">=</span> <span class="n">ts_multi</span><span class="o">.</span><span class="n">to_pandas_dataframe</span><span class="p">()</span>
+<span class="n">df_multi</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[12]</span><span class="ansi-green-fg">, line 18</span>
-<span class="ansi-green-fg">      1</span> issue_times = [
-<span class="ansi-green-fg">      2</span>     datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">0</span>, tzinfo=timezone.utc),
-<span class="ansi-green-fg">      3</span>     datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">0</span>, tzinfo=timezone.utc),
-<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">      7</span>     datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">12</span>, tzinfo=timezone.utc),
-<span class="ansi-green-fg">      8</span> ]
-<span class="ansi-green-fg">      9</span> valid_times = [
-<span class="ansi-green-fg">     10</span>     datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">0</span>, tzinfo=timezone.utc),
-<span class="ansi-green-fg">     11</span>     datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">1</span>, tzinfo=timezone.utc),
-<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">     15</span>     datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, <span class="ansi-green-fg">14</span>, tzinfo=timezone.utc),
-<span class="ansi-green-fg">     16</span> ]
-<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">18</span> ts_multi = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
-<span class="ansi-green-fg">     19</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">     20</span>     timestamps=<span style="color: rgb(0,135,0)">list</span>(<span style="color: rgb(0,135,0)">zip</span>(issue_times, valid_times)),
-<span class="ansi-green-fg">     21</span>     values=[<span class="ansi-green-fg">100.0</span>, <span class="ansi-green-fg">105.0</span>, <span class="ansi-green-fg">110.0</span>, <span class="ansi-green-fg">95.0</span>, <span class="ansi-green-fg">100.0</span>, <span class="ansi-green-fg">108.0</span>],
-<span class="ansi-green-fg">     22</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">forecast</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     23</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     24</span>     index_names=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">issue_time</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">valid_time</span><span class="ansi-yellow-fg">&#34;</span>],
-<span class="ansi-green-fg">     25</span> )
-<span class="ansi-green-fg">     27</span> df_multi = ts_multi.to_pandas_dataframe()
-<span class="ansi-green-fg">     28</span> df_multi
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
 
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
-</pre></div></div>
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>forecast</th>
+    </tr>
+    <tr>
+      <th>issue_time</th>
+      <th>valid_time</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="3" valign="top">2024-01-15 00:00:00+00:00</th>
+      <th>2024-01-15 00:00:00+00:00</th>
+      <td>100.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 01:00:00+00:00</th>
+      <td>105.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 02:00:00+00:00</th>
+      <td>110.0</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">2024-01-15 12:00:00+00:00</th>
+      <th>2024-01-15 12:00:00+00:00</th>
+      <td>95.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 13:00:00+00:00</th>
+      <td>100.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 14:00:00+00:00</th>
+      <td>108.0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_multi_back = tdm.TimeSeries.from_pandas(df_multi, tdm.Frequency.PT1H, unit=&quot;MW&quot;)
-print(f&quot;Index names: {ts_multi_back.index_names}&quot;)
-print(f&quot;Multi-index: {ts_multi_back.is_multi_index}&quot;)
-print(f&quot;Equals original: {ts_multi.equals(ts_multi_back)}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_multi_back</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="o">.</span><span class="n">from_pandas</span><span class="p">(</span><span class="n">df_multi</span><span class="p">,</span> <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Index names: </span><span class="si">{</span><span class="n">ts_multi_back</span><span class="o">.</span><span class="n">index_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Multi-index: </span><span class="si">{</span><span class="n">ts_multi_back</span><span class="o">.</span><span class="n">is_multi_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Equals original: </span><span class="si">{</span><span class="n">ts_multi</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">ts_multi_back</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -585,14 +710,9 @@ print(f&quot;Equals original: {ts_multi.equals(ts_multi_back)}&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[13]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_multi_back = <span class="ansi-yellow-bg">tdm</span>.TimeSeries.from_pandas(df_multi, tdm.Frequency.PT1H, unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Index names: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_multi_back.index_names<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Multi-index: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_multi_back.is_multi_index<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
+Index names: (&#39;issue_time&#39;, &#39;valid_time&#39;)
+Multi-index: True
+Equals original: True
 </pre></div></div>
 </div>
 </section>

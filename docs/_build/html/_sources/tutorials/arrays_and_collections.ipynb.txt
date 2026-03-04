@@ -1,0 +1,404 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "# Arrays and Collections\n\nFor multi-dimensional data (e.g., scenario × time, or region × quantile × time) use `TimeSeriesArray`. For grouping heterogeneous time series that don't share the same timestamps, use `TimeSeriesCollection`."
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "## TimeSeriesArray\n\nAn array stores an N-dimensional array with named `Dimension` objects. Each dimension has a name and a list of labels (datetimes, strings, or numbers).  \nCommon use cases include ensemble forecasts, scenario analysis, and multi-site probabilistic forecasts."
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from datetime import datetime, timedelta, timezone\n",
+    "\n",
+    "import numpy as np\n",
+    "\n",
+    "import timedatamodel as tdm\n",
+    "\n",
+    "rng = np.random.default_rng(42)\n",
+    "base = datetime(2024, 1, 15, tzinfo=timezone.utc)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "### Building a 4D array\n\nImagine a wind power forecasting system that produces:\n\n- **3 knowledge times** — forecasts issued at 00:00, 06:00, and 12:00\n- **24 valid times** — hourly forecast horizon\n- **3 wind farms** — Alpha, Bravo, Charlie\n- **5 quantiles** — probabilistic spread from q10 to q90\n\nThat gives a `(3, 24, 3, 5)` array with **1 080 values**."
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "knowledge_times = [base + timedelta(hours=h) for h in [0, 6, 12]]\nvalid_times = [base + timedelta(hours=h) for h in range(24)]\nwind_farms = [\"Alpha\", \"Bravo\", \"Charlie\"]\nquantiles = [\"q10\", \"q25\", \"q50\", \"q75\", \"q90\"]\n\nnk = len(knowledge_times)\nnv = len(valid_times)\nnw = len(wind_farms)\nnq = len(quantiles)\n\ndata = np.empty((nk, nv, nw, nq))\nfor k in range(nk):\n    for w in range(nw):\n        capacity = 50 + 20 * w\n        daily_shape = capacity * (1 + 0.3 * np.sin(np.linspace(0, 2 * np.pi, nv)))\n        for q_idx, q_spread in enumerate([-0.4, -0.15, 0, 0.15, 0.4]):\n            data[k, :, w, q_idx] = daily_shape * (1 + q_spread) + rng.normal(0, 3, nv) + k * 5\n\ncube = tdm.TimeSeriesArray(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    name=\"wind_power\",\n    unit=\"MW\",\n    data_type=tdm.DataType.FORECAST,\n    dimensions=[\n        tdm.Dimension(\"knowledge_time\", knowledge_times),\n        tdm.Dimension(\"valid_time\", valid_times),\n        tdm.Dimension(\"wind_farm\", wind_farms),\n        tdm.Dimension(\"quantile\", quantiles),\n    ],\n    values=data,\n)\ncube"
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "### Array properties"
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(f\"Shape:      {cube.shape}\")\n",
+    "print(f\"Dimensions: {cube.dim_names}\")\n",
+    "print(f\"N dims:     {cube.ndim}\")\n",
+    "print(f\"Begin:      {cube.begin}\")\n",
+    "print(f\"End:        {cube.end}\")\n",
+    "print(f\"Has missing:{cube.has_missing}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "coords = cube.coords\n",
+    "for dim_name, labels in coords.items():\n",
+    "    preview = labels[:3]\n",
+    "    suffix = f\" ... ({len(labels)} total)\" if len(labels) > 3 else \"\"\n",
+    "    print(f\"{dim_name:18s} {preview}{suffix}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "### `sel()` — fixing one dimension (4D → 3D array)\n\nFix `knowledge_time` to get all farms and quantiles for a single forecast issuance.  \nThe result is still an array because 3 dimensions remain."
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "noon_forecast = cube.sel(knowledge_time=knowledge_times[2])  # 12:00 issuance\n",
+    "\n",
+    "print(f\"Type:  {type(noon_forecast).__name__}\")\n",
+    "print(f\"Shape: {noon_forecast.shape}\")\n",
+    "print(f\"Dims:  {noon_forecast.dim_names}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "### `sel()` — fixing two dimensions (4D → 2D → TimeSeriesTable)\n\nFix `knowledge_time` and `wind_farm` to see all quantiles over time for one farm.  \nOnly 2 dimensions remain (`valid_time × quantile`), so the array auto-collapses to a `TimeSeriesTable`."
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "alpha_quantiles = cube.sel(\n",
+    "    knowledge_time=knowledge_times[2],\n",
+    "    wind_farm=\"Alpha\",\n",
+    ")\n",
+    "\n",
+    "print(f\"Type:    {type(alpha_quantiles).__name__}\")\n",
+    "print(f\"Columns: {alpha_quantiles.column_names}\")\n",
+    "alpha_quantiles"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Fix a different pair — `knowledge_time` and `quantile` — to compare farms at the median:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "farms_median = cube.sel(\n",
+    "    knowledge_time=knowledge_times[2],\n",
+    "    quantile=\"q50\",\n",
+    ")\n",
+    "\n",
+    "print(f\"Type:    {type(farms_median).__name__}\")\n",
+    "print(f\"Columns: {farms_median.column_names}\")\n",
+    "farms_median"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### `sel()` — fixing three dimensions (4D → 1D → TimeSeriesList)\n",
+    "\n",
+    "Fix everything except `valid_time` to extract a single time series."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "single = cube.sel(\n",
+    "    knowledge_time=knowledge_times[2],\n",
+    "    wind_farm=\"Alpha\",\n",
+    "    quantile=\"q50\",\n",
+    ")\n",
+    "\n",
+    "print(f\"Type: {type(single).__name__}\")\n",
+    "print(f\"Len:  {len(single)}\")\n",
+    "single"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### `isel()` — index-based selection\n",
+    "\n",
+    "Use integer positions instead of labels."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "bravo_p90 = cube.isel(\n",
+    "    knowledge_time=0,\n",
+    "    wind_farm=1,       # Bravo\n",
+    "    quantile=-1,       # q90 (last)\n",
+    ")\n",
+    "\n",
+    "print(f\"Type: {type(bravo_p90).__name__}, len={len(bravo_p90)}\")\n",
+    "print(f\"Mean: {np.nanmean(bravo_p90.arr):.1f} MW\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Slicing a dimension\n",
+    "\n",
+    "Use `slice()` to keep a range of labels. The dimension is preserved (not collapsed)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "narrow = cube.sel(\n",
+    "    knowledge_time=knowledge_times[2],\n",
+    "    wind_farm=\"Alpha\",\n",
+    "    quantile=slice(\"q25\", \"q75\"),\n",
+    ")\n",
+    "\n",
+    "print(f\"Type:    {type(narrow).__name__}\")\n",
+    "print(f\"Columns: {narrow.column_names}\")\n",
+    "narrow"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Converting to pandas\n",
+    "\n",
+    "`to_pandas_dataframe()` produces a long-format DataFrame with a `MultiIndex` covering all dimensions."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "df = cube.to_pandas_dataframe()\n",
+    "print(f\"Shape:        {df.shape}\")\n",
+    "print(f\"Index levels: {list(df.index.names)}\")\n",
+    "df.head(10)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "### Building an array from a list of TimeSeriesList\n\n`from_timeseries_list()` is handy when you already have individual forecasts."
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": "base_prices = 50 + 20 * np.sin(np.linspace(0, 2 * np.pi, 24))\n\nseries_list = [\n    tdm.TimeSeriesList(\n        tdm.Frequency.PT1H,\n        timestamps=valid_times,\n        values=(base_prices * factor + rng.normal(0, 2, 24)).tolist(),\n        name=\"price\",\n        unit=\"EUR/MWh\",\n    )\n    for factor in [0.7, 0.85, 1.0, 1.15, 1.3]\n]\n\nensemble = tdm.TimeSeriesArray.from_timeseries_list(\n    series_list,\n    dimension=tdm.Dimension(\"percentile\", [\"p10\", \"p25\", \"p50\", \"p75\", \"p90\"]),\n    name=\"price_ensemble\",\n)\nensemble"
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "\n",
+    "## TimeSeriesCollection\n",
+    "\n",
+    "A `TimeSeriesCollection` groups time series that may have different frequencies, time ranges, or numbers of points. Think of it as a named bag of `TimeSeriesList` and `TimeSeriesTable` objects."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "daily_base = datetime(2024, 1, 1, tzinfo=timezone.utc)\n",
+    "hours = [base + timedelta(hours=i) for i in range(24)]\n",
+    "\n",
+    "ts_hourly = tdm.TimeSeriesList(\n",
+    "    tdm.Frequency.PT1H,\n",
+    "    timestamps=hours,\n",
+    "    values=[100.0 + rng.normal(0, 10) for _ in range(24)],\n",
+    "    name=\"wind_hourly\",\n",
+    "    unit=\"MW\",\n",
+    ")\n",
+    "\n",
+    "ts_daily = tdm.TimeSeriesList(\n",
+    "    tdm.Frequency.P1D,\n",
+    "    timestamps=[daily_base + timedelta(days=d) for d in range(30)],\n",
+    "    values=[2400.0 + rng.normal(0, 200) for _ in range(30)],\n",
+    "    name=\"wind_daily_energy\",\n",
+    "    unit=\"MWh\",\n",
+    ")\n",
+    "\n",
+    "ts_15min = tdm.TimeSeriesList(\n",
+    "    tdm.Frequency.PT15M,\n",
+    "    timestamps=[base + timedelta(minutes=15 * i) for i in range(96)],\n",
+    "    values=[50.0 + rng.normal(0, 5) for _ in range(96)],\n",
+    "    name=\"solar_15min\",\n",
+    "    unit=\"MW\",\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Creating a collection"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "collection = tdm.TimeSeriesCollection(\n",
+    "    [ts_hourly, ts_daily, ts_15min],\n",
+    "    name=\"Plant overview\",\n",
+    "    description=\"Mixed-frequency data for a single plant\",\n",
+    ")\n",
+    "collection"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Dictionary-like access"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(f\"Names: {collection.names}\")\n",
+    "print(f\"Count: {collection.series_count}\")\n",
+    "\n",
+    "collection[\"wind_hourly\"]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Adding and removing series\n",
+    "\n",
+    "Collections are immutable — `add()` and `remove()` return new collections."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ts_price = tdm.TimeSeriesList(\n",
+    "    tdm.Frequency.PT1H,\n",
+    "    timestamps=hours,\n",
+    "    values=[45.0 + rng.normal(0, 8) for _ in range(24)],\n",
+    "    name=\"spot_price\",\n",
+    "    unit=\"EUR/MWh\",\n",
+    ")\n",
+    "\n",
+    "extended = collection.add(ts_price)\n",
+    "print(f\"Original: {collection.names}\")\n",
+    "print(f\"Extended: {extended.names}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "reduced = extended.remove(\"wind_daily_energy\")\n",
+    "print(f\"Reduced: {reduced.names}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Iterating over a collection"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "for name, series in collection.items():\n",
+    "    print(f\"{name:20s}  freq={str(series.frequency):5s}  len={len(series):3d}  begin={series.begin}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": "## Summary\n\n- **`TimeSeriesArray`**: N-dimensional time series with `Dimension` labels; slice with `sel()` / `isel()`; auto-collapses to Table or Series\n- **`TimeSeriesCollection`**: heterogeneous container for series with different frequencies and time ranges; dictionary-like access; immutable add/remove\n\nNext up: **nb_07** covers data quality tools — coverage bars and validation."
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": "3.11.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

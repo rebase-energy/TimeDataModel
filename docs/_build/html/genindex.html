@@ -44,6 +44,7 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Basic Usage</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
@@ -51,9 +52,9 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorials/getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/unit_handling_and_validation.html">Unit Handling and Validation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/timeseries_operations.html">TimeSeriesList Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/multivariate_timeseries.html">Multivariate Time Series</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorials/cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/arrays_and_collections.html">Arrays and Collections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/data_quality_and_coverage.html">Data Quality and Coverage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/io_and_interoperability.html">I/O and Interoperability</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials/geographical_support.html">Geographical Support</a></li>
@@ -127,33 +128,19 @@
 </li>
       <li><a href="api.html#timedatamodel.AggregationMethod">AggregationMethod (class in timedatamodel)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.apply_numpy">apply_numpy() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.apply_numpy">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeries.apply_pandas">apply_pandas() (timedatamodel.TimeSeries method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.apply_pandas">apply_pandas() (timedatamodel.TimeSeriesArray method)</a>
+</li>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.apply_polars">apply_polars() (timedatamodel.TimeSeriesArray method)</a>
+</li>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.apply_xarray">apply_xarray() (timedatamodel.TimeSeriesArray method)</a>
+</li>
+      <li><a href="api.html#timedatamodel.TimeSeriesCollection.arr">arr (timedatamodel.TimeSeriesCollection property)</a>
+</li>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.attributes">attributes (timedatamodel.TimeSeriesArray attribute)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.apply_pandas">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.arr">arr (timedatamodel.TimeSeries property)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCollection.arr">(timedatamodel.TimeSeriesCollection property)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.arr">(timedatamodel.TimeSeriesTable property)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.attributes">attributes (timedatamodel.TimeSeries attribute)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.attributes">(timedatamodel.TimeSeriesCube attribute)</a>
-</li>
         <li><a href="api.html#timedatamodel.TimeSeriesTable.attributes">(timedatamodel.TimeSeriesTable attribute)</a>
 </li>
       </ul></li>
@@ -163,16 +150,20 @@
 <h2 id="B">B</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#timedatamodel.DataType.BASELINE">BASELINE (timedatamodel.DataType attribute)</a>
+</li>
       <li><a href="api.html#timedatamodel.GeoLocation.bearing_to">bearing_to() (timedatamodel.GeoLocation method)</a>
 </li>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.begin">begin (timedatamodel.HierarchicalTimeSeries property)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.begin">(timedatamodel.TimeSeriesCube property)</a>
+        <li><a href="api.html#timedatamodel.TimeSeriesArray.begin">(timedatamodel.TimeSeriesArray property)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#timedatamodel.DataType.BENCHMARK">BENCHMARK (timedatamodel.DataType attribute)</a>
+</li>
       <li><a href="api.html#timedatamodel.GeoArea.bounding_box">bounding_box() (timedatamodel.GeoArea class method)</a>
 </li>
       <li><a href="api.html#timedatamodel.GeoArea.bounds">bounds (timedatamodel.GeoArea property)</a>
@@ -183,60 +174,38 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#timedatamodel.DataType.CALCULATED">CALCULATED (timedatamodel.DataType attribute)</a>
+</li>
       <li><a href="api.html#timedatamodel.GeoArea.centroid">centroid (timedatamodel.GeoArea property)</a>
 </li>
-      <li><a href="api.html#timedatamodel.HierarchyNode.children">children (timedatamodel.HierarchyNode attribute)</a>
-</li>
-      <li><a href="api.html#timedatamodel.DataType.CLIMATE">CLIMATE (timedatamodel.DataType attribute)</a>
-</li>
-      <li><a href="api.html#timedatamodel.TimeSeries.column_names">column_names (timedatamodel.TimeSeries property)</a>
+      <li><a href="api.html#timedatamodel.DataType.children">children (timedatamodel.DataType property)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.column_names">(timedatamodel.TimeSeriesTable property)</a>
+        <li><a href="api.html#timedatamodel.HierarchyNode.children">(timedatamodel.HierarchyNode attribute)</a>
 </li>
       </ul></li>
+      <li><a href="api.html#timedatamodel.TimeSeriesTable.column_names">column_names (timedatamodel.TimeSeriesTable property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#timedatamodel.GeoArea.contains_area">contains_area() (timedatamodel.GeoArea method)</a>
 </li>
       <li><a href="api.html#timedatamodel.GeoArea.contains_point">contains_point() (timedatamodel.GeoArea method)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.convert_unit">convert_unit() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.convert_unit">(timedatamodel.TimeSeriesTable method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesTable.convert_unit">convert_unit() (timedatamodel.TimeSeriesTable method)</a>
 </li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.coords">coords (timedatamodel.TimeSeriesCube property)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.coords">coords (timedatamodel.TimeSeriesArray property)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.copy">copy() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.copy">(timedatamodel.TimeSeriesTable method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesTable.copy">copy() (timedatamodel.TimeSeriesTable method)</a>
 </li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.coverage_bar">coverage_bar() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCollection.coverage_bar">(timedatamodel.TimeSeriesCollection method)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.coverage_bar">(timedatamodel.TimeSeriesCube method)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.coverage_bar">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeries.data_type">data_type (timedatamodel.TimeSeries attribute)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.data_type">(timedatamodel.TimeSeriesCube attribute)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.data_type">data_type (timedatamodel.TimeSeriesArray attribute)</a>
 </li>
-      </ul></li>
       <li><a href="api.html#timedatamodel.TimeSeriesTable.data_types">data_types (timedatamodel.TimeSeriesTable attribute)</a>
 </li>
       <li><a href="api.html#timedatamodel.DataPoint">DataPoint (class in timedatamodel)</a>
@@ -245,33 +214,25 @@
 </li>
       <li><a href="api.html#timedatamodel.HierarchyNode.depth">depth (timedatamodel.HierarchyNode property)</a>
 </li>
+      <li><a href="api.html#timedatamodel.DataType.DERIVED">DERIVED (timedatamodel.DataType attribute)</a>
+</li>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.description">description (timedatamodel.HierarchicalTimeSeries property)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeries.description">(timedatamodel.TimeSeries attribute)</a>
+        <li><a href="api.html#timedatamodel.TimeSeriesArray.description">(timedatamodel.TimeSeriesArray attribute)</a>
 </li>
         <li><a href="api.html#timedatamodel.TimeSeriesCollection.description">(timedatamodel.TimeSeriesCollection property)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.description">(timedatamodel.TimeSeriesCube attribute)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#timedatamodel.TimeSeriesTable.descriptions">descriptions (timedatamodel.TimeSeriesTable attribute)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.df">df (timedatamodel.TimeSeries property)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCollection.df">(timedatamodel.TimeSeriesCollection property)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.df">(timedatamodel.TimeSeriesTable property)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.dim_names">dim_names (timedatamodel.TimeSeriesCube property)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.dim_names">dim_names (timedatamodel.TimeSeriesArray property)</a>
 </li>
       <li><a href="api.html#timedatamodel.Dimension">Dimension (class in timedatamodel)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.dimensions">dimensions (timedatamodel.TimeSeriesCube attribute)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.dimensions">dimensions (timedatamodel.TimeSeriesArray attribute)</a>
 </li>
       <li><a href="api.html#timedatamodel.GeoArea.distance_to">distance_to() (timedatamodel.GeoArea method)</a>
 
@@ -288,19 +249,13 @@
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.end">end (timedatamodel.HierarchicalTimeSeries property)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.end">(timedatamodel.TimeSeriesCube property)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.equals">equals() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.equals">(timedatamodel.TimeSeriesCube method)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.equals">(timedatamodel.TimeSeriesTable method)</a>
+        <li><a href="api.html#timedatamodel.TimeSeriesArray.end">(timedatamodel.TimeSeriesArray property)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.equals">equals() (timedatamodel.TimeSeriesArray method)</a>
+</li>
       <li><a href="api.html#timedatamodel.DataType.ESTIMATION">ESTIMATION (timedatamodel.DataType attribute)</a>
 </li>
   </ul></td>
@@ -326,9 +281,7 @@
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.frequency">frequency (timedatamodel.HierarchicalTimeSeries property)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeries.frequency">(timedatamodel.TimeSeries attribute)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.frequency">(timedatamodel.TimeSeriesCube attribute)</a>
+        <li><a href="api.html#timedatamodel.TimeSeriesArray.frequency">(timedatamodel.TimeSeriesArray attribute)</a>
 </li>
         <li><a href="api.html#timedatamodel.TimeSeriesTable.frequency">(timedatamodel.TimeSeriesTable attribute)</a>
 </li>
@@ -337,33 +290,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#timedatamodel.GeoArea.from_coordinates">from_coordinates() (timedatamodel.GeoArea class method)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.from_csv">from_csv() (timedatamodel.TimeSeries class method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.from_csv">(timedatamodel.TimeSeriesTable class method)</a>
-</li>
-      </ul></li>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.from_dataframe">from_dataframe() (timedatamodel.HierarchicalTimeSeries class method)</a>
 </li>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.from_dict">from_dict() (timedatamodel.HierarchicalTimeSeries class method)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.from_json">from_json() (timedatamodel.TimeSeries class method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.from_json">(timedatamodel.TimeSeriesTable class method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.from_numpy">from_numpy() (timedatamodel.TimeSeriesArray class method)</a>
 </li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.from_numpy">from_numpy() (timedatamodel.TimeSeriesCube class method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.from_timeseries_list">from_timeseries_list() (timedatamodel.TimeSeriesArray class method)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.from_pandas">from_pandas() (timedatamodel.TimeSeries class method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.from_pandas">(timedatamodel.TimeSeriesTable class method)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.from_polars">from_polars() (timedatamodel.TimeSeries class method)</a>
-</li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.from_timeseries_list">from_timeseries_list() (timedatamodel.TimeSeriesCube class method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.from_xarray">from_xarray() (timedatamodel.TimeSeriesArray class method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -387,20 +322,14 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeries.has_missing">has_missing (timedatamodel.TimeSeries property)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.has_missing">has_missing (timedatamodel.TimeSeriesArray property)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.has_missing">(timedatamodel.TimeSeriesCube property)</a>
-</li>
         <li><a href="api.html#timedatamodel.TimeSeriesTable.has_missing">(timedatamodel.TimeSeriesTable property)</a>
 </li>
       </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.head">head() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.head">(timedatamodel.TimeSeriesTable method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesTable.head">head() (timedatamodel.TimeSeriesTable method)</a>
 </li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries">HierarchicalTimeSeries (class in timedatamodel)</a>
@@ -415,15 +344,21 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#timedatamodel.DataType.IDEAL">IDEAL (timedatamodel.DataType attribute)</a>
+</li>
       <li><a href="api.html#timedatamodel.Frequency.is_calendar_based">is_calendar_based (timedatamodel.Frequency property)</a>
 </li>
-      <li><a href="api.html#timedatamodel.HierarchyNode.is_leaf">is_leaf (timedatamodel.HierarchyNode property)</a>
+      <li><a href="api.html#timedatamodel.DataType.is_leaf">is_leaf (timedatamodel.DataType property)</a>
+
+      <ul>
+        <li><a href="api.html#timedatamodel.HierarchyNode.is_leaf">(timedatamodel.HierarchyNode property)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#timedatamodel.GeoLocation.is_within">is_within() (timedatamodel.GeoLocation method)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.isel">isel() (timedatamodel.TimeSeriesCube method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.isel">isel() (timedatamodel.TimeSeriesArray method)</a>
 </li>
       <li><a href="api.html#timedatamodel.TimeSeriesCollection.items">items() (timedatamodel.TimeSeriesCollection method)</a>
 </li>
@@ -446,25 +381,25 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#timedatamodel.Dimension.labels">labels (timedatamodel.Dimension attribute)</a>
+
+      <ul>
+        <li><a href="api.html#timedatamodel.TimeSeriesTable.labels">(timedatamodel.TimeSeriesTable attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api.html#timedatamodel.GeoLocation.latitude">latitude (timedatamodel.GeoLocation attribute)</a>
 </li>
       <li><a href="api.html#timedatamodel.HierarchyNode.leaf_count">leaf_count (timedatamodel.HierarchyNode property)</a>
 </li>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.leaves">leaves() (timedatamodel.HierarchicalTimeSeries method)</a>
 </li>
-      <li><a href="api.html#timedatamodel.HierarchyNode.level">level (timedatamodel.HierarchyNode attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#timedatamodel.HierarchyNode.level">level (timedatamodel.HierarchyNode attribute)</a>
+</li>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.levels">levels (timedatamodel.HierarchicalTimeSeries property)</a>
 </li>
       <li><a href="api.html#timedatamodel.HierarchyNode.location">location (timedatamodel.HierarchyNode attribute)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeries.location">(timedatamodel.TimeSeries attribute)</a>
 </li>
-      </ul></li>
       <li><a href="api.html#timedatamodel.TimeSeriesTable.locations">locations (timedatamodel.TimeSeriesTable attribute)</a>
 </li>
       <li><a href="api.html#timedatamodel.GeoLocation.longitude">longitude (timedatamodel.GeoLocation attribute)</a>
@@ -479,12 +414,8 @@
 </li>
       <li><a href="api.html#timedatamodel.AggregationMethod.MEAN">MEAN (timedatamodel.AggregationMethod attribute)</a>
 </li>
-      <li><a href="api.html#timedatamodel.DataType.MEASUREMENT">MEASUREMENT (timedatamodel.DataType attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeries.merge">merge() (timedatamodel.TimeSeries static method)</a>
-</li>
       <li><a href="api.html#timedatamodel.GeoLocation.midpoint">midpoint() (timedatamodel.GeoLocation method)</a>
 </li>
       <li><a href="api.html#timedatamodel.AggregationMethod.MIN">MIN (timedatamodel.AggregationMethod attribute)</a>
@@ -510,11 +441,9 @@
 </li>
         <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.name">(timedatamodel.HierarchicalTimeSeries property)</a>
 </li>
-        <li><a href="api.html#timedatamodel.TimeSeries.name">(timedatamodel.TimeSeries attribute)</a>
+        <li><a href="api.html#timedatamodel.TimeSeriesArray.name">(timedatamodel.TimeSeriesArray attribute)</a>
 </li>
         <li><a href="api.html#timedatamodel.TimeSeriesCollection.name">(timedatamodel.TimeSeriesCollection property)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.name">(timedatamodel.TimeSeriesCube attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -525,7 +454,7 @@
         <li><a href="api.html#timedatamodel.TimeSeriesTable.names">(timedatamodel.TimeSeriesTable attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.ndim">ndim (timedatamodel.TimeSeriesCube property)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.ndim">ndim (timedatamodel.TimeSeriesArray property)</a>
 </li>
       <li><a href="api.html#timedatamodel.TimeSeriesCollection.nearest">nearest() (timedatamodel.TimeSeriesCollection method)</a>
 </li>
@@ -539,6 +468,8 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#timedatamodel.DataType.OBSERVATION">OBSERVATION (timedatamodel.DataType attribute)</a>
+</li>
       <li><a href="api.html#timedatamodel.GeoLocation.offset">offset() (timedatamodel.GeoLocation method)</a>
 </li>
   </ul></td>
@@ -563,17 +494,21 @@
 </li>
       <li><a href="api.html#timedatamodel.Frequency.P3M">P3M (timedatamodel.Frequency attribute)</a>
 </li>
-      <li><a href="api.html#timedatamodel.HierarchyNode.parent">parent (timedatamodel.HierarchyNode property)</a>
+      <li><a href="api.html#timedatamodel.DataType.parent">parent (timedatamodel.DataType property)</a>
+
+      <ul>
+        <li><a href="api.html#timedatamodel.HierarchyNode.parent">(timedatamodel.HierarchyNode property)</a>
 </li>
+      </ul></li>
       <li><a href="api.html#timedatamodel.HierarchyNode.path">path (timedatamodel.HierarchyNode property)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.pint_unit">pint_unit (timedatamodel.TimeSeries property)</a>
+      <li><a href="api.html#timedatamodel.GeoArea.polygon">polygon (timedatamodel.GeoArea attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.GeoArea.polygon">polygon (timedatamodel.GeoArea attribute)</a>
+      <li><a href="api.html#timedatamodel.DataType.PREDICTION">PREDICTION (timedatamodel.DataType attribute)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.primary_time_dim">primary_time_dim (timedatamodel.TimeSeriesCube property)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.primary_time_dim">primary_time_dim (timedatamodel.TimeSeriesArray property)</a>
 </li>
       <li><a href="api.html#timedatamodel.Frequency.PT10M">PT10M (timedatamodel.Frequency attribute)</a>
 </li>
@@ -595,12 +530,20 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeriesCollection.remove">remove() (timedatamodel.TimeSeriesCollection method)</a>
+      <li><a href="api.html#timedatamodel.DataType.RECONSTRUCTION">RECONSTRUCTION (timedatamodel.DataType attribute)</a>
+</li>
+      <li><a href="api.html#timedatamodel.DataType.REFERENCE">REFERENCE (timedatamodel.DataType attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.root">root (timedatamodel.HierarchicalTimeSeries property)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesCollection.remove">remove() (timedatamodel.TimeSeriesCollection method)</a>
 </li>
+      <li><a href="api.html#timedatamodel.DataType.root">root (timedatamodel.DataType property)</a>
+
+      <ul>
+        <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.root">(timedatamodel.HierarchicalTimeSeries property)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -609,7 +552,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api.html#timedatamodel.DataType.SCENARIO">SCENARIO (timedatamodel.DataType attribute)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.sel">sel() (timedatamodel.TimeSeriesCube method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.sel">sel() (timedatamodel.TimeSeriesArray method)</a>
 </li>
       <li><a href="api.html#timedatamodel.TimeSeriesTable.select_column">select_column() (timedatamodel.TimeSeriesTable method)</a>
 </li>
@@ -617,15 +560,15 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.shape">shape (timedatamodel.TimeSeriesCube property)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.shape">shape (timedatamodel.TimeSeriesArray property)</a>
 </li>
       <li><a href="api.html#timedatamodel.HierarchyNode.siblings">siblings (timedatamodel.HierarchyNode property)</a>
+</li>
+      <li><a href="api.html#timedatamodel.DataType.SIMULATION">SIMULATION (timedatamodel.DataType attribute)</a>
 </li>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.subtree">subtree() (timedatamodel.HierarchicalTimeSeries method)</a>
 </li>
       <li><a href="api.html#timedatamodel.AggregationMethod.SUM">SUM (timedatamodel.AggregationMethod attribute)</a>
-</li>
-      <li><a href="api.html#timedatamodel.DataType.SYNTHETIC">SYNTHETIC (timedatamodel.DataType attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -633,23 +576,15 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeries.tail">tail() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.tail">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries">TimeSeries (class in timedatamodel)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesTable.tail">tail() (timedatamodel.TimeSeriesTable method)</a>
 </li>
       <li><a href="api.html#timedatamodel.HierarchyNode.timeseries">timeseries (timedatamodel.HierarchyNode attribute)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.timeseries_type">timeseries_type (timedatamodel.TimeSeries attribute)</a>
-</li>
       <li><a href="api.html#timedatamodel.TimeSeriesTable.timeseries_types">timeseries_types (timedatamodel.TimeSeriesTable attribute)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCollection">TimeSeriesCollection (class in timedatamodel)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray">TimeSeriesArray (class in timedatamodel)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube">TimeSeriesCube (class in timedatamodel)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesCollection">TimeSeriesCollection (class in timedatamodel)</a>
 </li>
       <li><a href="api.html#timedatamodel.TimeSeriesTable">TimeSeriesTable (class in timedatamodel)</a>
 </li>
@@ -660,86 +595,46 @@
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.timezone">timezone (timedatamodel.HierarchicalTimeSeries property)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeries.timezone">(timedatamodel.TimeSeries attribute)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.timezone">(timedatamodel.TimeSeriesCube attribute)</a>
+        <li><a href="api.html#timedatamodel.TimeSeriesArray.timezone">(timedatamodel.TimeSeriesArray attribute)</a>
 </li>
         <li><a href="api.html#timedatamodel.TimeSeriesTable.timezone">(timedatamodel.TimeSeriesTable attribute)</a>
 </li>
       </ul></li>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.to_collection">to_collection() (timedatamodel.HierarchicalTimeSeries method)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeries.to_csv">to_csv() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.to_csv">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.to_json">to_json() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.to_json">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.to_numpy">to_numpy() (timedatamodel.TimeSeries method)</a>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.to_numpy">to_numpy() (timedatamodel.TimeSeriesArray method)</a>
 
       <ul>
         <li><a href="api.html#timedatamodel.TimeSeriesCollection.to_numpy">(timedatamodel.TimeSeriesCollection method)</a>
 </li>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.to_numpy">(timedatamodel.TimeSeriesCube method)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.to_numpy">(timedatamodel.TimeSeriesTable method)</a>
-</li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeries.to_pandas_dataframe">to_pandas_dataframe() (timedatamodel.TimeSeries method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.to_pandas_dataframe">to_pandas_dataframe() (timedatamodel.TimeSeriesArray method)</a>
 
       <ul>
         <li><a href="api.html#timedatamodel.TimeSeriesCollection.to_pandas_dataframe">(timedatamodel.TimeSeriesCollection method)</a>
 </li>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.to_pandas_dataframe">(timedatamodel.TimeSeriesCube method)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.to_pandas_dataframe">(timedatamodel.TimeSeriesTable method)</a>
-</li>
       </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.to_pd_df">to_pd_df() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCollection.to_pd_df">(timedatamodel.TimeSeriesCollection method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesCollection.to_pd_df">to_pd_df() (timedatamodel.TimeSeriesCollection method)</a>
 </li>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.to_pd_df">(timedatamodel.TimeSeriesTable method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesCollection.to_pl_df">to_pl_df() (timedatamodel.TimeSeriesCollection method)</a>
 </li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.to_pl_df">to_pl_df() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCollection.to_pl_df">(timedatamodel.TimeSeriesCollection method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesCollection.to_polars_dataframe">to_polars_dataframe() (timedatamodel.TimeSeriesCollection method)</a>
 </li>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.to_pl_df">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.to_polars_dataframe">to_polars_dataframe() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCollection.to_polars_dataframe">(timedatamodel.TimeSeriesCollection method)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.to_polars_dataframe">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.to_table">to_table() (timedatamodel.HierarchicalTimeSeries method)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.to_table">(timedatamodel.TimeSeriesCube method)</a>
+        <li><a href="api.html#timedatamodel.TimeSeriesArray.to_table">(timedatamodel.TimeSeriesArray method)</a>
 </li>
       </ul></li>
       <li><a href="api.html#timedatamodel.Frequency.to_timedelta">to_timedelta() (timedatamodel.Frequency method)</a>
 </li>
-      <li><a href="api.html#timedatamodel.TimeSeriesCube.to_timeseries">to_timeseries() (timedatamodel.TimeSeriesCube method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.to_timeseries">to_timeseries() (timedatamodel.TimeSeriesArray method)</a>
 </li>
       <li><a href="api.html#timedatamodel.TimeSeriesTable.to_univariate_list">to_univariate_list() (timedatamodel.TimeSeriesTable method)</a>
 </li>
-      <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.tree">tree() (timedatamodel.HierarchicalTimeSeries method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesArray.to_xarray">to_xarray() (timedatamodel.TimeSeriesArray method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -750,28 +645,12 @@
       <li><a href="api.html#timedatamodel.HierarchicalTimeSeries.unit">unit (timedatamodel.HierarchicalTimeSeries property)</a>
 
       <ul>
-        <li><a href="api.html#timedatamodel.TimeSeries.unit">(timedatamodel.TimeSeries attribute)</a>
-</li>
-        <li><a href="api.html#timedatamodel.TimeSeriesCube.unit">(timedatamodel.TimeSeriesCube attribute)</a>
+        <li><a href="api.html#timedatamodel.TimeSeriesArray.unit">(timedatamodel.TimeSeriesArray attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeriesTable.units">units (timedatamodel.TimeSeriesTable attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeries.update_arr">update_arr() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.update_arr">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.update_df">update_df() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.update_df">(timedatamodel.TimeSeriesTable method)</a>
-</li>
-      </ul></li>
-      <li><a href="api.html#timedatamodel.TimeSeries.update_from_pandas">update_from_pandas() (timedatamodel.TimeSeries method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesTable.units">units (timedatamodel.TimeSeriesTable attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -779,22 +658,14 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeries.validate">validate() (timedatamodel.TimeSeries method)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.validate">(timedatamodel.TimeSeriesTable method)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesTable.validate">validate() (timedatamodel.TimeSeriesTable method)</a>
 </li>
-      </ul></li>
       <li><a href="api.html#timedatamodel.DataPoint.value">value (timedatamodel.DataPoint attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api.html#timedatamodel.TimeSeries.values">values (timedatamodel.TimeSeries property)</a>
-
-      <ul>
-        <li><a href="api.html#timedatamodel.TimeSeriesTable.values">(timedatamodel.TimeSeriesTable property)</a>
+      <li><a href="api.html#timedatamodel.TimeSeriesTable.values">values (timedatamodel.TimeSeriesTable property)</a>
 </li>
-      </ul></li>
       <li><a href="api.html#timedatamodel.TimeSeriesCollection.values">values() (timedatamodel.TimeSeriesCollection method)</a>
 </li>
   </ul></td>

@@ -18,6 +18,7 @@ A lightweight data model for time series data with pandas, numpy, polars, and xa
 :caption: Getting Started
 
 installation
+overview
 usage
 ```
 

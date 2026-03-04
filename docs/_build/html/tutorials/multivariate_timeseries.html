@@ -24,8 +24,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Cubes and Collections" href="cubes_and_collections.html" />
-    <link rel="prev" title="TimeSeries Operations" href="timeseries_operations.html" /> 
+    <link rel="next" title="Arrays and Collections" href="arrays_and_collections.html" />
+    <link rel="prev" title="TimeSeriesList Operations" href="timeseries_operations.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -50,6 +50,7 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic Usage</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
@@ -57,7 +58,7 @@
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with TimeDataModel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="unit_handling_and_validation.html">Unit Handling and Validation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeriesList Operations</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Multivariate Time Series</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#Creating-a-TimeSeriesTable">Creating a TimeSeriesTable</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Inspecting-table-properties">Inspecting table properties</a></li>
@@ -70,7 +71,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#Summary">Summary</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arrays_and_collections.html">Arrays and Collections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data_quality_and_coverage.html">Data Quality and Coverage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io_and_interoperability.html">I/O and Interoperability</a></li>
 <li class="toctree-l1"><a class="reference internal" href="geographical_support.html">Geographical Support</a></li>
@@ -108,37 +109,20 @@
   <section id="Multivariate-Time-Series">
 <h1>Multivariate Time Series<a class="headerlink" href="#Multivariate-Time-Series" title="Link to this heading"></a></h1>
 <p>When you have multiple signals that share the same timestamps — like wind, solar, and hydro power — use <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> (also aliased as <code class="docutils literal notranslate"><span class="pre">MultivariateTimeSeries</span></code>). It stores per-column metadata and a 2D numpy array of values.</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from datetime import datetime, timedelta, timezone
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
 
-import numpy as np
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-import timedatamodel as tdm
+<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
 
-base = datetime(2024, 1, 15, tzinfo=timezone.utc)
-timestamps = [base + timedelta(hours=i) for i in range(24)]
+<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[1]</span><span class="ansi-green-fg">, line 5</span>
-<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">datetime</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">import</span> datetime, timedelta, timezone
-<span class="ansi-green-fg">      3</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">numpy</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">np</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">5</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">timedatamodel</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">tdm</span>
-<span class="ansi-green-fg">      7</span> base = datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, tzinfo=timezone.utc)
-<span class="ansi-green-fg">      8</span> timestamps = [base + timedelta(hours=i) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">24</span>)]
-
-<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;timedatamodel&#39;
-</pre></div></div>
 </div>
 <section id="Creating-a-TimeSeriesTable">
 <h2>Creating a TimeSeriesTable<a class="headerlink" href="#Creating-a-TimeSeriesTable" title="Link to this heading"></a></h2>
@@ -147,51 +131,94 @@ timestamps = [base + timedelta(hours=i) for i in range(24)]
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rng = np.random.default_rng(42)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 
-wind = 80 + 40 * np.sin(np.linspace(0, 2 * np.pi, 24)) + rng.normal(0, 5, 24)
-solar = np.clip(60 * np.sin(np.linspace(-0.5, np.pi + 0.5, 24)), 0, None) + rng.normal(0, 2, 24)
-solar = np.clip(solar, 0, None)
-hydro = 50 + rng.normal(0, 3, 24)
+<span class="n">wind</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">+</span> <span class="mi">40</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+<span class="n">solar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">24</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
+<span class="n">solar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">solar</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">hydro</span> <span class="o">=</span> <span class="mi">50</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span>
 
-values = np.column_stack([wind, solar, hydro])
+<span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">wind</span><span class="p">,</span> <span class="n">solar</span><span class="p">,</span> <span class="n">hydro</span><span class="p">])</span>
 
-table = tdm.TimeSeriesTable(
-    tdm.Frequency.PT1H,
-    timezone=&quot;UTC&quot;,
-    timestamps=timestamps,
-    values=values,
-    names=[&quot;wind&quot;, &quot;solar&quot;, &quot;hydro&quot;],
-    units=[&quot;MW&quot;, &quot;MW&quot;, &quot;MW&quot;],
-    data_types=[tdm.DataType.MEASUREMENT, tdm.DataType.MEASUREMENT, tdm.DataType.MEASUREMENT],
-)
-table
+<span class="n">table</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesTable</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">values</span><span class="p">,</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;wind&quot;</span><span class="p">,</span> <span class="s2">&quot;solar&quot;</span><span class="p">,</span> <span class="s2">&quot;hydro&quot;</span><span class="p">],</span>
+    <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">],</span>
+    <span class="n">data_types</span><span class="o">=</span><span class="p">[</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">,</span> <span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">,</span> <span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">table</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[2]</span><span class="ansi-green-fg">, line 10</span>
-<span class="ansi-green-fg">      6</span> hydro = <span class="ansi-green-fg">50</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">3</span>, <span class="ansi-green-fg">24</span>)
-<span class="ansi-green-fg">      8</span> values = np.column_stack([wind, solar, hydro])
-<span class="ansi-green-fg">---&gt; </span><span class="ansi-green-fg">10</span> table = <span class="ansi-yellow-bg">tdm</span>.TimeSeriesTable(
-<span class="ansi-green-fg">     11</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">     12</span>     timezone=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">UTC</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     13</span>     timestamps=timestamps,
-<span class="ansi-green-fg">     14</span>     values=values,
-<span class="ansi-green-fg">     15</span>     names=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">wind</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">solar</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">hydro</span><span class="ansi-yellow-fg">&#34;</span>],
-<span class="ansi-green-fg">     16</span>     units=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>],
-<span class="ansi-green-fg">     17</span>     data_types=[tdm.DataType.MEASUREMENT, tdm.DataType.MEASUREMENT, tdm.DataType.MEASUREMENT],
-<span class="ansi-green-fg">     18</span> )
-<span class="ansi-green-fg">     19</span> table
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Length</td><td>24 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION, OBSERVATION, OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00</td><td>81.5236</td><td>0.0</td><td>52.0367</td></tr>
+<tr><td>2024-01-15 01:00</td><td>85.592</td><td>0.0</td><td>50.2027</td></tr>
+<tr><td>2024-01-15 02:00</td><td>104.536</td><td>1.06462</td><td>50.8674</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>55.812</td><td>0.437377</td><td>49.4261</td></tr>
+<tr><td>2024-01-15 22:00</td><td>75.3208</td><td>1.74286</td><td>46.1729</td></tr>
+<tr><td>2024-01-15 23:00</td><td>79.2274</td><td>0.447191</td><td>46.6001</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Inspecting-table-properties">
@@ -200,11 +227,11 @@ table
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(f&quot;Columns:     {table.column_names}&quot;)
-print(f&quot;Shape:       ({len(table)}, {table.n_columns})&quot;)
-print(f&quot;Begin:       {table.begin}&quot;)
-print(f&quot;End:         {table.end}&quot;)
-print(f&quot;Has missing: {table.has_missing}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns:     </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape:       (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">table</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">n_columns</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Begin:       </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">begin</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;End:         </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">end</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has missing: </span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">has_missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -213,49 +240,98 @@ print(f&quot;Has missing: {table.has_missing}&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[3]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Columns:     </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span class="ansi-yellow-bg">table</span>.column_names<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Shape:       (</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">len</span>(table)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">, </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>table.n_columns<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">)</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Begin:       </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>table.begin<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
+Columns:     (&#39;wind&#39;, &#39;solar&#39;, &#39;hydro&#39;)
+Shape:       (24, 3)
+Begin:       2024-01-15 00:00:00+00:00
+End:         2024-01-15 23:00:00+00:00
+Has missing: False
 </pre></div></div>
 </div>
 </section>
 <section id="Selecting-a-single-column">
 <h2>Selecting a single column<a class="headerlink" href="#Selecting-a-single-column" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">select_column()</span></code> extracts one column as a univariate <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code>, carrying over its metadata.</p>
+<p><code class="docutils literal notranslate"><span class="pre">select_column()</span></code> extracts one column as a univariate <code class="docutils literal notranslate"><span class="pre">TimeSeriesList</span></code>, carrying over its metadata.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_wind = table.select_column(&quot;wind&quot;)
-ts_wind
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_wind</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">select_column</span><span class="p">(</span><span class="s2">&quot;wind&quot;</span><span class="p">)</span>
+<span class="n">ts_wind</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[4]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_wind = <span class="ansi-yellow-bg">table</span>.select_column(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">wind</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      2</span> ts_wind
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>wind</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind</th></tr>
+<tr><td>2024-01-15 00:00</td><td>81.5236</td></tr>
+<tr><td>2024-01-15 01:00</td><td>85.592</td></tr>
+<tr><td>2024-01-15 02:00</td><td>104.536</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>55.812</td></tr>
+<tr><td>2024-01-15 22:00</td><td>75.3208</td></tr>
+<tr><td>2024-01-15 23:00</td><td>79.2274</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_solar = table.select_column(&quot;solar&quot;)
-print(f&quot;Name: {ts_solar.name}, Unit: {ts_solar.unit}, Data type: {ts_solar.data_type}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_solar</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">select_column</span><span class="p">(</span><span class="s2">&quot;solar&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name: </span><span class="si">{</span><span class="n">ts_solar</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">, Unit: </span><span class="si">{</span><span class="n">ts_solar</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">, Data type: </span><span class="si">{</span><span class="n">ts_solar</span><span class="o">.</span><span class="n">data_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -264,78 +340,109 @@ print(f&quot;Name: {ts_solar.name}, Unit: {ts_solar.unit}, Data type: {ts_solar.
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[5]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_solar = <span class="ansi-yellow-bg">table</span>.select_column(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">solar</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Name: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_solar.name<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">, Unit: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_solar.unit<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">, Data type: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_solar.data_type<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
+Name: solar, Unit: MW, Data type: OBSERVATION
 </pre></div></div>
 </div>
 </section>
 <section id="Merging-univariate-series-into-a-table">
 <h2>Merging univariate series into a table<a class="headerlink" href="#Merging-univariate-series-into-a-table" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">TimeSeries.merge()</span></code> is the reverse operation — combine several univariate series that share the same timestamps.</p>
+<p><code class="docutils literal notranslate"><span class="pre">TimeSeriesList.merge()</span></code> is the reverse operation — combine several univariate series that share the same timestamps.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_a = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timestamps=timestamps,
-    values=wind.tolist(),
-    name=&quot;wind&quot;,
-    unit=&quot;MW&quot;,
-)
-ts_b = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timestamps=timestamps,
-    values=solar.tolist(),
-    name=&quot;solar&quot;,
-    unit=&quot;MW&quot;,
-)
-ts_c = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timestamps=timestamps,
-    values=hydro.tolist(),
-    name=&quot;hydro&quot;,
-    unit=&quot;MW&quot;,
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_a</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">wind</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wind&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ts_b</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">solar</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;solar&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ts_c</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">hydro</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;hydro&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 
-merged = tdm.TimeSeries.merge([ts_a, ts_b, ts_c])
-merged
+<span class="n">merged</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="o">.</span><span class="n">merge</span><span class="p">([</span><span class="n">ts_a</span><span class="p">,</span> <span class="n">ts_b</span><span class="p">,</span> <span class="n">ts_c</span><span class="p">])</span>
+<span class="n">merged</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[6]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_a = <span class="ansi-yellow-bg">tdm</span>.TimeSeries(
-<span class="ansi-green-fg">      2</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">      3</span>     timestamps=timestamps,
-<span class="ansi-green-fg">      4</span>     values=wind.tolist(),
-<span class="ansi-green-fg">      5</span>     name=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">wind</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">      6</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">      7</span> )
-<span class="ansi-green-fg">      8</span> ts_b = tdm.TimeSeries(
-<span class="ansi-green-fg">      9</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">     10</span>     timestamps=timestamps,
-<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">     13</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     14</span> )
-<span class="ansi-green-fg">     15</span> ts_c = tdm.TimeSeries(
-<span class="ansi-green-fg">     16</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">     17</span>     timestamps=timestamps,
-<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">     20</span>     unit=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>,
-<span class="ansi-green-fg">     21</span> )
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Length</td><td>24 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00</td><td>81.5236</td><td>0.0</td><td>52.0367</td></tr>
+<tr><td>2024-01-15 01:00</td><td>85.592</td><td>0.0</td><td>50.2027</td></tr>
+<tr><td>2024-01-15 02:00</td><td>104.536</td><td>1.06462</td><td>50.8674</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>55.812</td><td>0.437377</td><td>49.4261</td></tr>
+<tr><td>2024-01-15 22:00</td><td>75.3208</td><td>1.74286</td><td>46.1729</td></tr>
+<tr><td>2024-01-15 23:00</td><td>79.2274</td><td>0.447191</td><td>46.6001</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Decomposing-a-table-back-to-univariate-series">
@@ -344,9 +451,9 @@ merged
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>univariate_list = merged.to_univariate_list()
-for ts in univariate_list:
-    print(f&quot;{ts.name}: {len(ts)} points, unit={ts.unit}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">univariate_list</span> <span class="o">=</span> <span class="n">merged</span><span class="o">.</span><span class="n">to_univariate_list</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">univariate_list</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="si">}</span><span class="s2"> points, unit=</span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -355,14 +462,9 @@ for ts in univariate_list:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[7]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> univariate_list = <span class="ansi-yellow-bg">merged</span>.to_univariate_list()
-<span class="ansi-green-fg">      2</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> ts <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> univariate_list:
-<span class="ansi-green-fg">      3</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts.name<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">len</span>(ts)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> points, unit=</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts.unit<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;merged&#39; is not defined
+wind: 24 points, unit=MW
+solar: 24 points, unit=MW
+hydro: 24 points, unit=MW
 </pre></div></div>
 </div>
 </section>
@@ -373,24 +475,73 @@ for ts in univariate_list:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table_gw = table * 0.001
-table_gw.head(5)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table_gw</span> <span class="o">=</span> <span class="n">table</span> <span class="o">*</span> <span class="mf">0.001</span>
+<span class="n">table_gw</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[8]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> table_gw = <span class="ansi-yellow-bg">table</span> * <span class="ansi-green-fg">0.001</span>
-<span class="ansi-green-fg">      2</span> table_gw.head(<span class="ansi-green-fg">5</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Length</td><td>5 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION, OBSERVATION, OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00</td><td>0.0815236</td><td>0.0</td><td>0.0520367</td></tr>
+<tr><td>2024-01-15 01:00</td><td>0.085592</td><td>0.0</td><td>0.0502027</td></tr>
+<tr><td>2024-01-15 02:00</td><td>0.104536</td><td>0.00106462</td><td>0.0508674</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Iteration-and-indexing">
@@ -400,9 +551,9 @@ table_gw.head(5)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts_val, row_vals = table[0]
-print(f&quot;Timestamp: {ts_val}&quot;)
-print(f&quot;Values:    {row_vals}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_val</span><span class="p">,</span> <span class="n">row_vals</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Timestamp: </span><span class="si">{</span><span class="n">ts_val</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Values:    </span><span class="si">{</span><span class="n">row_vals</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -411,23 +562,17 @@ print(f&quot;Values:    {row_vals}&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[9]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> ts_val, row_vals = <span class="ansi-yellow-bg">table</span>[<span class="ansi-green-fg">0</span>]
-<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Timestamp: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_val<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Values:    </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>row_vals<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
+Timestamp: 2024-01-15 00:00:00+00:00
+Values:    [81.52358539877216, 0.0, 52.036740689215684]
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for ts_val, row_vals in table.head(4):
-    wind_mw, solar_mw, hydro_mw = row_vals
-    print(f&quot;{ts_val:%Y-%m-%d %H:%M}  wind={wind_mw:6.1f}  solar={solar_mw:5.1f}  hydro={hydro_mw:5.1f}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">ts_val</span><span class="p">,</span> <span class="n">row_vals</span> <span class="ow">in</span> <span class="n">table</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">wind_mw</span><span class="p">,</span> <span class="n">solar_mw</span><span class="p">,</span> <span class="n">hydro_mw</span> <span class="o">=</span> <span class="n">row_vals</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">ts_val</span><span class="si">:</span><span class="s2">%Y-%m-%d %H:%M</span><span class="si">}</span><span class="s2">  wind=</span><span class="si">{</span><span class="n">wind_mw</span><span class="si">:</span><span class="s2">6.1f</span><span class="si">}</span><span class="s2">  solar=</span><span class="si">{</span><span class="n">solar_mw</span><span class="si">:</span><span class="s2">5.1f</span><span class="si">}</span><span class="s2">  hydro=</span><span class="si">{</span><span class="n">hydro_mw</span><span class="si">:</span><span class="s2">5.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -436,14 +581,10 @@ print(f&quot;Values:    {row_vals}&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[10]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> ts_val, row_vals <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span class="ansi-yellow-bg">table</span>.head(<span class="ansi-green-fg">4</span>):
-<span class="ansi-green-fg">      2</span>     wind_mw, solar_mw, hydro_mw = row_vals
-<span class="ansi-green-fg">      3</span>     <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>ts_val<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">%Y-%m-%d %H:%M</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">  wind=</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>wind_mw<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">6.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">  solar=</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>solar_mw<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">5.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">  hydro=</span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>hydro_mw<span class="ansi-bold" style="color: rgb(175,95,135)">:</span><span class="ansi-yellow-fg">5.1f</span><span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
+2024-01-15 00:00  wind=  81.5  solar=  0.0  hydro= 52.0
+2024-01-15 01:00  wind=  85.6  solar=  0.0  hydro= 50.2
+2024-01-15 02:00  wind= 104.5  solar=  1.1  hydro= 50.9
+2024-01-15 03:00  wind= 113.9  solar=  3.1  hydro= 51.9
 </pre></div></div>
 </div>
 </section>
@@ -453,36 +594,91 @@ print(f&quot;Values:    {row_vals}&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>df = table.to_pandas_dataframe()
-df.head()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_pandas_dataframe</span><span class="p">()</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[11]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> df = <span class="ansi-yellow-bg">table</span>.to_pandas_dataframe()
-<span class="ansi-green-fg">      2</span> df.head()
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
 
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
-</pre></div></div>
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>wind</th>
+      <th>solar</th>
+      <th>hydro</th>
+    </tr>
+    <tr>
+      <th>timestamp</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2024-01-15 00:00:00+00:00</th>
+      <td>81.523585</td>
+      <td>0.000000</td>
+      <td>52.036741</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 01:00:00+00:00</th>
+      <td>85.591950</td>
+      <td>0.000000</td>
+      <td>50.202737</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 02:00:00+00:00</th>
+      <td>104.535614</td>
+      <td>1.064618</td>
+      <td>50.867358</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 03:00:00+00:00</th>
+      <td>113.936262</td>
+      <td>3.142702</td>
+      <td>51.893865</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 04:00:00+00:00</th>
+      <td>105.760233</td>
+      <td>13.935461</td>
+      <td>45.628533</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 </section>
 <section id="Summary">
 <h2>Summary<a class="headerlink" href="#Summary" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> stores multiple aligned columns with per-column metadata</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">select_column()</span></code> extracts a single column as a <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">TimeSeries.merge()</span></code> combines univariate series into a table</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">select_column()</span></code> extracts a single column as a <code class="docutils literal notranslate"><span class="pre">TimeSeriesList</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TimeSeriesList.merge()</span></code> combines univariate series into a table</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">to_univariate_list()</span></code> decomposes a table back to individual series</p></li>
 <li><p>Scalar arithmetic applies across all columns</p></li>
 </ul>
-<p>Next up: <strong>nb_06</strong> covers <code class="docutils literal notranslate"><span class="pre">TimeSeriesCube</span></code> and <code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code> for higher-dimensional data.</p>
+<p>Next up: <strong>nb_06</strong> covers <code class="docutils literal notranslate"><span class="pre">TimeSeriesArray</span></code> and <code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code> for higher-dimensional data.</p>
 </section>
 </section>
 
@@ -490,8 +686,8 @@ df.head()
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="timeseries_operations.html" class="btn btn-neutral float-left" title="TimeSeries Operations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="cubes_and_collections.html" class="btn btn-neutral float-right" title="Cubes and Collections" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="timeseries_operations.html" class="btn btn-neutral float-left" title="TimeSeriesList Operations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="arrays_and_collections.html" class="btn btn-neutral float-right" title="Arrays and Collections" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

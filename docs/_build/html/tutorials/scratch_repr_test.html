@@ -1,0 +1,2990 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scratch – repr &amp; visualisation testing &mdash; timedatamodel</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=bed8cb9f" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            timedatamodel
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with TimeDataModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unit_handling_and_validation.html">Unit Handling and Validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeriesList Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multivariate_timeseries.html">Multivariate Time Series</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arrays_and_collections.html">Arrays and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_quality_and_coverage.html">Data Quality and Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io_and_interoperability.html">I/O and Interoperability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geographical_support.html">Geographical Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchical_timeseries.html">Hierarchical Time Series</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">timedatamodel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Scratch – repr &amp; visualisation testing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/scratch_repr_test.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Scratch-–-repr-&amp;-visualisation-testing">
+<h1>Scratch – repr &amp; visualisation testing<a class="headerlink" href="#Scratch-–-repr-&-visualisation-testing" title="Link to this heading"></a></h1>
+<p>Temporary notebook for testing <code class="docutils literal notranslate"><span class="pre">_repr_html_</span></code> / <code class="docutils literal notranslate"><span class="pre">__repr__</span></code> across all classes and visualisation helpers like <code class="docutils literal notranslate"><span class="pre">coverage_bar()</span></code> and <code class="docutils literal notranslate"><span class="pre">tree()</span></code>.</p>
+<p><strong>Delete when done.</strong></p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="k">if</span> <span class="s2">&quot;google.colab&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span><span class="p">:</span>
+    <span class="o">%</span><span class="k">pip</span> install -q git+https://github.com/rebase-energy/TimeDataModel.git
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AggregationMethod</span><span class="p">,</span>
+    <span class="n">CoverageBar</span><span class="p">,</span>
+    <span class="n">DataType</span><span class="p">,</span>
+    <span class="n">Dimension</span><span class="p">,</span>
+    <span class="n">Frequency</span><span class="p">,</span>
+    <span class="n">GeoLocation</span><span class="p">,</span>
+    <span class="n">HierarchicalTimeSeries</span><span class="p">,</span>
+    <span class="n">HierarchyNode</span><span class="p">,</span>
+    <span class="n">TimeSeriesList</span><span class="p">,</span>
+    <span class="n">TimeSeriesArray</span><span class="p">,</span>
+    <span class="n">TimeSeriesCollection</span><span class="p">,</span>
+    <span class="n">TimeSeriesTable</span><span class="p">,</span>
+    <span class="n">TimeSeriesType</span><span class="p">,</span>
+    <span class="n">get_theme</span><span class="p">,</span>
+    <span class="n">set_theme</span><span class="p">,</span>
+    <span class="n">reset_theme</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Theme-colors">
+<h2>Theme colors<a class="headerlink" href="#Theme-colors" title="Link to this heading"></a></h2>
+<p>All repr and visualisation functions read from a shared theme (<code class="docutils literal notranslate"><span class="pre">theme.json</span></code>). Use <code class="docutils literal notranslate"><span class="pre">get_theme()</span></code> to inspect the current colors and <code class="docutils literal notranslate"><span class="pre">set_theme()</span></code> to override them. Changes take effect on the next repr call. Call <code class="docutils literal notranslate"><span class="pre">reset_theme()</span></code> to restore defaults.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Override colors here — uncomment and edit any line to experiment.</span>
+<span class="c1"># Changes apply to all reprs rendered after this cell.</span>
+
+<span class="n">set_theme</span><span class="p">({</span>
+    <span class="s2">&quot;light&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;header_bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#f0f0f0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;header_text&quot;</span><span class="p">:</span> <span class="s2">&quot;#1a1a1a&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;header_border&quot;</span><span class="p">:</span> <span class="s2">&quot;#4a4a4a&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;meta_bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#fafafa&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;meta_label&quot;</span><span class="p">:</span> <span class="s2">&quot;#475569&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;meta_value&quot;</span><span class="p">:</span> <span class="s2">&quot;#1a1a1a&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;col_header_text&quot;</span><span class="p">:</span> <span class="s2">&quot;#555&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;col_header_border&quot;</span><span class="p">:</span> <span class="s2">&quot;#ccc&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;data_text&quot;</span><span class="p">:</span> <span class="s2">&quot;#1a1a1a&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;index_text&quot;</span><span class="p">:</span> <span class="s2">&quot;#1e293b&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hover_bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#f5f5f5&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ellipsis&quot;</span><span class="p">:</span> <span class="s2">&quot;#999&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;coverage_present&quot;</span><span class="p">:</span> <span class="s2">&quot;#4CAF50&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;coverage_absent&quot;</span><span class="p">:</span> <span class="s2">&quot;#e0e0e0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;coverage_label&quot;</span><span class="p">:</span> <span class="s2">&quot;#333&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;coverage_date&quot;</span><span class="p">:</span> <span class="s2">&quot;#666&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;dark&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;header_bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#1e293b&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;header_text&quot;</span><span class="p">:</span> <span class="s2">&quot;#e2e8f0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;header_border&quot;</span><span class="p">:</span> <span class="s2">&quot;#475569&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;meta_bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#0f172a&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;meta_label&quot;</span><span class="p">:</span> <span class="s2">&quot;#94a3b8&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;meta_value&quot;</span><span class="p">:</span> <span class="s2">&quot;#e2e8f0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;col_header_text&quot;</span><span class="p">:</span> <span class="s2">&quot;#94a3b8&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;col_header_border&quot;</span><span class="p">:</span> <span class="s2">&quot;#334155&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;data_text&quot;</span><span class="p">:</span> <span class="s2">&quot;#e2e8f0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;index_text&quot;</span><span class="p">:</span> <span class="s2">&quot;#cbd5e1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;hover_bg&quot;</span><span class="p">:</span> <span class="s2">&quot;#1e293b&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ellipsis&quot;</span><span class="p">:</span> <span class="s2">&quot;#64748b&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">})</span>
+
+<span class="c1"># To restore defaults at any point:</span>
+<span class="c1"># reset_theme()</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Helper-–-generate-hourly-timestamps">
+<h2>Helper – generate hourly timestamps<a class="headerlink" href="#Helper-–-generate-hourly-timestamps" title="Link to this heading"></a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">hourly_ts</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s2">&quot;2024-01-15&quot;</span><span class="p">):</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2">T00:00:00+00:00&quot;</span><span class="p">)</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">timedelta</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="1.-TimeSeriesList">
+<h2>1. TimeSeriesList<a class="headerlink" href="#1.-TimeSeriesList" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts</span> <span class="o">=</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">hourly_ts</span><span class="p">(</span><span class="mi">24</span><span class="p">),</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mi">120</span> <span class="o">+</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Hourly power output from wind farm Alpha&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ts</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+<tr><td>Description</td><td>Hourly power output from wind farm Alpha</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>124.207</td></tr>
+<tr><td>2024-01-15 02:00</td><td>124.546</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>124.183</td></tr>
+<tr><td>2024-01-15 22:00</td><td>119.956</td></tr>
+<tr><td>2024-01-15 23:00</td><td>115.769</td></tr>
+</table></div>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+TimeSeriesList
+┌──────────────────────────────────────────────────────────────┐
+│  Name:             power                                     │
+│  Length:           24                                        │
+│  Frequency:        PT1H                                      │
+│  Timezone:         UTC (+00:00)                              │
+│  Unit:             MW                                        │
+│  Data type:        OBSERVATION                               │
+│  Description:      Hourly power output from wind farm Alpha  │
+├──────────────────────────────────────────────────────────────┤
+│  2024-01-15 00:00    120.0                                   │
+│  2024-01-15 01:00  124.207                                   │
+│  2024-01-15 02:00  124.546                                   │
+│  ...                   ...                                   │
+│  2024-01-15 21:00  124.183                                   │
+│  2024-01-15 22:00  119.956                                   │
+│  2024-01-15 23:00  115.769                                   │
+└──────────────────────────────────────────────────────────────┘
+</pre></div></div>
+</div>
+<section id="TimeSeriesList-–-empty">
+<h3>TimeSeriesList – empty<a class="headerlink" href="#TimeSeriesList-–-empty" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_empty</span> <span class="o">=</span> <span class="n">TimeSeriesList</span><span class="p">(</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span> <span class="n">timestamps</span><span class="o">=</span><span class="p">[],</span> <span class="n">values</span><span class="o">=</span><span class="p">[],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;empty&quot;</span><span class="p">)</span>
+<span class="n">ts_empty</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>empty</td></tr>
+<tr><td>Length</td><td>0</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>empty</th></tr>
+<tr><td colspan="2" class="ts-ellipsis">(empty)</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="TimeSeriesList-–-with-NaN-gaps">
+<h3>TimeSeriesList – with NaN gaps<a class="headerlink" href="#TimeSeriesList-–-with-NaN-gaps" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">vals_gap</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">16</span><span class="p">]:</span>
+    <span class="n">vals_gap</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="n">ts_gap</span> <span class="o">=</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">hourly_ts</span><span class="p">(</span><span class="mi">24</span><span class="p">),</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">vals_gap</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gappy_signal&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;kW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ts_gap</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>gappy_signal</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>kW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>gappy_signal</th></tr>
+<tr><td>2024-01-15 00:00</td><td>0.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>1.0</td></tr>
+<tr><td>2024-01-15 02:00</td><td>2.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>21.0</td></tr>
+<tr><td>2024-01-15 22:00</td><td>22.0</td></tr>
+<tr><td>2024-01-15 23:00</td><td>23.0</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="TimeSeriesList-–-short-(no-truncation)">
+<h3>TimeSeriesList – short (no truncation)<a class="headerlink" href="#TimeSeriesList-–-short-(no-truncation)" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_short</span> <span class="o">=</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">hourly_ts</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;short&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ts_short</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>short</td></tr>
+<tr><td>Length</td><td>5</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>short</th></tr>
+<tr><td>2024-01-15 00:00</td><td>1.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>2.0</td></tr>
+<tr><td>2024-01-15 02:00</td><td>3.0</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="TimeSeriesList-–-with-location-and-labels">
+<h3>TimeSeriesList – with location and labels<a class="headerlink" href="#TimeSeriesList-–-with-location-and-labels" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_loc</span> <span class="o">=</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">hourly_ts</span><span class="p">(</span><span class="mi">24</span><span class="p">),</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mi">100</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;temperature&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;°C&quot;</span><span class="p">,</span>
+    <span class="n">location</span><span class="o">=</span><span class="n">GeoLocation</span><span class="p">(</span><span class="n">latitude</span><span class="o">=</span><span class="mf">59.91</span><span class="p">,</span> <span class="n">longitude</span><span class="o">=</span><span class="mf">10.75</span><span class="p">),</span>
+    <span class="n">labels</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;met.no&quot;</span><span class="p">,</span> <span class="s2">&quot;station&quot;</span><span class="p">:</span> <span class="s2">&quot;Oslo-Blindern&quot;</span><span class="p">},</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Air temperature at Blindern station&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ts_loc</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>temperature</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>°C</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+<tr><td>Location</td><td>59.91°N, 10.75°E</td></tr>
+<tr><td>Description</td><td>Air temperature at Blindern station</td></tr>
+<tr><td>Labels</td><td>{&#x27;source&#x27;: &#x27;met.no&#x27;, &#x27;station&#x27;: &#x27;Oslo-Blindern&#x27;}</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>temperature</th></tr>
+<tr><td>2024-01-15 00:00</td><td>100.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>100.5</td></tr>
+<tr><td>2024-01-15 02:00</td><td>101.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>110.5</td></tr>
+<tr><td>2024-01-15 22:00</td><td>111.0</td></tr>
+<tr><td>2024-01-15 23:00</td><td>111.5</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="2.-TimeSeriesTable">
+<h2>2. TimeSeriesTable<a class="headerlink" href="#2.-TimeSeriesTable" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">timestamps</span> <span class="o">=</span> <span class="n">hourly_ts</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
+<span class="n">tbl</span> <span class="o">=</span> <span class="n">TimeSeriesTable</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span>
+        <span class="p">[</span><span class="mi">120</span> <span class="o">+</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
+        <span class="p">[</span><span class="mi">80</span> <span class="o">+</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
+        <span class="p">[</span><span class="mi">200</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
+    <span class="p">]),</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;wind_farm_A&quot;</span><span class="p">,</span> <span class="s2">&quot;wind_farm_B&quot;</span><span class="p">,</span> <span class="s2">&quot;solar_park_C&quot;</span><span class="p">],</span>
+    <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">],</span>
+    <span class="n">data_types</span><span class="o">=</span><span class="p">[</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">,</span> <span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">,</span> <span class="n">DataType</span><span class="o">.</span><span class="n">FORECAST</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">tbl</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>wind_farm_A, wind_farm_B, solar_park_C</td></tr>
+<tr><td>Length</td><td>24 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION, OBSERVATION, FORECAST</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind_farm_A</th><th>wind_farm_B</th><th>solar_park_C</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td><td>83.0</td><td>208.415</td></tr>
+<tr><td>2024-01-15 01:00</td><td>124.207</td><td>81.6209</td><td>209.093</td></tr>
+<tr><td>2024-01-15 02:00</td><td>124.546</td><td>78.7516</td><td>201.411</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>124.183</td><td>78.3568</td><td>199.911</td></tr>
+<tr><td>2024-01-15 22:00</td><td>119.956</td><td>77.0001</td><td>191.538</td></tr>
+<tr><td>2024-01-15 23:00</td><td>115.769</td><td>78.4015</td><td>190.944</td></tr>
+</table></div>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">tbl</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+TimeSeriesTable
+┌────────────────────────────────────────────────────────────┐
+│  Name:             unnamed                                 │
+│  Columns:          wind_farm_A, wind_farm_B, solar_park_C  │
+│  Length:           24 × 3                                  │
+│  Frequency:        PT1H                                    │
+│  Timezone:         UTC (+00:00)                            │
+│  Unit:             MW, MW, MW                              │
+│  Data type:        OBSERVATION, OBSERVATION, FORECAST      │
+├────────────────────────────────────────────────────────────┤
+│                    wind_farm_A  wind_farm_B  solar_park_C  │
+│  2024-01-15 00:00        120.0         83.0       208.415  │
+│  2024-01-15 01:00      124.207      81.6209       209.093  │
+│  2024-01-15 02:00      124.546      78.7516       201.411  │
+│  ...                       ...          ...           ...  │
+│  2024-01-15 21:00      124.183      78.3568       199.911  │
+│  2024-01-15 22:00      119.956      77.0001       191.538  │
+│  2024-01-15 23:00      115.769      78.4015       190.944  │
+└────────────────────────────────────────────────────────────┘
+</pre></div></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="3.-TimeSeriesCollection">
+<h2>3. TimeSeriesCollection<a class="headerlink" href="#3.-TimeSeriesCollection" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_a</span> <span class="o">=</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span> <span class="n">timestamps</span><span class="o">=</span><span class="n">hourly_ts</span><span class="p">(</span><span class="mi">24</span><span class="p">),</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;series_A&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ts_b</span> <span class="o">=</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">P1D</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;2024-01-</span><span class="si">{</span><span class="n">d</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">T00:00:00+00:00&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">)],</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">105.0</span><span class="p">,</span> <span class="mf">98.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">110.0</span><span class="p">,</span> <span class="mf">115.0</span><span class="p">,</span> <span class="mf">108.0</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;series_B&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;GWh&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">coll</span> <span class="o">=</span> <span class="n">TimeSeriesCollection</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">ts_a</span><span class="p">,</span> <span class="n">ts_b</span><span class="p">,</span> <span class="n">tbl</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;My Collection&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;A mix of different series&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">coll</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesCollection</div>
+<div class="ts-data"><table style="text-align: left;">
+<tr><th>name</th><th>type</th><th>freq</th><th>tz</th><th>length</th><th>begin</th><th>end</th></tr>
+<tr><td>series_A</td><td>TimeSeriesList</td><td>PT1H</td><td>UTC</td><td>24</td><td style="white-space:nowrap">2024-01-15 00:00</td><td style="white-space:nowrap">2024-01-15 23:00</td></tr>
+<tr><td>series_B</td><td>TimeSeriesList</td><td>P1D</td><td>UTC</td><td>7</td><td style="white-space:nowrap">2024-01-01 00:00</td><td style="white-space:nowrap">2024-01-07 00:00</td></tr>
+<tr><td>wind_farm_A,wind_farm_B,solar_park_C</td><td>TimeSeriesTable</td><td>PT1H</td><td>UTC</td><td>24</td><td style="white-space:nowrap">2024-01-15 00:00</td><td style="white-space:nowrap">2024-01-15 23:00</td></tr>
+</table></div></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">coll</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+TimeSeriesCollection
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  name                                  type             freq  tz   length  begin             end               │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│  series_A                              TimeSeriesList   PT1H  UTC  24      2024-01-15 00:00  2024-01-15 23:00  │
+│  series_B                              TimeSeriesList   P1D   UTC  7       2024-01-01 00:00  2024-01-07 00:00  │
+│  wind_farm_A,wind_farm_B,solar_park_C  TimeSeriesTable  PT1H  UTC  24      2024-01-15 00:00  2024-01-15 23:00  │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+</pre></div></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="4.-TimeSeriesArray-(N-dimensional)">
+<h2>4. TimeSeriesArray (N-dimensional)<a class="headerlink" href="#4.-TimeSeriesArray-(N-dimensional)" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">time_labels</span> <span class="o">=</span> <span class="n">hourly_ts</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">scenarios</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;mid&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">]</span>
+
+<span class="n">arr</span> <span class="o">=</span> <span class="n">TimeSeriesArray</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;price_scenarios&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;EUR/MWh&quot;</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">SCENARIO</span><span class="p">,</span>
+    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">Dimension</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">time_labels</span><span class="p">),</span>
+        <span class="n">Dimension</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;scenario&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">scenarios</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">)),</span>
+<span class="p">)</span>
+<span class="n">arr</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesArray</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>price_scenarios</td></tr>
+<tr><td>Dimensions</td><td>timestamp: 12, scenario: 3</td></tr>
+<tr><td>Shape</td><td>(12, 3)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>EUR/MWh</td></tr>
+<tr><td>Data type</td><td>SCENARIO</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<thead>
+<tr><th>timestamp</th><th>low</th><th>mid</th><th>high</th></tr>
+</thead>
+<tbody>
+<tr><td class="ts-idx">2024-01-15 00:00</td><td>68.6978</td><td>51.9439</td><td>72.9299</td></tr>
+<tr><td class="ts-idx">2024-01-15 01:00</td><td>64.8684</td><td>34.7089</td><td>78.7811</td></tr>
+<tr><td class="ts-idx">2024-01-15 02:00</td><td>68.057</td><td>69.3032</td><td>36.4057</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td class="ts-idx">2024-01-15 09:00</td><td>32.1902</td><td>37.7145</td><td>64.1524</td></tr>
+<tr><td class="ts-idx">2024-01-15 10:00</td><td>67.2381</td><td>78.3755</td><td>46.2913</td></tr>
+<tr><td class="ts-idx">2024-01-15 11:00</td><td>48.523</td><td>53.4778</td><td>39.4736</td></tr>
+</tbody>
+</table></div>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+TimeSeriesArray
+┌────────────────────────────────────────────────┐
+│  Name:             price_scenarios             │
+│  Dimensions:       timestamp: 12, scenario: 3  │
+│  Shape:            (12, 3)                     │
+│  Frequency:        PT1H                        │
+│  Timezone:         UTC (+00:00)                │
+│  Unit:             EUR/MWh                     │
+│  Data type:        SCENARIO                    │
+└────────────────────────────────────────────────┘
+</pre></div></div>
+</div>
+<section id="TimeSeriesArray-–-1D">
+<h3>TimeSeriesArray – 1D<a class="headerlink" href="#TimeSeriesArray-–-1D" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">arr_1d</span> <span class="o">=</span> <span class="n">TimeSeriesArray</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;load&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">Dimension</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">hourly_ts</span><span class="p">(</span><span class="mi">8</span><span class="p">))],</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">100</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">108</span><span class="p">,</span> <span class="mi">103</span><span class="p">,</span> <span class="mi">99</span><span class="p">,</span> <span class="mi">95</span><span class="p">,</span> <span class="mi">92</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">arr_1d</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesArray</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>load</td></tr>
+<tr><td>Dimensions</td><td>timestamp: 8</td></tr>
+<tr><td>Shape</td><td>(8,)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>load</th></tr>
+<tr><td>2024-01-15 00:00:00+00:00</td><td>100.0</td></tr>
+<tr><td>2024-01-15 01:00:00+00:00</td><td>105.0</td></tr>
+<tr><td>2024-01-15 02:00:00+00:00</td><td>110.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 05:00:00+00:00</td><td>99.0</td></tr>
+<tr><td>2024-01-15 06:00:00+00:00</td><td>95.0</td></tr>
+<tr><td>2024-01-15 07:00:00+00:00</td><td>92.0</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="5.-CoverageBar">
+<h2>5. CoverageBar<a class="headerlink" href="#5.-CoverageBar" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_gap</span><span class="o">.</span><span class="n">coverage_bar</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 44" width="100%" style="max-width:600px;font-family:monospace;font-size:12px;">
+<text x="114" y="15" text-anchor="end" fill="#333">gappy_signal</text>
+<rect x="120.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="140.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="180.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="220.0" y="2" width="20.00" height="18" fill="#e0e0e0" />
+<rect x="240.0" y="2" width="20.00" height="18" fill="#e0e0e0" />
+<rect x="260.0" y="2" width="20.00" height="18" fill="#e0e0e0" />
+<rect x="280.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="300.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="340.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="380.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="420.0" y="2" width="20.00" height="18" fill="#e0e0e0" />
+<rect x="440.0" y="2" width="20.00" height="18" fill="#e0e0e0" />
+<rect x="460.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="500.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="540.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="580.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<text x="120" y="40" text-anchor="start" fill="#666">2024-01-15 00:00</text>
+<text x="600" y="40" text-anchor="end" fill="#666">2024-01-15 23:00</text>
+</svg></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">ts_gap</span><span class="o">.</span><span class="n">coverage_bar</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+gappy_signal  █████░░░███████░░███████
+              2024-01-15 00:00  2024-01-15 23:00
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tbl</span><span class="o">.</span><span class="n">coverage_bar</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 88" width="100%" style="max-width:600px;font-family:monospace;font-size:12px;">
+<text x="114" y="15" text-anchor="end" fill="#333">wind_farm_A</text>
+<rect x="120.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="140.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="180.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="220.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="260.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="300.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="340.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="380.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="420.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="460.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="500.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="540.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<rect x="580.0" y="2" width="20.00" height="18" fill="#4CAF50" />
+<text x="114" y="37" text-anchor="end" fill="#333">wind_farm_B</text>
+<rect x="120.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="140.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="180.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="220.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="260.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="300.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="340.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="380.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="420.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="460.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="500.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="540.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<rect x="580.0" y="24" width="20.00" height="18" fill="#4CAF50" />
+<text x="114" y="59" text-anchor="end" fill="#333">solar_park_C</text>
+<rect x="120.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="140.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="160.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="180.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="200.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="220.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="240.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="260.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="280.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="300.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="320.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="340.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="360.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="380.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="400.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="420.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="440.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="460.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="480.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="500.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="520.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="540.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="560.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<rect x="580.0" y="46" width="20.00" height="18" fill="#4CAF50" />
+<text x="120" y="84" text-anchor="start" fill="#666">2024-01-15 00:00</text>
+<text x="600" y="84" text-anchor="end" fill="#666">2024-01-15 23:00</text>
+</svg></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">tbl</span><span class="o">.</span><span class="n">coverage_bar</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+wind_farm_A   ████████████████████████
+wind_farm_B   ████████████████████████
+solar_park_C  ████████████████████████
+              2024-01-15 00:00  2024-01-15 23:00
+</pre></div></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="6.-HierarchicalTimeSeries-&amp;-tree()">
+<h2>6. HierarchicalTimeSeries &amp; tree()<a class="headerlink" href="#6.-HierarchicalTimeSeries-&-tree()" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">timestamps</span> <span class="o">=</span> <span class="n">hourly_ts</span><span class="p">(</span><span class="mi">24</span><span class="p">)</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">make_ts</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">TimeSeriesList</span><span class="p">(</span>
+        <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span> <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">24</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="n">tree_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;total&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;Norway&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Bergen&quot;</span><span class="p">:</span> <span class="s2">&quot;bergen&quot;</span><span class="p">,</span> <span class="s2">&quot;Oslo&quot;</span><span class="p">:</span> <span class="s2">&quot;oslo&quot;</span><span class="p">,</span> <span class="s2">&quot;Trondheim&quot;</span><span class="p">:</span> <span class="s2">&quot;trondheim&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;Sweden&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;Stockholm&quot;</span><span class="p">:</span> <span class="s2">&quot;stockholm&quot;</span><span class="p">,</span> <span class="s2">&quot;Gothenburg&quot;</span><span class="p">:</span> <span class="s2">&quot;gothenburg&quot;</span><span class="p">},</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">series_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;bergen&quot;</span><span class="p">:</span> <span class="n">make_ts</span><span class="p">(</span><span class="s2">&quot;Bergen&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;oslo&quot;</span><span class="p">:</span> <span class="n">make_ts</span><span class="p">(</span><span class="s2">&quot;Oslo&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;trondheim&quot;</span><span class="p">:</span> <span class="n">make_ts</span><span class="p">(</span><span class="s2">&quot;Trondheim&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;stockholm&quot;</span><span class="p">:</span> <span class="n">make_ts</span><span class="p">(</span><span class="s2">&quot;Stockholm&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;gothenburg&quot;</span><span class="p">:</span> <span class="n">make_ts</span><span class="p">(</span><span class="s2">&quot;Gothenburg&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="n">hts</span> <span class="o">=</span> <span class="n">HierarchicalTimeSeries</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+    <span class="n">tree_dict</span><span class="p">,</span> <span class="n">series_map</span><span class="p">,</span>
+    <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="s2">&quot;country&quot;</span><span class="p">,</span> <span class="s2">&quot;city&quot;</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Nordic Wind Power&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Hierarchical wind power across Nordic cities&quot;</span><span class="p">,</span>
+    <span class="n">aggregation</span><span class="o">=</span><span class="n">AggregationMethod</span><span class="o">.</span><span class="n">SUM</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">hts</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">HierarchicalTimeSeries</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>Nordic Wind Power</td></tr>
+<tr><td>Levels</td><td>region, country, city</td></tr>
+<tr><td>Nodes</td><td>16 (5 leaves)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Aggregation</td><td>sum</td></tr>
+</table></div>
+<div class="ts-data"><table style="text-align: left;">
+<tr><th>name</th><th>level</th><th>length</th><th>begin</th><th>end</th></tr>
+<tr><td>Bergen</td><td>country</td><td>24</td><td>2024-01-15 00:00</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Oslo</td><td>country</td><td>24</td><td>2024-01-15 00:00</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Trondheim</td><td>country</td><td>24</td><td>2024-01-15 00:00</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Stockholm</td><td>country</td><td>24</td><td>2024-01-15 00:00</td><td>2024-01-15 23:00</td></tr>
+<tr><td>Gothenburg</td><td>country</td><td>24</td><td>2024-01-15 00:00</td><td>2024-01-15 23:00</td></tr>
+</table></div></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">hts</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+HierarchicalTimeSeries
+┌───────────────────────────────────────────────────────────────────┐
+│  Name:             Nordic Wind Power                              │
+│  Levels:           region, country, city                          │
+│  Nodes:            16 (5 leaves)                                  │
+│  Frequency:        PT1H                                           │
+│  Timezone:         UTC (+00:00)                                   │
+│  Unit:             MW                                             │
+│  Aggregation:      sum                                            │
+├───────────────────────────────────────────────────────────────────┤
+│  name        level    length  begin             end               │
+├───────────────────────────────────────────────────────────────────┤
+│  Bergen      country  24      2024-01-15 00:00  2024-01-15 23:00  │
+│  Oslo        country  24      2024-01-15 00:00  2024-01-15 23:00  │
+│  Trondheim   country  24      2024-01-15 00:00  2024-01-15 23:00  │
+│  Stockholm   country  24      2024-01-15 00:00  2024-01-15 23:00  │
+│  Gothenburg  country  24      2024-01-15 00:00  2024-01-15 23:00  │
+└───────────────────────────────────────────────────────────────────┘
+</pre></div></div>
+</div>
+<section id="HierarchyTree-–-HTML">
+<h3>HierarchyTree – HTML<a class="headerlink" href="#HierarchyTree-–-HTML" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hts</span><span class="o">.</span><span class="n">tree</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.tsh-tree { font-family: monospace; font-size: 13px; }
+.tsh-tree details { margin-left: 16px; }
+.tsh-tree summary { cursor: pointer; padding: 1px 0; }
+.tsh-tree .tsh-leaf { margin-left: 16px; padding: 1px 0; }
+</style>
+<div class="tsh-tree">
+<details open><summary>total (region)</summary>
+<details open><summary>total (region)</summary>
+<details open><summary>Norway (region)</summary>
+<details open><summary>Norway (region)</summary>
+<details open><summary>Bergen (region)</summary>
+<div class="tsh-leaf">Bergen [24 pts]</div>
+</details>
+<details open><summary>Oslo (region)</summary>
+<div class="tsh-leaf">Oslo [24 pts]</div>
+</details>
+<details open><summary>Trondheim (region)</summary>
+<div class="tsh-leaf">Trondheim [24 pts]</div>
+</details>
+</details>
+</details>
+<details open><summary>Sweden (region)</summary>
+<details open><summary>Sweden (region)</summary>
+<details open><summary>Stockholm (region)</summary>
+<div class="tsh-leaf">Stockholm [24 pts]</div>
+</details>
+<details open><summary>Gothenburg (region)</summary>
+<div class="tsh-leaf">Gothenburg [24 pts]</div>
+</details>
+</details>
+</details>
+</details>
+</details>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">hts</span><span class="o">.</span><span class="n">tree</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+└── total (region)
+    └── total (region)
+        ├── Norway (region)
+        │   └── Norway (region)
+        │       ├── Bergen (region)
+        │       │   └── Bergen [24 pts]
+        │       ├── Oslo (region)
+        │       │   └── Oslo [24 pts]
+        │       └── Trondheim (region)
+        │           └── Trondheim [24 pts]
+        └── Sweden (region)
+            └── Sweden (region)
+                ├── Stockholm (region)
+                │   └── Stockholm [24 pts]
+                └── Gothenburg (region)
+                    └── Gothenburg [24 pts]
+</pre></div></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="7.-Wide-TimeSeriesTable-(many-columns)">
+<h2>7. Wide TimeSeriesTable (many columns)<a class="headerlink" href="#7.-Wide-TimeSeriesTable-(many-columns)" title="Link to this heading"></a></h2>
+<p>Test whether the repr truncates columns when there are too many to fit.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n_cols</span> <span class="o">=</span> <span class="mi">20</span>
+<span class="n">timestamps</span> <span class="o">=</span> <span class="n">hourly_ts</span><span class="p">(</span><span class="mi">48</span><span class="p">)</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+
+<span class="n">tbl_wide</span> <span class="o">=</span> <span class="n">TimeSeriesTable</span><span class="p">(</span>
+    <span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">48</span><span class="p">,</span> <span class="n">n_cols</span><span class="p">)),</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;turbine_</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_cols</span><span class="p">)],</span>
+    <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;MW&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_cols</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">tbl_wide</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>turbine_00, turbine_01, turbine_02, turbine_03, turbine_04, turbine_05, turbine_06, turbine_07, turbine_08, turbine_09, turbine_10, turbine_11, turbine_12, turbine_13, turbine_14, turbine_15, turbine_16, turbine_17, turbine_18, turbine_19</td></tr>
+<tr><td>Length</td><td>48 × 20</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>turbine_00</th><th>turbine_01</th><th>turbine_02</th><th>turbine_03</th><th>turbine_04</th><th>turbine_05</th><th>turbine_06</th><th>turbine_07</th><th>turbine_08</th><th>turbine_09</th><th>turbine_10</th><th>turbine_11</th><th>turbine_12</th><th>turbine_13</th><th>turbine_14</th><th>turbine_15</th><th>turbine_16</th><th>turbine_17</th><th>turbine_18</th><th>turbine_19</th></tr>
+<tr><td>2024-01-15 00:00</td><td>206.274</td><td>274.303</td><td>243.921</td><td>106.302</td><td>125.042</td><td>268.388</td><td>51.3163</td><td>255.307</td><td>249.267</td><td>166.984</td><td>125.758</td><td>119.606</td><td>113.717</td><td>161.269</td><td>176.137</td><td>188.374</td><td>298.875</td><td>248.165</td><td>205.545</td><td>297.24</td></tr>
+<tr><td>2024-01-15 01:00</td><td>103.827</td><td>90.053</td><td>203.135</td><td>60.9855</td><td>58.9201</td><td>178.722</td><td>166.552</td><td>279.292</td><td>207.307</td><td>178.529</td><td>174.218</td><td>111.879</td><td>52.9485</td><td>98.1005</td><td>223.008</td><td>100.152</td><td>142.384</td><td>50.9336</td><td>257.512</td><td>88.6153</td></tr>
+<tr><td>2024-01-15 02:00</td><td>116.9</td><td>270.083</td><td>177.448</td><td>261.788</td><td>209.929</td><td>235.443</td><td>72.8739</td><td>185.286</td><td>176.943</td><td>267.835</td><td>140.316</td><td>199.546</td><td>64.8129</td><td>146.908</td><td>130.759</td><td>87.5499</td><td>254.085</td><td>144.862</td><td>294.687</td><td>197.498</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-16 21:00</td><td>115.077</td><td>195.91</td><td>288.058</td><td>254.283</td><td>210.182</td><td>179.705</td><td>53.783</td><td>272.679</td><td>66.7135</td><td>82.2703</td><td>223.268</td><td>253.036</td><td>246.638</td><td>163.101</td><td>94.2639</td><td>58.8256</td><td>262.845</td><td>294.424</td><td>111.034</td><td>266.519</td></tr>
+<tr><td>2024-01-16 22:00</td><td>150.633</td><td>127.836</td><td>176.289</td><td>52.042</td><td>160.679</td><td>99.8887</td><td>228.114</td><td>175.643</td><td>267.213</td><td>274.162</td><td>129.19</td><td>120.096</td><td>284.783</td><td>175.999</td><td>74.1289</td><td>61.4713</td><td>297.606</td><td>194.791</td><td>63.6232</td><td>177.814</td></tr>
+<tr><td>2024-01-16 23:00</td><td>176.026</td><td>158.847</td><td>287.82</td><td>287.193</td><td>81.2419</td><td>87.9302</td><td>151.872</td><td>258.507</td><td>205.938</td><td>232.458</td><td>194.015</td><td>102.514</td><td>254.441</td><td>53.5052</td><td>224.621</td><td>98.5849</td><td>167.773</td><td>293.783</td><td>184.759</td><td>64.2372</td></tr>
+</table></div>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">tbl_wide</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+TimeSeriesTable
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  Name:             unnamed                                                                                                                                                                                                                                         │
+│  Columns:          turbine_00, turbine_01, turbine_02, turbine_03, turbine_04, turbine_05, turbine_06, turbine_07, turbine_08, turbine_09, turbine_10, turbine_11, turbine_12, turbine_13, turbine_14, turbine_15, turbine_16, turbine_17, turbine_18, turbine_19  │
+│  Length:           48 × 20                                                                                                                                                                                                                                         │
+│  Frequency:        PT1H                                                                                                                                                                                                                                            │
+│  Timezone:         UTC (+00:00)                                                                                                                                                                                                                                    │
+│  Unit:             MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW, MW                                                                                                                                                                  │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                    turbine_00  turbine_01  turbine_02  turbine_03  turbine_04  turbine_05  turbine_06  turbine_07  turbine_08  turbine_09  turbine_10  turbine_11  turbine_12  turbine_13  turbine_14  turbine_15  turbine_16  turbine_17  turbine_18  turbine_19  │
+│  2024-01-15 00:00     206.274     274.303     243.921     106.302     125.042     268.388     51.3163     255.307     249.267     166.984     125.758     119.606     113.717     161.269     176.137     188.374     298.875     248.165     205.545      297.24  │
+│  2024-01-15 01:00     103.827      90.053     203.135     60.9855     58.9201     178.722     166.552     279.292     207.307     178.529     174.218     111.879     52.9485     98.1005     223.008     100.152     142.384     50.9336     257.512     88.6153  │
+│  2024-01-15 02:00       116.9     270.083     177.448     261.788     209.929     235.443     72.8739     185.286     176.943     267.835     140.316     199.546     64.8129     146.908     130.759     87.5499     254.085     144.862     294.687     197.498  │
+│  ...                      ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...         ...  │
+│  2024-01-16 21:00     115.077      195.91     288.058     254.283     210.182     179.705      53.783     272.679     66.7135     82.2703     223.268     253.036     246.638     163.101     94.2639     58.8256     262.845     294.424     111.034     266.519  │
+│  2024-01-16 22:00     150.633     127.836     176.289      52.042     160.679     99.8887     228.114     175.643     267.213     274.162      129.19     120.096     284.783     175.999     74.1289     61.4713     297.606     194.791     63.6232     177.814  │
+│  2024-01-16 23:00     176.026     158.847      287.82     287.193     81.2419     87.9302     151.872     258.507     205.938     232.458     194.015     102.514     254.441     53.5052     224.621     98.5849     167.773     293.783     184.759     64.2372  │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+</pre></div></div>
+</div>
+<section id="Same-data-as-pandas-DataFrame-(for-comparison)">
+<h3>Same data as pandas DataFrame (for comparison)<a class="headerlink" href="#Same-data-as-pandas-DataFrame-(for-comparison)" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tbl_wide</span><span class="o">.</span><span class="n">df</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>turbine_00</th>
+      <th>turbine_01</th>
+      <th>turbine_02</th>
+      <th>turbine_03</th>
+      <th>turbine_04</th>
+      <th>turbine_05</th>
+      <th>turbine_06</th>
+      <th>turbine_07</th>
+      <th>turbine_08</th>
+      <th>turbine_09</th>
+      <th>turbine_10</th>
+      <th>turbine_11</th>
+      <th>turbine_12</th>
+      <th>turbine_13</th>
+      <th>turbine_14</th>
+      <th>turbine_15</th>
+      <th>turbine_16</th>
+      <th>turbine_17</th>
+      <th>turbine_18</th>
+      <th>turbine_19</th>
+    </tr>
+    <tr>
+      <th>timestamp</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2024-01-15 00:00:00+00:00</th>
+      <td>206.273867</td>
+      <td>274.303450</td>
+      <td>243.921423</td>
+      <td>106.301797</td>
+      <td>125.041571</td>
+      <td>268.388361</td>
+      <td>51.316326</td>
+      <td>255.307105</td>
+      <td>249.267357</td>
+      <td>166.983738</td>
+      <td>125.758107</td>
+      <td>119.606403</td>
+      <td>113.717397</td>
+      <td>161.269076</td>
+      <td>176.137065</td>
+      <td>188.374338</td>
+      <td>298.875071</td>
+      <td>248.165480</td>
+      <td>205.544807</td>
+      <td>297.240037</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 01:00:00+00:00</th>
+      <td>103.827175</td>
+      <td>90.053008</td>
+      <td>203.134901</td>
+      <td>60.985502</td>
+      <td>58.920070</td>
+      <td>178.722205</td>
+      <td>166.551506</td>
+      <td>279.291943</td>
+      <td>207.306564</td>
+      <td>178.529412</td>
+      <td>174.218359</td>
+      <td>111.878731</td>
+      <td>52.948506</td>
+      <td>98.100536</td>
+      <td>223.008030</td>
+      <td>100.151681</td>
+      <td>142.384078</td>
+      <td>50.933561</td>
+      <td>257.511932</td>
+      <td>88.615270</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 02:00:00+00:00</th>
+      <td>116.899826</td>
+      <td>270.083038</td>
+      <td>177.447702</td>
+      <td>261.787562</td>
+      <td>209.929292</td>
+      <td>235.442737</td>
+      <td>72.873901</td>
+      <td>185.285955</td>
+      <td>176.943059</td>
+      <td>267.834844</td>
+      <td>140.316015</td>
+      <td>199.546017</td>
+      <td>64.812911</td>
+      <td>146.907950</td>
+      <td>130.759087</td>
+      <td>87.549932</td>
+      <td>254.084526</td>
+      <td>144.861543</td>
+      <td>294.686971</td>
+      <td>197.497923</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 03:00:00+00:00</th>
+      <td>201.264063</td>
+      <td>209.499145</td>
+      <td>219.112561</td>
+      <td>87.697005</td>
+      <td>160.078367</td>
+      <td>109.890990</td>
+      <td>150.624575</td>
+      <td>74.176023</td>
+      <td>291.957013</td>
+      <td>103.751009</td>
+      <td>217.941291</td>
+      <td>125.105020</td>
+      <td>268.519257</td>
+      <td>215.553685</td>
+      <td>82.903954</td>
+      <td>261.268580</td>
+      <td>286.237043</td>
+      <td>275.979197</td>
+      <td>192.429787</td>
+      <td>86.364988</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 04:00:00+00:00</th>
+      <td>98.115874</td>
+      <td>281.976421</td>
+      <td>188.081622</td>
+      <td>95.138125</td>
+      <td>271.014224</td>
+      <td>210.392926</td>
+      <td>192.423569</td>
+      <td>144.071959</td>
+      <td>152.738821</td>
+      <td>109.872303</td>
+      <td>59.514322</td>
+      <td>269.054702</td>
+      <td>166.932554</td>
+      <td>186.908800</td>
+      <td>130.540827</td>
+      <td>237.831230</td>
+      <td>56.299218</td>
+      <td>143.046318</td>
+      <td>57.587574</td>
+      <td>80.723026</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 05:00:00+00:00</th>
+      <td>291.787059</td>
+      <td>214.440183</td>
+      <td>157.055062</td>
+      <td>180.935027</td>
+      <td>268.202302</td>
+      <td>136.052667</td>
+      <td>197.572746</td>
+      <td>220.921093</td>
+      <td>138.853444</td>
+      <td>179.774622</td>
+      <td>241.311846</td>
+      <td>277.294828</td>
+      <td>87.765570</td>
+      <td>283.354848</td>
+      <td>51.294716</td>
+      <td>238.244376</td>
+      <td>252.631708</td>
+      <td>84.191013</td>
+      <td>154.725913</td>
+      <td>253.814069</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 06:00:00+00:00</th>
+      <td>53.567797</td>
+      <td>207.115487</td>
+      <td>248.255915</td>
+      <td>178.250896</td>
+      <td>231.462355</td>
+      <td>106.605871</td>
+      <td>99.630287</td>
+      <td>140.781738</td>
+      <td>94.851507</td>
+      <td>136.515360</td>
+      <td>287.031015</td>
+      <td>193.333179</td>
+      <td>135.017017</td>
+      <td>117.881155</td>
+      <td>288.009873</td>
+      <td>161.119552</td>
+      <td>295.098688</td>
+      <td>178.880667</td>
+      <td>180.291532</td>
+      <td>274.135131</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 07:00:00+00:00</th>
+      <td>235.691855</td>
+      <td>195.163216</td>
+      <td>156.662376</td>
+      <td>269.546965</td>
+      <td>152.911537</td>
+      <td>280.689894</td>
+      <td>67.178838</td>
+      <td>157.499215</td>
+      <td>179.878705</td>
+      <td>287.734549</td>
+      <td>112.749812</td>
+      <td>251.509787</td>
+      <td>219.117800</td>
+      <td>229.271476</td>
+      <td>207.405546</td>
+      <td>292.890177</td>
+      <td>133.170365</td>
+      <td>149.568890</td>
+      <td>100.727938</td>
+      <td>62.676014</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 08:00:00+00:00</th>
+      <td>103.227049</td>
+      <td>278.866099</td>
+      <td>260.042204</td>
+      <td>78.101435</td>
+      <td>200.944756</td>
+      <td>169.799124</td>
+      <td>198.671218</td>
+      <td>214.818752</td>
+      <td>126.664873</td>
+      <td>290.337711</td>
+      <td>166.460009</td>
+      <td>207.025214</td>
+      <td>208.806546</td>
+      <td>95.972349</td>
+      <td>65.466355</td>
+      <td>152.879206</td>
+      <td>241.007522</td>
+      <td>253.805447</td>
+      <td>232.497312</td>
+      <td>78.301238</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 09:00:00+00:00</th>
+      <td>278.338715</td>
+      <td>250.509144</td>
+      <td>269.422842</td>
+      <td>180.826038</td>
+      <td>278.908859</td>
+      <td>61.663059</td>
+      <td>57.572208</td>
+      <td>55.053893</td>
+      <td>113.192169</td>
+      <td>112.142443</td>
+      <td>96.875834</td>
+      <td>191.763955</td>
+      <td>59.746460</td>
+      <td>197.596967</td>
+      <td>91.502788</td>
+      <td>219.468427</td>
+      <td>55.268839</td>
+      <td>127.642549</td>
+      <td>284.585322</td>
+      <td>184.599095</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 10:00:00+00:00</th>
+      <td>252.896851</td>
+      <td>214.506520</td>
+      <td>202.687696</td>
+      <td>97.813170</td>
+      <td>193.598687</td>
+      <td>59.921605</td>
+      <td>250.416101</td>
+      <td>290.017729</td>
+      <td>263.502268</td>
+      <td>62.677411</td>
+      <td>134.665021</td>
+      <td>129.500799</td>
+      <td>78.179248</td>
+      <td>206.652955</td>
+      <td>249.364544</td>
+      <td>128.430368</td>
+      <td>265.702309</td>
+      <td>249.281728</td>
+      <td>82.284485</td>
+      <td>241.714789</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 11:00:00+00:00</th>
+      <td>270.655180</td>
+      <td>99.320642</td>
+      <td>193.410295</td>
+      <td>209.687492</td>
+      <td>202.333564</td>
+      <td>74.061419</td>
+      <td>215.297865</td>
+      <td>207.988681</td>
+      <td>255.971372</td>
+      <td>250.878175</td>
+      <td>131.792052</td>
+      <td>230.511833</td>
+      <td>266.818347</td>
+      <td>273.236940</td>
+      <td>90.378082</td>
+      <td>56.675588</td>
+      <td>212.701861</td>
+      <td>103.669068</td>
+      <td>190.927431</td>
+      <td>286.201132</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 12:00:00+00:00</th>
+      <td>144.829906</td>
+      <td>113.193638</td>
+      <td>164.127512</td>
+      <td>214.310978</td>
+      <td>75.274742</td>
+      <td>145.146191</td>
+      <td>83.430297</td>
+      <td>215.611555</td>
+      <td>257.638133</td>
+      <td>144.213445</td>
+      <td>142.930988</td>
+      <td>184.880415</td>
+      <td>103.764445</td>
+      <td>111.852398</td>
+      <td>132.463071</td>
+      <td>164.356425</td>
+      <td>70.382865</td>
+      <td>238.183034</td>
+      <td>194.763644</td>
+      <td>124.923468</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 13:00:00+00:00</th>
+      <td>69.386643</td>
+      <td>240.795238</td>
+      <td>82.769747</td>
+      <td>83.301661</td>
+      <td>82.671061</td>
+      <td>70.315578</td>
+      <td>276.598091</td>
+      <td>117.311075</td>
+      <td>126.602645</td>
+      <td>258.198578</td>
+      <td>204.980865</td>
+      <td>96.785847</td>
+      <td>158.703353</td>
+      <td>270.980616</td>
+      <td>143.843504</td>
+      <td>227.720388</td>
+      <td>74.201927</td>
+      <td>231.831194</td>
+      <td>244.118381</td>
+      <td>256.441695</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 14:00:00+00:00</th>
+      <td>218.550248</td>
+      <td>142.683199</td>
+      <td>66.053000</td>
+      <td>179.694059</td>
+      <td>239.364977</td>
+      <td>97.709551</td>
+      <td>116.559307</td>
+      <td>184.030011</td>
+      <td>237.082891</td>
+      <td>274.146683</td>
+      <td>81.435379</td>
+      <td>96.067553</td>
+      <td>249.884243</td>
+      <td>211.130406</td>
+      <td>230.243198</td>
+      <td>299.192791</td>
+      <td>284.794990</td>
+      <td>260.756267</td>
+      <td>244.278952</td>
+      <td>148.754804</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 15:00:00+00:00</th>
+      <td>210.307278</td>
+      <td>96.111411</td>
+      <td>239.873616</td>
+      <td>239.422666</td>
+      <td>230.323803</td>
+      <td>161.199756</td>
+      <td>144.545082</td>
+      <td>154.942733</td>
+      <td>58.334809</td>
+      <td>261.080029</td>
+      <td>185.592469</td>
+      <td>146.879660</td>
+      <td>187.007192</td>
+      <td>230.410055</td>
+      <td>145.365217</td>
+      <td>257.660168</td>
+      <td>279.865837</td>
+      <td>146.858074</td>
+      <td>84.454039</td>
+      <td>240.093324</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 16:00:00+00:00</th>
+      <td>298.237215</td>
+      <td>86.997037</td>
+      <td>228.168919</td>
+      <td>256.330850</td>
+      <td>280.142986</td>
+      <td>80.845354</td>
+      <td>72.952478</td>
+      <td>296.967895</td>
+      <td>79.189121</td>
+      <td>94.201890</td>
+      <td>193.738233</td>
+      <td>161.568259</td>
+      <td>237.598048</td>
+      <td>97.639312</td>
+      <td>278.606940</td>
+      <td>104.298712</td>
+      <td>242.277748</td>
+      <td>66.900881</td>
+      <td>168.350647</td>
+      <td>58.139582</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 17:00:00+00:00</th>
+      <td>128.452677</td>
+      <td>128.057669</td>
+      <td>229.937110</td>
+      <td>163.754371</td>
+      <td>64.193591</td>
+      <td>298.840415</td>
+      <td>272.174827</td>
+      <td>279.080984</td>
+      <td>111.643883</td>
+      <td>148.527564</td>
+      <td>106.794875</td>
+      <td>81.226596</td>
+      <td>58.255981</td>
+      <td>175.834112</td>
+      <td>80.783414</td>
+      <td>94.076093</td>
+      <td>265.118920</td>
+      <td>171.060692</td>
+      <td>95.925880</td>
+      <td>217.466140</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 18:00:00+00:00</th>
+      <td>116.466219</td>
+      <td>181.734300</td>
+      <td>120.738217</td>
+      <td>179.040297</td>
+      <td>207.133398</td>
+      <td>184.052020</td>
+      <td>148.901027</td>
+      <td>247.703450</td>
+      <td>268.359362</td>
+      <td>94.842816</td>
+      <td>84.077181</td>
+      <td>78.297910</td>
+      <td>294.899183</td>
+      <td>285.397826</td>
+      <td>107.666796</td>
+      <td>292.476893</td>
+      <td>101.954417</td>
+      <td>176.619004</td>
+      <td>174.346261</td>
+      <td>278.738976</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 19:00:00+00:00</th>
+      <td>60.132215</td>
+      <td>128.837704</td>
+      <td>199.993675</td>
+      <td>66.599555</td>
+      <td>109.137644</td>
+      <td>166.265864</td>
+      <td>270.214257</td>
+      <td>240.239880</td>
+      <td>257.245117</td>
+      <td>240.267443</td>
+      <td>226.930194</td>
+      <td>262.423336</td>
+      <td>220.369173</td>
+      <td>233.920765</td>
+      <td>125.411126</td>
+      <td>91.910181</td>
+      <td>239.131245</td>
+      <td>91.459324</td>
+      <td>279.863963</td>
+      <td>199.160709</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 20:00:00+00:00</th>
+      <td>132.358528</td>
+      <td>284.160789</td>
+      <td>88.782568</td>
+      <td>178.616584</td>
+      <td>72.888518</td>
+      <td>291.356927</td>
+      <td>193.844015</td>
+      <td>250.916649</td>
+      <td>120.480605</td>
+      <td>250.449157</td>
+      <td>225.710491</td>
+      <td>210.920367</td>
+      <td>287.640704</td>
+      <td>158.372835</td>
+      <td>153.772108</td>
+      <td>223.030282</td>
+      <td>258.763827</td>
+      <td>133.769005</td>
+      <td>217.414264</td>
+      <td>102.259352</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 21:00:00+00:00</th>
+      <td>187.924993</td>
+      <td>242.292925</td>
+      <td>66.328738</td>
+      <td>231.960516</td>
+      <td>53.858119</td>
+      <td>289.587507</td>
+      <td>167.167450</td>
+      <td>152.267714</td>
+      <td>230.111163</td>
+      <td>180.824717</td>
+      <td>232.712214</td>
+      <td>71.189474</td>
+      <td>190.697968</td>
+      <td>189.527173</td>
+      <td>283.028473</td>
+      <td>59.901395</td>
+      <td>163.204911</td>
+      <td>207.768228</td>
+      <td>187.686738</td>
+      <td>68.540274</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 22:00:00+00:00</th>
+      <td>198.307098</td>
+      <td>105.549221</td>
+      <td>98.887295</td>
+      <td>269.672721</td>
+      <td>99.460527</td>
+      <td>163.572688</td>
+      <td>237.571721</td>
+      <td>226.828847</td>
+      <td>188.364751</td>
+      <td>251.761437</td>
+      <td>166.454044</td>
+      <td>205.096358</td>
+      <td>254.729160</td>
+      <td>219.522909</td>
+      <td>210.457092</td>
+      <td>151.532181</td>
+      <td>189.580865</td>
+      <td>149.020666</td>
+      <td>236.073064</td>
+      <td>145.107539</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 23:00:00+00:00</th>
+      <td>166.655289</td>
+      <td>238.864272</td>
+      <td>175.913950</td>
+      <td>134.508143</td>
+      <td>256.704735</td>
+      <td>145.240649</td>
+      <td>261.182275</td>
+      <td>246.310101</td>
+      <td>161.822206</td>
+      <td>228.222735</td>
+      <td>58.597425</td>
+      <td>147.449601</td>
+      <td>265.083422</td>
+      <td>194.884839</td>
+      <td>189.456457</td>
+      <td>216.184721</td>
+      <td>219.417908</td>
+      <td>195.899563</td>
+      <td>155.157328</td>
+      <td>95.870922</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 00:00:00+00:00</th>
+      <td>123.160509</td>
+      <td>123.230544</td>
+      <td>157.686231</td>
+      <td>299.764689</td>
+      <td>138.137985</td>
+      <td>161.844820</td>
+      <td>142.906891</td>
+      <td>195.356935</td>
+      <td>286.974645</td>
+      <td>272.268223</td>
+      <td>144.284686</td>
+      <td>116.725286</td>
+      <td>271.099651</td>
+      <td>173.458335</td>
+      <td>221.385287</td>
+      <td>68.322856</td>
+      <td>266.639424</td>
+      <td>128.241291</td>
+      <td>173.631739</td>
+      <td>99.505270</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 01:00:00+00:00</th>
+      <td>155.060656</td>
+      <td>257.012229</td>
+      <td>256.894812</td>
+      <td>168.418003</td>
+      <td>241.977675</td>
+      <td>164.516716</td>
+      <td>143.339085</td>
+      <td>186.472244</td>
+      <td>100.335192</td>
+      <td>129.140381</td>
+      <td>226.632193</td>
+      <td>242.628495</td>
+      <td>64.177034</td>
+      <td>233.206535</td>
+      <td>254.357484</td>
+      <td>161.298393</td>
+      <td>65.613478</td>
+      <td>220.728314</td>
+      <td>111.540915</td>
+      <td>210.839332</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 02:00:00+00:00</th>
+      <td>144.155627</td>
+      <td>209.290880</td>
+      <td>114.533720</td>
+      <td>169.134256</td>
+      <td>181.168685</td>
+      <td>207.753296</td>
+      <td>100.791960</td>
+      <td>290.512769</td>
+      <td>122.284519</td>
+      <td>126.505033</td>
+      <td>114.078096</td>
+      <td>66.869065</td>
+      <td>155.730728</td>
+      <td>242.959078</td>
+      <td>227.391734</td>
+      <td>98.893113</td>
+      <td>84.232976</td>
+      <td>130.356985</td>
+      <td>242.063788</td>
+      <td>172.019534</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 03:00:00+00:00</th>
+      <td>280.796046</td>
+      <td>214.095941</td>
+      <td>205.226695</td>
+      <td>241.922782</td>
+      <td>237.564562</td>
+      <td>135.959531</td>
+      <td>114.252100</td>
+      <td>159.405347</td>
+      <td>172.311795</td>
+      <td>85.430693</td>
+      <td>160.333049</td>
+      <td>209.955814</td>
+      <td>83.928626</td>
+      <td>84.509472</td>
+      <td>93.430353</td>
+      <td>120.832851</td>
+      <td>290.427319</td>
+      <td>56.447823</td>
+      <td>95.934780</td>
+      <td>91.261960</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 04:00:00+00:00</th>
+      <td>168.587006</td>
+      <td>53.768195</td>
+      <td>164.543305</td>
+      <td>90.730612</td>
+      <td>117.410056</td>
+      <td>248.110151</td>
+      <td>96.016805</td>
+      <td>204.282208</td>
+      <td>151.578067</td>
+      <td>154.398892</td>
+      <td>254.211354</td>
+      <td>90.228739</td>
+      <td>280.952556</td>
+      <td>273.372714</td>
+      <td>217.080491</td>
+      <td>62.361830</td>
+      <td>215.827132</td>
+      <td>200.086921</td>
+      <td>243.051477</td>
+      <td>103.457896</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 05:00:00+00:00</th>
+      <td>288.339003</td>
+      <td>271.549287</td>
+      <td>78.589285</td>
+      <td>128.800465</td>
+      <td>58.111047</td>
+      <td>257.736803</td>
+      <td>278.773687</td>
+      <td>297.452313</td>
+      <td>202.981254</td>
+      <td>216.496395</td>
+      <td>219.601383</td>
+      <td>192.537109</td>
+      <td>288.105728</td>
+      <td>201.965307</td>
+      <td>133.931510</td>
+      <td>178.219310</td>
+      <td>54.665719</td>
+      <td>231.031576</td>
+      <td>223.480269</td>
+      <td>155.262785</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 06:00:00+00:00</th>
+      <td>262.870273</td>
+      <td>238.881524</td>
+      <td>134.171150</td>
+      <td>69.374492</td>
+      <td>83.055756</td>
+      <td>96.068057</td>
+      <td>125.979507</td>
+      <td>161.878931</td>
+      <td>281.999145</td>
+      <td>119.604474</td>
+      <td>274.646416</td>
+      <td>220.115545</td>
+      <td>263.373229</td>
+      <td>150.813349</td>
+      <td>50.819185</td>
+      <td>246.741841</td>
+      <td>111.368963</td>
+      <td>85.620051</td>
+      <td>249.872900</td>
+      <td>221.582162</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 07:00:00+00:00</th>
+      <td>103.103800</td>
+      <td>116.895454</td>
+      <td>284.804958</td>
+      <td>117.134494</td>
+      <td>225.601470</td>
+      <td>82.388312</td>
+      <td>253.758967</td>
+      <td>79.397503</td>
+      <td>179.010282</td>
+      <td>58.804407</td>
+      <td>187.519636</td>
+      <td>261.655403</td>
+      <td>71.099628</td>
+      <td>118.564145</td>
+      <td>241.173266</td>
+      <td>202.024580</td>
+      <td>128.199227</td>
+      <td>207.225970</td>
+      <td>163.677580</td>
+      <td>265.589066</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 08:00:00+00:00</th>
+      <td>123.234976</td>
+      <td>239.432651</td>
+      <td>208.918539</td>
+      <td>235.107165</td>
+      <td>144.565403</td>
+      <td>231.230255</td>
+      <td>224.606524</td>
+      <td>146.872223</td>
+      <td>56.613058</td>
+      <td>290.728330</td>
+      <td>228.400099</td>
+      <td>101.184662</td>
+      <td>232.701803</td>
+      <td>119.670841</td>
+      <td>167.321348</td>
+      <td>264.972040</td>
+      <td>162.018026</td>
+      <td>122.001643</td>
+      <td>126.372778</td>
+      <td>69.254317</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 09:00:00+00:00</th>
+      <td>104.876395</td>
+      <td>117.776557</td>
+      <td>93.242278</td>
+      <td>65.766429</td>
+      <td>166.447291</td>
+      <td>103.599033</td>
+      <td>234.692628</td>
+      <td>280.631941</td>
+      <td>118.246175</td>
+      <td>193.062073</td>
+      <td>176.681416</td>
+      <td>68.777135</td>
+      <td>81.218596</td>
+      <td>271.194864</td>
+      <td>168.538009</td>
+      <td>251.152478</td>
+      <td>66.645186</td>
+      <td>198.703284</td>
+      <td>266.327989</td>
+      <td>266.766524</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 10:00:00+00:00</th>
+      <td>51.430607</td>
+      <td>180.430026</td>
+      <td>142.251187</td>
+      <td>240.010507</td>
+      <td>68.304749</td>
+      <td>116.231641</td>
+      <td>253.160696</td>
+      <td>167.389056</td>
+      <td>163.287580</td>
+      <td>292.139662</td>
+      <td>129.972666</td>
+      <td>60.430515</td>
+      <td>148.050209</td>
+      <td>88.343390</td>
+      <td>70.472964</td>
+      <td>191.965089</td>
+      <td>288.393904</td>
+      <td>194.851894</td>
+      <td>211.778637</td>
+      <td>130.907215</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 11:00:00+00:00</th>
+      <td>192.780714</td>
+      <td>238.061128</td>
+      <td>197.321214</td>
+      <td>250.694594</td>
+      <td>187.617670</td>
+      <td>99.536014</td>
+      <td>195.681564</td>
+      <td>172.733962</td>
+      <td>91.483883</td>
+      <td>204.791463</td>
+      <td>254.240136</td>
+      <td>83.771923</td>
+      <td>186.236465</td>
+      <td>233.421783</td>
+      <td>150.754399</td>
+      <td>117.511560</td>
+      <td>143.070103</td>
+      <td>185.424630</td>
+      <td>221.665093</td>
+      <td>189.793805</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 12:00:00+00:00</th>
+      <td>76.756259</td>
+      <td>254.471598</td>
+      <td>280.964929</td>
+      <td>75.323211</td>
+      <td>112.379866</td>
+      <td>93.420297</td>
+      <td>262.288791</td>
+      <td>277.569681</td>
+      <td>61.068439</td>
+      <td>133.104853</td>
+      <td>98.123653</td>
+      <td>167.383177</td>
+      <td>280.397607</td>
+      <td>67.543310</td>
+      <td>92.819778</td>
+      <td>171.757320</td>
+      <td>181.008674</td>
+      <td>236.375321</td>
+      <td>159.421510</td>
+      <td>85.284188</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 13:00:00+00:00</th>
+      <td>138.402968</td>
+      <td>295.523280</td>
+      <td>237.680537</td>
+      <td>79.086093</td>
+      <td>252.052295</td>
+      <td>127.731616</td>
+      <td>245.349121</td>
+      <td>53.180362</td>
+      <td>267.817539</td>
+      <td>90.577581</td>
+      <td>163.937649</td>
+      <td>215.438900</td>
+      <td>176.967392</td>
+      <td>91.349442</td>
+      <td>84.779628</td>
+      <td>121.133598</td>
+      <td>63.097939</td>
+      <td>104.136192</td>
+      <td>82.526254</td>
+      <td>166.199254</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 14:00:00+00:00</th>
+      <td>139.127482</td>
+      <td>196.708062</td>
+      <td>120.219716</td>
+      <td>58.477762</td>
+      <td>132.777540</td>
+      <td>238.795176</td>
+      <td>113.959540</td>
+      <td>151.137108</td>
+      <td>238.743595</td>
+      <td>151.670321</td>
+      <td>271.781033</td>
+      <td>279.517126</td>
+      <td>127.632410</td>
+      <td>233.990913</td>
+      <td>113.279246</td>
+      <td>84.880843</td>
+      <td>159.470260</td>
+      <td>200.618107</td>
+      <td>283.897723</td>
+      <td>86.475380</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 15:00:00+00:00</th>
+      <td>228.090669</td>
+      <td>168.866126</td>
+      <td>82.927324</td>
+      <td>293.164512</td>
+      <td>223.942237</td>
+      <td>82.214669</td>
+      <td>276.438855</td>
+      <td>75.773540</td>
+      <td>73.164809</td>
+      <td>132.887749</td>
+      <td>284.489790</td>
+      <td>58.256120</td>
+      <td>279.551810</td>
+      <td>202.902895</td>
+      <td>66.762910</td>
+      <td>192.147931</td>
+      <td>164.697681</td>
+      <td>190.996137</td>
+      <td>234.300885</td>
+      <td>219.654774</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 16:00:00+00:00</th>
+      <td>299.306887</td>
+      <td>89.167266</td>
+      <td>253.213855</td>
+      <td>152.773247</td>
+      <td>245.826880</td>
+      <td>272.944793</td>
+      <td>297.999547</td>
+      <td>116.510461</td>
+      <td>163.234568</td>
+      <td>285.694818</td>
+      <td>286.434595</td>
+      <td>143.218461</td>
+      <td>285.052364</td>
+      <td>151.472789</td>
+      <td>143.691525</td>
+      <td>239.154849</td>
+      <td>167.802957</td>
+      <td>162.049614</td>
+      <td>146.529748</td>
+      <td>158.200983</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 17:00:00+00:00</th>
+      <td>84.954412</td>
+      <td>65.259287</td>
+      <td>238.498286</td>
+      <td>191.124987</td>
+      <td>217.972662</td>
+      <td>250.583863</td>
+      <td>107.526541</td>
+      <td>108.443232</td>
+      <td>119.477158</td>
+      <td>125.981248</td>
+      <td>240.172729</td>
+      <td>143.545397</td>
+      <td>130.797216</td>
+      <td>209.075392</td>
+      <td>96.642625</td>
+      <td>76.605038</td>
+      <td>224.283310</td>
+      <td>239.111333</td>
+      <td>124.091151</td>
+      <td>209.010294</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 18:00:00+00:00</th>
+      <td>58.519142</td>
+      <td>151.079745</td>
+      <td>194.489591</td>
+      <td>113.354632</td>
+      <td>137.053725</td>
+      <td>202.387391</td>
+      <td>197.474461</td>
+      <td>88.547684</td>
+      <td>226.645472</td>
+      <td>70.007319</td>
+      <td>292.431169</td>
+      <td>100.590490</td>
+      <td>113.387036</td>
+      <td>100.075137</td>
+      <td>297.874740</td>
+      <td>121.648730</td>
+      <td>201.323069</td>
+      <td>297.658538</td>
+      <td>287.516964</td>
+      <td>60.587457</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 19:00:00+00:00</th>
+      <td>180.296017</td>
+      <td>200.326169</td>
+      <td>225.598765</td>
+      <td>133.977329</td>
+      <td>131.977153</td>
+      <td>51.071004</td>
+      <td>58.809175</td>
+      <td>187.514292</td>
+      <td>68.971775</td>
+      <td>100.620303</td>
+      <td>133.317979</td>
+      <td>67.617815</td>
+      <td>57.714960</td>
+      <td>281.730112</td>
+      <td>158.802157</td>
+      <td>101.221115</td>
+      <td>227.112950</td>
+      <td>52.361335</td>
+      <td>111.254312</td>
+      <td>290.187410</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 20:00:00+00:00</th>
+      <td>274.422543</td>
+      <td>208.981313</td>
+      <td>73.300693</td>
+      <td>129.512711</td>
+      <td>56.983138</td>
+      <td>104.797751</td>
+      <td>56.358531</td>
+      <td>81.540920</td>
+      <td>208.303635</td>
+      <td>75.110711</td>
+      <td>88.940769</td>
+      <td>275.701996</td>
+      <td>133.863106</td>
+      <td>133.249231</td>
+      <td>71.634868</td>
+      <td>248.982630</td>
+      <td>219.094310</td>
+      <td>186.783200</td>
+      <td>204.478210</td>
+      <td>75.095173</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 21:00:00+00:00</th>
+      <td>115.076517</td>
+      <td>195.910379</td>
+      <td>288.057985</td>
+      <td>254.282986</td>
+      <td>210.181590</td>
+      <td>179.704645</td>
+      <td>53.783044</td>
+      <td>272.679067</td>
+      <td>66.713524</td>
+      <td>82.270263</td>
+      <td>223.267935</td>
+      <td>253.035995</td>
+      <td>246.637666</td>
+      <td>163.101030</td>
+      <td>94.263944</td>
+      <td>58.825554</td>
+      <td>262.844903</td>
+      <td>294.424366</td>
+      <td>111.033876</td>
+      <td>266.519082</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 22:00:00+00:00</th>
+      <td>150.632729</td>
+      <td>127.835940</td>
+      <td>176.288584</td>
+      <td>52.042045</td>
+      <td>160.678617</td>
+      <td>99.888742</td>
+      <td>228.114298</td>
+      <td>175.642845</td>
+      <td>267.213157</td>
+      <td>274.162048</td>
+      <td>129.189732</td>
+      <td>120.095951</td>
+      <td>284.782596</td>
+      <td>175.999390</td>
+      <td>74.128882</td>
+      <td>61.471283</td>
+      <td>297.606381</td>
+      <td>194.790907</td>
+      <td>63.623243</td>
+      <td>177.813862</td>
+    </tr>
+    <tr>
+      <th>2024-01-16 23:00:00+00:00</th>
+      <td>176.026126</td>
+      <td>158.846960</td>
+      <td>287.820100</td>
+      <td>287.193008</td>
+      <td>81.241920</td>
+      <td>87.930176</td>
+      <td>151.872151</td>
+      <td>258.506618</td>
+      <td>205.938149</td>
+      <td>232.457532</td>
+      <td>194.014596</td>
+      <td>102.514234</td>
+      <td>254.441357</td>
+      <td>53.505246</td>
+      <td>224.621064</td>
+      <td>98.584904</td>
+      <td>167.772870</td>
+      <td>293.783301</td>
+      <td>184.758964</td>
+      <td>64.237205</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="8.-Side-by-side:-light-vs-dark">
+<h2>8. Side-by-side: light vs dark<a class="headerlink" href="#8.-Side-by-side:-light-vs-dark" title="Link to this heading"></a></h2>
+<p>Quick way to preview both colour schemes without changing your OS setting — wrap the HTML repr in a <code class="docutils literal notranslate"><span class="pre">&lt;div&gt;</span></code> that forces a colour scheme.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTML</span>
+
+<span class="n">light</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&lt;div style=&quot;color-scheme: light; padding: 10px;&quot;&gt;</span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span><span class="si">}</span><span class="s1">&lt;/div&gt;&#39;</span>
+<span class="n">dark</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;&lt;div style=&quot;color-scheme: dark; background: #0f172a; padding: 10px; border-radius: 8px;&quot;&gt;</span><span class="si">{</span><span class="n">ts</span><span class="o">.</span><span class="n">_repr_html_</span><span class="p">()</span><span class="si">}</span><span class="s1">&lt;/div&gt;&#39;</span>
+
+<span class="n">HTML</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&lt;h4&gt;Light mode&lt;/h4&gt;</span><span class="si">{</span><span class="n">light</span><span class="si">}</span><span class="s2">&lt;br&gt;&lt;h4&gt;Dark mode&lt;/h4&gt;</span><span class="si">{</span><span class="n">dark</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<h4>Light mode</h4><div style="color-scheme: light; padding: 10px;"><style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+<tr><td>Description</td><td>Hourly power output from wind farm Alpha</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>124.207</td></tr>
+<tr><td>2024-01-15 02:00</td><td>124.546</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>124.183</td></tr>
+<tr><td>2024-01-15 22:00</td><td>119.956</td></tr>
+<tr><td>2024-01-15 23:00</td><td>115.769</td></tr>
+</table></div>
+</div></div><br><h4>Dark mode</h4><div style="color-scheme: dark; background: #0f172a; padding: 10px; border-radius: 8px;"><style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+<tr><td>Description</td><td>Hourly power output from wind farm Alpha</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>124.207</td></tr>
+<tr><td>2024-01-15 02:00</td><td>124.546</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>124.183</td></tr>
+<tr><td>2024-01-15 22:00</td><td>119.956</td></tr>
+<tr><td>2024-01-15 23:00</td><td>115.769</td></tr>
+</table></div>
+</div></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Rebase Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

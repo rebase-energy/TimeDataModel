@@ -9,7 +9,7 @@
     "TimeDataModel treats **units**, **data types**, and **validation** as first-class concerns.  \n",
     "This notebook covers:\n",
     "\n",
-    "1. Setting and inspecting units on `TimeSeries` and `TimeSeriesTable`\n",
+    "1. Setting and inspecting units on `TimeSeriesList` and `TimeSeriesTable`\n",
     "2. Converting between compatible units with `convert_unit()`\n",
     "3. Automatic unit conversion in arithmetic operations\n",
     "4. Resolving units to pint objects with `pint_unit`\n",
@@ -28,7 +28,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "## Setting units on a TimeSeries\n",
+    "## Setting units on a TimeSeriesList\n",
     "\n",
     "The `unit` parameter is a free-form string. It appears in the repr and is carried through all operations."
    ]
@@ -38,7 +38,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "wind = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(8 + rng.normal(0, 2, 24)).tolist(),\n    name=\"wind_speed\",\n    unit=\"m/s\",\n)\nwind"
+   "source": "wind = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(8 + rng.normal(0, 2, 24)).tolist(),\n    name=\"wind_speed\",\n    unit=\"m/s\",\n)\nwind"
   },
   {
    "cell_type": "code",
@@ -56,7 +56,7 @@
     "## Converting units with `convert_unit()`\n",
     "\n",
     "`convert_unit()` uses [pint](https://pint.readthedocs.io/) under the hood to convert values.  \n",
-    "It returns a **new** `TimeSeries` — the original is unchanged.\n",
+    "It returns a **new** `TimeSeriesList` — the original is unchanged.\n",
     "\n",
     "```bash\n",
     "pip install timedatamodel[pint]\n",
@@ -82,7 +82,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "energy_kwh = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(500 + rng.normal(0, 50, 24)).tolist(),\n    name=\"energy\",\n    unit=\"kWh\",\n)\n\nenergy_mwh = energy_kwh.convert_unit(\"MWh\")\nenergy_j = energy_kwh.convert_unit(\"J\")\n\nprint(f\"kWh: mean={np.nanmean(energy_kwh.arr):.1f}\")\nprint(f\"MWh: mean={np.nanmean(energy_mwh.arr):.4f}\")\nprint(f\"J:   mean={np.nanmean(energy_j.arr):.0f}\")"
+   "source": "energy_kwh = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(500 + rng.normal(0, 50, 24)).tolist(),\n    name=\"energy\",\n    unit=\"kWh\",\n)\n\nenergy_mwh = energy_kwh.convert_unit(\"MWh\")\nenergy_j = energy_kwh.convert_unit(\"J\")\n\nprint(f\"kWh: mean={np.nanmean(energy_kwh.arr):.1f}\")\nprint(f\"MWh: mean={np.nanmean(energy_mwh.arr):.4f}\")\nprint(f\"J:   mean={np.nanmean(energy_j.arr):.0f}\")"
   },
   {
    "cell_type": "markdown",
@@ -108,7 +108,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "no_unit = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=rng.normal(0, 1, 24).tolist(),\n    name=\"dimensionless\",\n)\n\ntry:\n    no_unit.convert_unit(\"MW\")\nexcept ValueError as e:\n    print(f\"Error: {e}\")"
+   "source": "no_unit = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=rng.normal(0, 1, 24).tolist(),\n    name=\"dimensionless\",\n)\n\ntry:\n    no_unit.convert_unit(\"MW\")\nexcept ValueError as e:\n    print(f\"Error: {e}\")"
   },
   {
    "cell_type": "markdown",
@@ -116,7 +116,7 @@
    "source": [
     "## Automatic unit conversion in arithmetic\n",
     "\n",
-    "When you add or subtract two `TimeSeries` with compatible units, values are automatically converted to the left operand's unit."
+    "When you add or subtract two `TimeSeriesList` with compatible units, values are automatically converted to the left operand's unit."
    ]
   },
   {
@@ -124,7 +124,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "power_mw = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(100 + rng.normal(0, 10, 24)).tolist(),\n    name=\"plant_a\",\n    unit=\"MW\",\n)\n\npower_kw = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(50000 + rng.normal(0, 5000, 24)).tolist(),\n    name=\"plant_b\",\n    unit=\"kW\",\n)\n\ntotal = power_mw + power_kw\nprint(f\"Result unit: {total.unit}\")\nprint(f\"plant_a mean: {np.nanmean(power_mw.arr):.1f} MW\")\nprint(f\"plant_b mean: {np.nanmean(power_kw.arr):.1f} kW = {np.nanmean(power_kw.arr)/1000:.1f} MW\")\nprint(f\"total mean:   {np.nanmean(total.arr):.1f} MW\")"
+   "source": "power_mw = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(100 + rng.normal(0, 10, 24)).tolist(),\n    name=\"plant_a\",\n    unit=\"MW\",\n)\n\npower_kw = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(50000 + rng.normal(0, 5000, 24)).tolist(),\n    name=\"plant_b\",\n    unit=\"kW\",\n)\n\ntotal = power_mw + power_kw\nprint(f\"Result unit: {total.unit}\")\nprint(f\"plant_a mean: {np.nanmean(power_mw.arr):.1f} MW\")\nprint(f\"plant_b mean: {np.nanmean(power_kw.arr):.1f} kW = {np.nanmean(power_kw.arr)/1000:.1f} MW\")\nprint(f\"total mean:   {np.nanmean(total.arr):.1f} MW\")"
   },
   {
    "cell_type": "markdown",
@@ -210,21 +210,21 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "good = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=rng.normal(0, 1, 24).tolist(),\n    name=\"clean\",\n)\n\nwarnings = good.validate()\nprint(f\"Warnings: {warnings}\")"
+   "source": "good = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=rng.normal(0, 1, 24).tolist(),\n    name=\"clean\",\n)\n\nwarnings = good.validate()\nprint(f\"Warnings: {warnings}\")"
   },
   {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "gap_timestamps = timestamps[:12] + timestamps[14:]\ngap_values = rng.normal(0, 1, len(gap_timestamps)).tolist()\n\ngapped = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=gap_timestamps,\n    values=gap_values,\n    name=\"has_gap\",\n)\n\nfor w in gapped.validate():\n    print(f\"⚠ {w}\")"
+   "source": "gap_timestamps = timestamps[:12] + timestamps[14:]\ngap_values = rng.normal(0, 1, len(gap_timestamps)).tolist()\n\ngapped = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=gap_timestamps,\n    values=gap_values,\n    name=\"has_gap\",\n)\n\nfor w in gapped.validate():\n    print(f\"⚠ {w}\")"
   },
   {
    "cell_type": "code",
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "bad_order = timestamps[:12] + [timestamps[13], timestamps[12]] + timestamps[14:]\nbad_values = rng.normal(0, 1, len(bad_order)).tolist()\n\nunordered = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=bad_order,\n    values=bad_values,\n    name=\"unordered\",\n)\n\nfor w in unordered.validate():\n    print(f\"⚠ {w}\")"
+   "source": "bad_order = timestamps[:12] + [timestamps[13], timestamps[12]] + timestamps[14:]\nbad_values = rng.normal(0, 1, len(bad_order)).tolist()\n\nunordered = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=bad_order,\n    values=bad_values,\n    name=\"unordered\",\n)\n\nfor w in unordered.validate():\n    print(f\"⚠ {w}\")"
   },
   {
    "cell_type": "markdown",
@@ -240,7 +240,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "values_with_gaps = rng.normal(100, 10, 24).tolist()\nvalues_with_gaps[5] = None\nvalues_with_gaps[18] = None\n\nsparse = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=values_with_gaps,\n    name=\"sparse\",\n    unit=\"MW\",\n)\n\nprint(f\"has_missing: {sparse.has_missing}\")\nprint(f\"NaN count:   {np.isnan(sparse.arr).sum()}\")\nprint(f\"Length:      {len(sparse)}\")"
+   "source": "values_with_gaps = rng.normal(100, 10, 24).tolist()\nvalues_with_gaps[5] = None\nvalues_with_gaps[18] = None\n\nsparse = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=values_with_gaps,\n    name=\"sparse\",\n    unit=\"MW\",\n)\n\nprint(f\"has_missing: {sparse.has_missing}\")\nprint(f\"NaN count:   {np.isnan(sparse.arr).sum()}\")\nprint(f\"Length:      {len(sparse)}\")"
   },
   {
    "cell_type": "markdown",
@@ -263,7 +263,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "measured = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(100 + rng.normal(0, 10, 24)).tolist(),\n    name=\"wind_measured\",\n    unit=\"MW\",\n    data_type=tdm.DataType.MEASUREMENT,\n)\n\nforecast = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(105 + rng.normal(0, 15, 24)).tolist(),\n    name=\"wind_forecast\",\n    unit=\"MW\",\n    data_type=tdm.DataType.FORECAST,\n)\n\nprint(f\"{measured.name}: data_type={measured.data_type}\")\nprint(f\"{forecast.name}: data_type={forecast.data_type}\")"
+   "source": "measured = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(100 + rng.normal(0, 10, 24)).tolist(),\n    name=\"wind_measured\",\n    unit=\"MW\",\n    data_type=tdm.DataType.OBSERVATION,\n)\n\nforecast = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(105 + rng.normal(0, 15, 24)).tolist(),\n    name=\"wind_forecast\",\n    unit=\"MW\",\n    data_type=tdm.DataType.FORECAST,\n)\n\nprint(f\"{measured.name}: data_type={measured.data_type}\")\nprint(f\"{forecast.name}: data_type={forecast.data_type}\")"
   },
   {
    "cell_type": "markdown",
@@ -286,7 +286,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "flat = tdm.TimeSeries(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=rng.normal(0, 1, 24).tolist(),\n    name=\"flat_series\",\n    timeseries_type=tdm.TimeSeriesType.FLAT,\n)\nprint(f\"timeseries_type: {flat.timeseries_type}\")"
+   "source": "flat = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H, timezone=\"UTC\",\n    timestamps=timestamps,\n    values=rng.normal(0, 1, 24).tolist(),\n    name=\"flat_series\",\n    timeseries_type=tdm.TimeSeriesType.FLAT,\n)\nprint(f\"timeseries_type: {flat.timeseries_type}\")"
   },
   {
    "cell_type": "markdown",
@@ -302,7 +302,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "rich = tdm.TimeSeries(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(80 + rng.normal(0, 10, 24)).tolist(),\n    name=\"wind_farm_alpha\",\n    unit=\"MW\",\n    description=\"Measured output from Wind Farm Alpha\",\n    data_type=tdm.DataType.MEASUREMENT,\n    timeseries_type=tdm.TimeSeriesType.FLAT,\n    attributes={\n        \"source\": \"SCADA\",\n        \"fuel\": \"wind\",\n        \"capacity_mw\": \"120\",\n        \"operator\": \"NorthWind Energy\",\n    },\n)\n\nprint(f\"Attributes: {rich.attributes}\")\nprint(f\"Capacity:   {rich.attributes['capacity_mw']} MW\")"
+   "source": "rich = tdm.TimeSeriesList(\n    tdm.Frequency.PT1H,\n    timezone=\"UTC\",\n    timestamps=timestamps,\n    values=(80 + rng.normal(0, 10, 24)).tolist(),\n    name=\"wind_farm_alpha\",\n    unit=\"MW\",\n    description=\"Measured output from Wind Farm Alpha\",\n    data_type=tdm.DataType.OBSERVATION,\n    timeseries_type=tdm.TimeSeriesType.FLAT,\n    attributes={\n        \"source\": \"SCADA\",\n        \"fuel\": \"wind\",\n        \"capacity_mw\": \"120\",\n        \"operator\": \"NorthWind Energy\",\n    },\n)\n\nprint(f\"Attributes: {rich.attributes}\")\nprint(f\"Capacity:   {rich.attributes['capacity_mw']} MW\")"
   },
   {
    "cell_type": "markdown",
@@ -334,7 +334,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "json_str = rich.to_json()\nrestored = tdm.TimeSeries.from_json(json_str)\n\nprint(f\"unit:            {restored.unit}\")\nprint(f\"data_type:       {restored.data_type}\")\nprint(f\"timeseries_type: {restored.timeseries_type}\")\nprint(f\"attributes:      {restored.attributes}\")\nprint(f\"description:     {restored.description}\")"
+   "source": "json_str = rich.to_json()\nrestored = tdm.TimeSeriesList.from_json(json_str)\n\nprint(f\"unit:            {restored.unit}\")\nprint(f\"data_type:       {restored.data_type}\")\nprint(f\"timeseries_type: {restored.timeseries_type}\")\nprint(f\"attributes:      {restored.attributes}\")\nprint(f\"description:     {restored.description}\")"
   },
   {
    "cell_type": "markdown",
@@ -344,7 +344,7 @@
     "\n",
     "| Feature | API |\n",
     "| --- | --- |\n",
-    "| Set unit | `TimeSeries(..., unit=\"MW\")` |\n",
+    "| Set unit | `TimeSeriesList(..., unit=\"MW\")` |\n",
     "| Convert unit | `ts.convert_unit(\"kW\")` — returns new series |\n",
     "| Auto-convert in arithmetic | `ts_mw + ts_kw` converts to left operand's unit |\n",
     "| Pint integration | `ts.pint_unit` — resolves to `pint.Unit` |\n",
@@ -352,12 +352,12 @@
     "| Column conversion | `table.convert_unit(\"kW\", column=\"power\")` |\n",
     "| Validate timestamps | `ts.validate()` → list of warning strings |\n",
     "| Missing values | `ts.has_missing` |\n",
-    "| Data classification | `DataType.MEASUREMENT`, `.FORECAST`, `.SCENARIO`, … |\n",
+    "| Data classification | `DataType.OBSERVATION`, `.FORECAST`, `.SCENARIO`, … |\n",
     "| Structural type | `TimeSeriesType.FLAT`, `.OVERLAPPING` |\n",
     "| Custom metadata | `attributes={\"key\": \"value\"}` |\n",
     "| Frequency info | `Frequency.PT1H.to_timedelta()`, `.is_calendar_based` |\n",
     "\n",
-    "Next up: **nb_04** covers arithmetic operations and comparisons on TimeSeries."
+    "Next up: **nb_04** covers arithmetic operations and comparisons on TimeSeriesList."
    ]
   }
  ],

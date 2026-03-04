@@ -11,7 +11,7 @@
     "\n",
     "| Class | Purpose |\n",
     "| --- | --- |\n",
-    "| `HierarchyNode` | A single node — key, level, children, and an optional `TimeSeries` |\n",
+    "| `HierarchyNode` | A single node — key, level, children, and an optional `TimeSeriesList` |\n",
     "| `HierarchicalTimeSeries` | The tree container — traversal, aggregation, conversion |\n",
     "| `AggregationMethod` | `SUM`, `MEAN`, `MIN`, `MAX` |"
    ]
@@ -29,7 +29,7 @@
    "source": [
     "## Create leaf time series\n",
     "\n",
-    "Each leaf in the hierarchy holds a `TimeSeries`. Here we model electricity consumption for five Norwegian cities."
+    "Each leaf in the hierarchy holds a `TimeSeriesList`. Here we model electricity consumption for five Norwegian cities."
    ]
   },
   {
@@ -37,7 +37,7 @@
    "execution_count": null,
    "metadata": {},
    "outputs": [],
-   "source": "def make_consumption(name: str, base_mw: float) -> tdm.TimeSeries:\n    pattern = base_mw * (1 + 0.3 * np.sin(np.linspace(0, 2 * np.pi, 24)))\n    noise = rng.normal(0, base_mw * 0.05, 24)\n    return tdm.TimeSeries(\n        tdm.Frequency.PT1H,\n        timezone=\"Europe/Oslo\",\n        timestamps=timestamps,\n        values=(pattern + noise).tolist(),\n        name=name,\n        unit=\"MW\",\n    )\n\nts_oslo = make_consumption(\"Oslo\", 500)\nts_bergen = make_consumption(\"Bergen\", 200)\nts_stavanger = make_consumption(\"Stavanger\", 150)\nts_tromsoe = make_consumption(\"Tromsø\", 80)\nts_bodoe = make_consumption(\"Bodø\", 50)"
+   "source": "def make_consumption(name: str, base_mw: float) -> tdm.TimeSeriesList:\n    pattern = base_mw * (1 + 0.3 * np.sin(np.linspace(0, 2 * np.pi, 24)))\n    noise = rng.normal(0, base_mw * 0.05, 24)\n    return tdm.TimeSeriesList(\n        tdm.Frequency.PT1H,\n        timezone=\"Europe/Oslo\",\n        timestamps=timestamps,\n        values=(pattern + noise).tolist(),\n        name=name,\n        unit=\"MW\",\n    )\n\nts_oslo = make_consumption(\"Oslo\", 500)\nts_bergen = make_consumption(\"Bergen\", 200)\nts_stavanger = make_consumption(\"Stavanger\", 150)\nts_tromsoe = make_consumption(\"Tromsø\", 80)\nts_bodoe = make_consumption(\"Bodø\", 50)"
   },
   {
    "cell_type": "markdown",
@@ -45,7 +45,7 @@
    "source": [
     "## Building a hierarchy with HierarchyNode\n",
     "\n",
-    "Construct the tree by nesting `HierarchyNode` objects. Leaves hold a `TimeSeries`; interior nodes have `children`."
+    "Construct the tree by nesting `HierarchyNode` objects. Leaves hold a `TimeSeriesList`; interior nodes have `children`."
    ]
   },
   {
@@ -414,7 +414,7 @@
     "| Navigate | `get_node(*path)`, `get_level(name)`, `leaves()` |\n",
     "| Walk | `walk(order=\"pre\")` / `walk(order=\"post\")` |\n",
     "| Aggregate | `aggregate(node, method)` — bottom-up recursion |\n",
-    "| Level aggregate | `aggregate_level(level)` → `dict[str, TimeSeries]` |\n",
+    "| Level aggregate | `aggregate_level(level)` → `dict[str, TimeSeriesList]` |\n",
     "| Subtree | `subtree(*path)` → new `HierarchicalTimeSeries` |\n",
     "| Convert | `to_collection(level)`, `to_table(level)` |\n",
     "| Sequence ops | `len(h)`, `key in h`, `h[\"path/to/node\"]` |"

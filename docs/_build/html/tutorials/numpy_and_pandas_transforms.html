@@ -50,6 +50,7 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic Usage</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
@@ -67,9 +68,9 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="unit_handling_and_validation.html">Unit Handling and Validation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeries Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeriesList Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="multivariate_timeseries.html">Multivariate Time Series</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cubes_and_collections.html">Cubes and Collections</a></li>
+<li class="toctree-l1"><a class="reference internal" href="arrays_and_collections.html">Arrays and Collections</a></li>
 <li class="toctree-l1"><a class="reference internal" href="data_quality_and_coverage.html">Data Quality and Coverage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io_and_interoperability.html">I/O and Interoperability</a></li>
 <li class="toctree-l1"><a class="reference internal" href="geographical_support.html">Geographical Support</a></li>
@@ -106,56 +107,39 @@
              
   <section id="NumPy-and-Pandas-Transforms">
 <h1>NumPy and Pandas Transforms<a class="headerlink" href="#NumPy-and-Pandas-Transforms" title="Link to this heading"></a></h1>
-<p>TimeDataModel provides clean patterns for transforming time series data using numpy and pandas. Every <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> and <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> exposes <code class="docutils literal notranslate"><span class="pre">.arr</span></code> (numpy array) and <code class="docutils literal notranslate"><span class="pre">.df</span></code> (pandas DataFrame) properties, plus dedicated methods for writing results back. This keeps your domain model structured while letting you leverage the full scientific Python ecosystem.</p>
-<div class="nbinput docutils container">
+<p>TimeDataModel provides clean patterns for transforming time series data using numpy and pandas. Every <code class="docutils literal notranslate"><span class="pre">TimeSeriesList</span></code> and <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> exposes <code class="docutils literal notranslate"><span class="pre">.arr</span></code> (numpy array) and <code class="docutils literal notranslate"><span class="pre">.df</span></code> (pandas DataFrame) properties, plus dedicated methods for writing results back. This keeps your domain model structured while letting you leverage the full scientific Python ecosystem.</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from datetime import datetime, timedelta, timezone
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
 
-import numpy as np
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-import timedatamodel as tdm
+<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
 
-base = datetime(2024, 1, 15, tzinfo=timezone.utc)
-timestamps = [base + timedelta(hours=i) for i in range(24)]
+<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">timestamps</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
 
-ts = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timestamps=timestamps,
-    values=[
-        120.0, 115.0, 108.0, 105.0, 102.0, 100.0,
-        110.0, 135.0, 160.0, 175.0, 180.0, 178.0,
-        172.0, 170.0, 168.0, 165.0, 175.0, 190.0,
-        200.0, 195.0, 180.0, 165.0, 145.0, 130.0,
-    ],
-    name=&quot;power&quot;,
-    unit=&quot;MW&quot;,
-    data_type=tdm.DataType.MEASUREMENT,
-)
+<span class="n">ts</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span>
+        <span class="mf">120.0</span><span class="p">,</span> <span class="mf">115.0</span><span class="p">,</span> <span class="mf">108.0</span><span class="p">,</span> <span class="mf">105.0</span><span class="p">,</span> <span class="mf">102.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span>
+        <span class="mf">110.0</span><span class="p">,</span> <span class="mf">135.0</span><span class="p">,</span> <span class="mf">160.0</span><span class="p">,</span> <span class="mf">175.0</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">,</span> <span class="mf">178.0</span><span class="p">,</span>
+        <span class="mf">172.0</span><span class="p">,</span> <span class="mf">170.0</span><span class="p">,</span> <span class="mf">168.0</span><span class="p">,</span> <span class="mf">165.0</span><span class="p">,</span> <span class="mf">175.0</span><span class="p">,</span> <span class="mf">190.0</span><span class="p">,</span>
+        <span class="mf">200.0</span><span class="p">,</span> <span class="mf">195.0</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">,</span> <span class="mf">165.0</span><span class="p">,</span> <span class="mf">145.0</span><span class="p">,</span> <span class="mf">130.0</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;power&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">OBSERVATION</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">ModuleNotFoundError</span>                       Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[1]</span><span class="ansi-green-fg">, line 5</span>
-<span class="ansi-green-fg">      1</span> <span class="ansi-bold" style="color: rgb(0,135,0)">from</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">datetime</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">import</span> datetime, timedelta, timezone
-<span class="ansi-green-fg">      3</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">numpy</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">np</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">5</span> <span class="ansi-bold" style="color: rgb(0,135,0)">import</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">timedatamodel</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-bold" style="color: rgb(0,135,0)">as</span><span style="color: rgb(188,188,188)"> </span><span class="ansi-blue-intense-fg ansi-bold">tdm</span>
-<span class="ansi-green-fg">      7</span> base = datetime(<span class="ansi-green-fg">2024</span>, <span class="ansi-green-fg">1</span>, <span class="ansi-green-fg">15</span>, tzinfo=timezone.utc)
-<span class="ansi-green-fg">      8</span> timestamps = [base + timedelta(hours=i) <span class="ansi-bold" style="color: rgb(0,135,0)">for</span> i <span class="ansi-bold" style="color: rgb(175,0,255)">in</span> <span style="color: rgb(0,135,0)">range</span>(<span class="ansi-green-fg">24</span>)]
-
-<span class="ansi-red-fg">ModuleNotFoundError</span>: No module named &#39;timedatamodel&#39;
-</pre></div></div>
-</div>
 <section id="The-.arr-and-.df-properties">
 <h2>The <code class="docutils literal notranslate"><span class="pre">.arr</span></code> and <code class="docutils literal notranslate"><span class="pre">.df</span></code> properties<a class="headerlink" href="#The-.arr-and-.df-properties" title="Link to this heading"></a></h2>
-<p>Every <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> has two shorthand properties for quick access to the underlying data:</p>
+<p>Every <code class="docutils literal notranslate"><span class="pre">TimeSeriesList</span></code> has two shorthand properties for quick access to the underlying data:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">ts.arr</span></code> — returns a numpy <code class="docutils literal notranslate"><span class="pre">ndarray</span></code> (same as <code class="docutils literal notranslate"><span class="pre">ts.to_numpy()</span></code>)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ts.df</span></code> — returns a pandas <code class="docutils literal notranslate"><span class="pre">DataFrame</span></code> (same as <code class="docutils literal notranslate"><span class="pre">ts.to_pandas_dataframe()</span></code>)</p></li>
@@ -164,43 +148,83 @@ ts = tdm.TimeSeries(
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts.arr
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts</span><span class="o">.</span><span class="n">arr</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[2]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-yellow-bg">ts</span>.arr
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
+array([120., 115., 108., 105., 102., 100., 110., 135., 160., 175., 180.,
+       178., 172., 170., 168., 165., 175., 190., 200., 195., 180., 165.,
+       145., 130.])
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts.df.head()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[3]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-yellow-bg">ts</span>.df.head()
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
 
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>power</th>
+    </tr>
+    <tr>
+      <th>timestamp</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2024-01-15 00:00:00+00:00</th>
+      <td>120.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 01:00:00+00:00</th>
+      <td>115.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 02:00:00+00:00</th>
+      <td>108.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 03:00:00+00:00</th>
+      <td>105.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 04:00:00+00:00</th>
+      <td>102.0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 </section>
 <section id="Pattern-1:-apply_numpy(func)">
@@ -210,70 +234,222 @@ ts = tdm.TimeSeries(
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>normalized = ts.apply_numpy(lambda arr: (arr - arr.mean()) / arr.std())
-normalized
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">normalized</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply_numpy</span><span class="p">(</span><span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="p">(</span><span class="n">arr</span> <span class="o">-</span> <span class="n">arr</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="o">/</span> <span class="n">arr</span><span class="o">.</span><span class="n">std</span><span class="p">())</span>
+<span class="n">normalized</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[4]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> normalized = <span class="ansi-yellow-bg">ts</span>.apply_numpy(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span> arr: (arr - arr.mean()) / arr.std())
-<span class="ansi-green-fg">      2</span> normalized
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>-0.992844</td></tr>
+<tr><td>2024-01-15 01:00</td><td>-1.14899</td></tr>
+<tr><td>2024-01-15 02:00</td><td>-1.3676</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>0.412492</td></tr>
+<tr><td>2024-01-15 22:00</td><td>-0.212102</td></tr>
+<tr><td>2024-01-15 23:00</td><td>-0.680547</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>cumulative = ts.apply_numpy(np.cumsum)
-cumulative.head(6)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cumulative</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply_numpy</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">)</span>
+<span class="n">cumulative</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[5]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> cumulative = <span class="ansi-yellow-bg">ts</span>.apply_numpy(np.cumsum)
-<span class="ansi-green-fg">      2</span> cumulative.head(<span class="ansi-green-fg">6</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>6</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>235.0</td></tr>
+<tr><td>2024-01-15 02:00</td><td>343.0</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>clipped = ts.apply_numpy(lambda arr: np.clip(arr, 110, 180))
-clipped
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">clipped</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply_numpy</span><span class="p">(</span><span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="mi">180</span><span class="p">))</span>
+<span class="n">clipped</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[6]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> clipped = <span class="ansi-yellow-bg">ts</span>.apply_numpy(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span> arr: np.clip(arr, <span class="ansi-green-fg">110</span>, <span class="ansi-green-fg">180</span>))
-<span class="ansi-green-fg">      2</span> clipped
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>115.0</td></tr>
+<tr><td>2024-01-15 02:00</td><td>110.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>165.0</td></tr>
+<tr><td>2024-01-15 22:00</td><td>145.0</td></tr>
+<tr><td>2024-01-15 23:00</td><td>130.0</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Pattern-2:-apply_pandas(func)">
@@ -283,171 +459,535 @@ clipped
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rolling_mean = ts.apply_pandas(lambda df: df.rolling(6, min_periods=1).mean())
-rolling_mean
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rolling_mean</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply_pandas</span><span class="p">(</span><span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="n">rolling_mean</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[7]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> rolling_mean = <span class="ansi-yellow-bg">ts</span>.apply_pandas(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span> df: df.rolling(<span class="ansi-green-fg">6</span>, min_periods=<span class="ansi-green-fg">1</span>).mean())
-<span class="ansi-green-fg">      2</span> rolling_mean
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>117.5</td></tr>
+<tr><td>2024-01-15 02:00</td><td>114.333</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>184.167</td></tr>
+<tr><td>2024-01-15 22:00</td><td>179.167</td></tr>
+<tr><td>2024-01-15 23:00</td><td>169.167</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>diff = ts.apply_pandas(lambda df: df.diff())
-diff
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">diff</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply_pandas</span><span class="p">(</span><span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">diff</span><span class="p">())</span>
+<span class="n">diff</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[8]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> diff = <span class="ansi-yellow-bg">ts</span>.apply_pandas(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span> df: df.diff())
-<span class="ansi-green-fg">      2</span> diff
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>NaN</td></tr>
+<tr><td>2024-01-15 01:00</td><td>-5.0</td></tr>
+<tr><td>2024-01-15 02:00</td><td>-7.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>-15.0</td></tr>
+<tr><td>2024-01-15 22:00</td><td>-20.0</td></tr>
+<tr><td>2024-01-15 23:00</td><td>-15.0</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pct_change = ts.apply_pandas(lambda df: df.pct_change() * 100)
-pct_change.head(6)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pct_change</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">apply_pandas</span><span class="p">(</span><span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">pct_change</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">pct_change</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[9]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> pct_change = <span class="ansi-yellow-bg">ts</span>.apply_pandas(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span> df: df.pct_change() * <span class="ansi-green-fg">100</span>)
-<span class="ansi-green-fg">      2</span> pct_change.head(<span class="ansi-green-fg">6</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>6</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>NaN</td></tr>
+<tr><td>2024-01-15 01:00</td><td>-4.16667</td></tr>
+<tr><td>2024-01-15 02:00</td><td>-6.08696</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Pattern-3:-One-liner-round-trips-with-update_arr()-and-update_df()">
 <h2>Pattern 3: One-liner round-trips with <code class="docutils literal notranslate"><span class="pre">update_arr()</span></code> and <code class="docutils literal notranslate"><span class="pre">update_df()</span></code><a class="headerlink" href="#Pattern-3:-One-liner-round-trips-with-update_arr()-and-update_df()" title="Link to this heading"></a></h2>
-<p>Combine <code class="docutils literal notranslate"><span class="pre">.arr</span></code> / <code class="docutils literal notranslate"><span class="pre">.df</span></code> with <code class="docutils literal notranslate"><span class="pre">update_arr()</span></code> / <code class="docutils literal notranslate"><span class="pre">update_df()</span></code> to transform data in a single expression. The result is a new <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code> with all metadata preserved.</p>
+<p>Combine <code class="docutils literal notranslate"><span class="pre">.arr</span></code> / <code class="docutils literal notranslate"><span class="pre">.df</span></code> with <code class="docutils literal notranslate"><span class="pre">update_arr()</span></code> / <code class="docutils literal notranslate"><span class="pre">update_df()</span></code> to transform data in a single expression. The result is a new <code class="docutils literal notranslate"><span class="pre">TimeSeriesList</span></code> with all metadata preserved.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts.update_arr(ts.arr.clip(110, 180))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts</span><span class="o">.</span><span class="n">update_arr</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">arr</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">110</span><span class="p">,</span> <span class="mi">180</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[10]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-yellow-bg">ts</span>.update_arr(ts.arr.clip(<span class="ansi-green-fg">110</span>, <span class="ansi-green-fg">180</span>))
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>115.0</td></tr>
+<tr><td>2024-01-15 02:00</td><td>110.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>165.0</td></tr>
+<tr><td>2024-01-15 22:00</td><td>145.0</td></tr>
+<tr><td>2024-01-15 23:00</td><td>130.0</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts.update_df(ts.df.resample(&quot;3h&quot;).mean())
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts</span><span class="o">.</span><span class="n">update_df</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">&quot;3h&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[11]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-yellow-bg">ts</span>.update_df(ts.df.resample(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">3h</span><span class="ansi-yellow-fg">&#34;</span>).mean())
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>8</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>114.333</td></tr>
+<tr><td>2024-01-15 03:00</td><td>102.333</td></tr>
+<tr><td>2024-01-15 06:00</td><td>135.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 15:00</td><td>176.667</td></tr>
+<tr><td>2024-01-15 18:00</td><td>191.667</td></tr>
+<tr><td>2024-01-15 21:00</td><td>146.667</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts.update_df(ts.df.diff())
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts</span><span class="o">.</span><span class="n">update_df</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">diff</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[12]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-yellow-bg">ts</span>.update_df(ts.df.diff())
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>NaN</td></tr>
+<tr><td>2024-01-15 01:00</td><td>-5.0</td></tr>
+<tr><td>2024-01-15 02:00</td><td>-7.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>-15.0</td></tr>
+<tr><td>2024-01-15 22:00</td><td>-20.0</td></tr>
+<tr><td>2024-01-15 23:00</td><td>-15.0</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ts.update_arr(np.cumsum(ts.arr))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts</span><span class="o">.</span><span class="n">update_arr</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">arr</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[13]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-yellow-bg">ts</span>.update_arr(np.cumsum(ts.arr))
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>235.0</td></tr>
+<tr><td>2024-01-15 02:00</td><td>343.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>3368.0</td></tr>
+<tr><td>2024-01-15 22:00</td><td>3513.0</td></tr>
+<tr><td>2024-01-15 23:00</td><td>3643.0</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Pattern-4:-Manual-numpy-round-trip">
 <h2>Pattern 4: Manual numpy round-trip<a class="headerlink" href="#Pattern-4:-Manual-numpy-round-trip" title="Link to this heading"></a></h2>
-<p>For transformations where the output shape differs from the input, export to numpy, transform freely, and construct a new <code class="docutils literal notranslate"><span class="pre">TimeSeries</span></code>.</p>
+<p>For transformations where the output shape differs from the input, export to numpy, transform freely, and construct a new <code class="docutils literal notranslate"><span class="pre">TimeSeriesList</span></code>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>arr = ts.to_numpy()
-print(f&quot;Type:  {type(arr)}&quot;)
-print(f&quot;Shape: {arr.shape}&quot;)
-print(f&quot;Mean:  {arr.mean():.1f} MW&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">arr</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type:  </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape: </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean:  </span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -456,56 +996,101 @@ print(f&quot;Mean:  {arr.mean():.1f} MW&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[14]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> arr = <span class="ansi-yellow-bg">ts</span>.to_numpy()
-<span class="ansi-green-fg">      2</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Type:  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">type</span>(arr)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      3</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Shape: </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span>arr.shape<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
+Type:  &lt;class &#39;numpy.ndarray&#39;&gt;
+Shape: (24,)
+Mean:  151.8 MW
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>window = 3
-smoothed_arr = np.convolve(arr, np.ones(window) / window, mode=&quot;valid&quot;)
-smoothed_timestamps = timestamps[window - 1 :]
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">window</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">smoothed_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">window</span><span class="p">)</span> <span class="o">/</span> <span class="n">window</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span><span class="p">)</span>
+<span class="n">smoothed_timestamps</span> <span class="o">=</span> <span class="n">timestamps</span><span class="p">[</span><span class="n">window</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:]</span>
 
-ts_smoothed = tdm.TimeSeries(
-    tdm.Frequency.PT1H,
-    timestamps=smoothed_timestamps,
-    values=smoothed_arr.tolist(),
-    name=ts.name,
-    unit=ts.unit,
-    data_type=ts.data_type,
-)
-print(f&quot;Original length: {len(ts)}, Smoothed length: {len(ts_smoothed)}&quot;)
-ts_smoothed.head(6)
+<span class="n">ts_smoothed</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">smoothed_timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">smoothed_arr</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+    <span class="n">name</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="si">}</span><span class="s2">, Smoothed length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts_smoothed</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">ts_smoothed</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[15]</span><span class="ansi-green-fg">, line 2</span>
-<span class="ansi-green-fg">      1</span> window = <span class="ansi-green-fg">3</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">2</span> smoothed_arr = np.convolve(<span class="ansi-yellow-bg">arr</span>, np.ones(window) / window, mode=<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">valid</span><span class="ansi-yellow-fg">&#34;</span>)
-<span class="ansi-green-fg">      3</span> smoothed_timestamps = timestamps[window - <span class="ansi-green-fg">1</span> :]
-<span class="ansi-green-fg">      5</span> ts_smoothed = tdm.TimeSeries(
-<span class="ansi-green-fg">      6</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">      7</span>     timestamps=smoothed_timestamps,
-<span class="ansi-green-fg">   (...)</span><span class="ansi-green-fg">     11</span>     data_type=ts.data_type,
-<span class="ansi-green-fg">     12</span> )
-
-<span class="ansi-red-fg">NameError</span>: name &#39;arr&#39; is not defined
+Original length: 24, Smoothed length: 22
 </pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>6</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 02:00</td><td>114.333</td></tr>
+<tr><td>2024-01-15 03:00</td><td>109.333</td></tr>
+<tr><td>2024-01-15 04:00</td><td>105.0</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Pattern-5:-Manual-pandas-round-trip">
@@ -515,79 +1100,232 @@ ts_smoothed.head(6)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>df = ts.to_pandas_dataframe()
-df.head()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_pandas_dataframe</span><span class="p">()</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[16]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> df = <span class="ansi-yellow-bg">ts</span>.to_pandas_dataframe()
-<span class="ansi-green-fg">      2</span> df.head()
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
 
-<span class="ansi-red-fg">NameError</span>: name &#39;ts&#39; is not defined
-</pre></div></div>
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>power</th>
+    </tr>
+    <tr>
+      <th>timestamp</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2024-01-15 00:00:00+00:00</th>
+      <td>120.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 01:00:00+00:00</th>
+      <td>115.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 02:00:00+00:00</th>
+      <td>108.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 03:00:00+00:00</th>
+      <td>105.0</td>
+    </tr>
+    <tr>
+      <th>2024-01-15 04:00:00+00:00</th>
+      <td>102.0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>df_resampled = df.resample(&quot;3h&quot;).mean()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_resampled</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s2">&quot;3h&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
-ts_resampled = ts.update_from_pandas(df_resampled)
-print(f&quot;Original:  {len(ts)} points&quot;)
-print(f&quot;Resampled: {len(ts_resampled)} points&quot;)
-print(f&quot;Unit preserved: {ts_resampled.unit}&quot;)
-ts_resampled
+<span class="n">ts_resampled</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">update_from_pandas</span><span class="p">(</span><span class="n">df_resampled</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original:  </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resampled: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ts_resampled</span><span class="p">)</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unit preserved: </span><span class="si">{</span><span class="n">ts_resampled</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">ts_resampled</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[17]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> df_resampled = <span class="ansi-yellow-bg">df</span>.resample(<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">3h</span><span class="ansi-yellow-fg">&#34;</span>).mean()
-<span class="ansi-green-fg">      3</span> ts_resampled = ts.update_from_pandas(df_resampled)
-<span class="ansi-green-fg">      4</span> <span style="color: rgb(0,135,0)">print</span>(<span class="ansi-yellow-fg">f</span><span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">Original:  </span><span class="ansi-bold" style="color: rgb(175,95,135)">{</span><span style="color: rgb(0,135,0)">len</span>(ts)<span class="ansi-bold" style="color: rgb(175,95,135)">}</span><span class="ansi-yellow-fg"> points</span><span class="ansi-yellow-fg">&#34;</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;df&#39; is not defined
+Original:  24 points
+Resampled: 8 points
+Unit preserved: MW
 </pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>8</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>114.333</td></tr>
+<tr><td>2024-01-15 03:00</td><td>102.333</td></tr>
+<tr><td>2024-01-15 06:00</td><td>135.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 15:00</td><td>176.667</td></tr>
+<tr><td>2024-01-15 18:00</td><td>191.667</td></tr>
+<tr><td>2024-01-15 21:00</td><td>146.667</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>df_ewm = df.ewm(span=6).mean()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df_ewm</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">ewm</span><span class="p">(</span><span class="n">span</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
-ts_ewm = ts.update_from_pandas(df_ewm)
-ts_ewm
+<span class="n">ts_ewm</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">update_from_pandas</span><span class="p">(</span><span class="n">df_ewm</span><span class="p">)</span>
+<span class="n">ts_ewm</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[18]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> df_ewm = <span class="ansi-yellow-bg">df</span>.ewm(span=<span class="ansi-green-fg">6</span>).mean()
-<span class="ansi-green-fg">      3</span> ts_ewm = ts.update_from_pandas(df_ewm)
-<span class="ansi-green-fg">      4</span> ts_ewm
-
-<span class="ansi-red-fg">NameError</span>: name &#39;df&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>OBSERVATION</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>120.0</td></tr>
+<tr><td>2024-01-15 01:00</td><td>117.083</td></tr>
+<tr><td>2024-01-15 02:00</td><td>113.0</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>178.601</td></tr>
+<tr><td>2024-01-15 22:00</td><td>168.997</td></tr>
+<tr><td>2024-01-15 23:00</td><td>157.851</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Transforms-on-TimeSeriesTable">
@@ -597,139 +1335,384 @@ ts_ewm
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rng = np.random.default_rng(42)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 
-table = tdm.TimeSeriesTable(
-    tdm.Frequency.PT1H,
-    timestamps=timestamps,
-    values=np.column_stack([
-        80 + 40 * np.sin(np.linspace(0, 2 * np.pi, 24)) + rng.normal(0, 5, 24),
-        np.clip(60 * np.sin(np.linspace(-0.5, np.pi + 0.5, 24)), 0, None),
-        50 + rng.normal(0, 3, 24),
-    ]),
-    names=[&quot;wind&quot;, &quot;solar&quot;, &quot;hydro&quot;],
-    units=[&quot;MW&quot;, &quot;MW&quot;, &quot;MW&quot;],
-)
-table
+<span class="n">table</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesTable</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">timestamps</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span>
+        <span class="mi">80</span> <span class="o">+</span> <span class="mi">40</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">24</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="mi">50</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">24</span><span class="p">),</span>
+    <span class="p">]),</span>
+    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;wind&quot;</span><span class="p">,</span> <span class="s2">&quot;solar&quot;</span><span class="p">,</span> <span class="s2">&quot;hydro&quot;</span><span class="p">],</span>
+    <span class="n">units</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">,</span> <span class="s2">&quot;MW&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">table</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[19]</span><span class="ansi-green-fg">, line 3</span>
-<span class="ansi-green-fg">      1</span> rng = np.random.default_rng(<span class="ansi-green-fg">42</span>)
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">3</span> table = <span class="ansi-yellow-bg">tdm</span>.TimeSeriesTable(
-<span class="ansi-green-fg">      4</span>     tdm.Frequency.PT1H,
-<span class="ansi-green-fg">      5</span>     timestamps=timestamps,
-<span class="ansi-green-fg">      6</span>     values=np.column_stack([
-<span class="ansi-green-fg">      7</span>         <span class="ansi-green-fg">80</span> + <span class="ansi-green-fg">40</span> * np.sin(np.linspace(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">2</span> * np.pi, <span class="ansi-green-fg">24</span>)) + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">5</span>, <span class="ansi-green-fg">24</span>),
-<span class="ansi-green-fg">      8</span>         np.clip(<span class="ansi-green-fg">60</span> * np.sin(np.linspace(-<span class="ansi-green-fg">0.5</span>, np.pi + <span class="ansi-green-fg">0.5</span>, <span class="ansi-green-fg">24</span>)), <span class="ansi-green-fg">0</span>, <span class="ansi-bold" style="color: rgb(0,135,0)">None</span>),
-<span class="ansi-green-fg">      9</span>         <span class="ansi-green-fg">50</span> + rng.normal(<span class="ansi-green-fg">0</span>, <span class="ansi-green-fg">3</span>, <span class="ansi-green-fg">24</span>),
-<span class="ansi-green-fg">     10</span>     ]),
-<span class="ansi-green-fg">     11</span>     names=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">wind</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">solar</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">hydro</span><span class="ansi-yellow-fg">&#34;</span>],
-<span class="ansi-green-fg">     12</span>     units=[<span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>, <span class="ansi-yellow-fg">&#34;</span><span class="ansi-yellow-fg">MW</span><span class="ansi-yellow-fg">&#34;</span>],
-<span class="ansi-green-fg">     13</span> )
-<span class="ansi-green-fg">     14</span> table
-
-<span class="ansi-red-fg">NameError</span>: name &#39;tdm&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Length</td><td>24 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00</td><td>81.5236</td><td>0.0</td><td>48.715</td></tr>
+<tr><td>2024-01-15 01:00</td><td>85.592</td><td>0.0</td><td>48.9436</td></tr>
+<tr><td>2024-01-15 02:00</td><td>104.536</td><td>0.0</td><td>51.5969</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>55.812</td><td>0.0</td><td>50.6561</td></tr>
+<tr><td>2024-01-15 22:00</td><td>75.3208</td><td>0.0</td><td>52.6143</td></tr>
+<tr><td>2024-01-15 23:00</td><td>79.2274</td><td>0.0</td><td>50.6708</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table_rolling = table.apply_pandas(lambda df: df.rolling(4, min_periods=1).mean())
-table_rolling
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table_rolling</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">apply_pandas</span><span class="p">(</span><span class="k">lambda</span> <span class="n">df</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="n">table_rolling</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[20]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> table_rolling = <span class="ansi-yellow-bg">table</span>.apply_pandas(<span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span> df: df.rolling(<span class="ansi-green-fg">4</span>, min_periods=<span class="ansi-green-fg">1</span>).mean())
-<span class="ansi-green-fg">      2</span> table_rolling
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Length</td><td>24 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00</td><td>81.5236</td><td>0.0</td><td>48.715</td></tr>
+<tr><td>2024-01-15 01:00</td><td>83.5578</td><td>0.0</td><td>48.8293</td></tr>
+<tr><td>2024-01-15 02:00</td><td>90.5504</td><td>0.0</td><td>49.7518</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>48.7795</td><td>9.72651</td><td>49.9265</td></tr>
+<tr><td>2024-01-15 22:00</td><td>56.3025</td><td>3.88045</td><td>51.0792</td></tr>
+<tr><td>2024-01-15 23:00</td><td>65.0506</td><td>0.602954</td><td>51.0728</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table_norm = table.apply_numpy(
-    lambda arr: (arr - arr.mean(axis=0)) / arr.std(axis=0)
-)
-table_norm.head(6)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table_norm</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">apply_numpy</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">arr</span><span class="p">:</span> <span class="p">(</span><span class="n">arr</span> <span class="o">-</span> <span class="n">arr</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span> <span class="o">/</span> <span class="n">arr</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">table_norm</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[21]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> table_norm = <span class="ansi-yellow-bg">table</span>.apply_numpy(
-<span class="ansi-green-fg">      2</span>     <span class="ansi-bold" style="color: rgb(0,135,0)">lambda</span> arr: (arr - arr.mean(axis=<span class="ansi-green-fg">0</span>)) / arr.std(axis=<span class="ansi-green-fg">0</span>)
-<span class="ansi-green-fg">      3</span> )
-<span class="ansi-green-fg">      4</span> table_norm.head(<span class="ansi-green-fg">6</span>)
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Length</td><td>6 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00</td><td>0.0594697</td><td>-1.19819</td><td>-0.868761</td></tr>
+<tr><td>2024-01-15 01:00</td><td>0.208941</td><td>-1.19819</td><td>-0.759577</td></tr>
+<tr><td>2024-01-15 02:00</td><td>0.904926</td><td>-1.19819</td><td>0.507806</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table.update_df(table.df.rolling(4, min_periods=1).mean())
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">update_df</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[22]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-yellow-bg">table</span>.update_df(table.df.rolling(<span class="ansi-green-fg">4</span>, min_periods=<span class="ansi-green-fg">1</span>).mean())
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Length</td><td>24 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00</td><td>81.5236</td><td>0.0</td><td>48.715</td></tr>
+<tr><td>2024-01-15 01:00</td><td>83.5578</td><td>0.0</td><td>48.8293</td></tr>
+<tr><td>2024-01-15 02:00</td><td>90.5504</td><td>0.0</td><td>49.7518</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>48.7795</td><td>9.72651</td><td>49.9265</td></tr>
+<tr><td>2024-01-15 22:00</td><td>56.3025</td><td>3.88045</td><td>51.0792</td></tr>
+<tr><td>2024-01-15 23:00</td><td>65.0506</td><td>0.602954</td><td>51.0728</td></tr>
+</table></div>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>table.update_arr(np.clip(table.arr, 40, 120))
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">table</span><span class="o">.</span><span class="n">update_arr</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">arr</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">120</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">NameError</span>                                 Traceback (most recent call last)
-<span class="ansi-cyan-fg">Cell</span><span class="ansi-cyan-fg"> </span><span class="ansi-green-fg">In[23]</span><span class="ansi-green-fg">, line 1</span>
-<span class="ansi-green-fg">----&gt; </span><span class="ansi-green-fg">1</span> <span class="ansi-yellow-bg">table</span>.update_arr(np.clip(table.arr, <span class="ansi-green-fg">40</span>, <span class="ansi-green-fg">120</span>))
-
-<span class="ansi-red-fg">NameError</span>: name &#39;table&#39; is not defined
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>wind, solar, hydro</td></tr>
+<tr><td>Length</td><td>24 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW, MW, MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind</th><th>solar</th><th>hydro</th></tr>
+<tr><td>2024-01-15 00:00</td><td>81.5236</td><td>40.0</td><td>48.715</td></tr>
+<tr><td>2024-01-15 01:00</td><td>85.592</td><td>40.0</td><td>48.9436</td></tr>
+<tr><td>2024-01-15 02:00</td><td>104.536</td><td>40.0</td><td>51.5969</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>55.812</td><td>40.0</td><td>50.6561</td></tr>
+<tr><td>2024-01-15 22:00</td><td>75.3208</td><td>40.0</td><td>52.6143</td></tr>
+<tr><td>2024-01-15 23:00</td><td>79.2274</td><td>40.0</td><td>50.6708</td></tr>
+</table></div>
+</div></div>
 </div>
 </section>
 <section id="Summary">

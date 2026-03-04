@@ -1,0 +1,1267 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arrays and Collections &mdash; timedatamodel</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+      <link rel="stylesheet" type="text/css" href="../_static/custom.css?v=bed8cb9f" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Data Quality and Coverage" href="data_quality_and_coverage.html" />
+    <link rel="prev" title="Multivariate Time Series" href="multivariate_timeseries.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            timedatamodel
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started with TimeDataModel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="numpy_and_pandas_transforms.html">NumPy and Pandas Transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unit_handling_and_validation.html">Unit Handling and Validation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timeseries_operations.html">TimeSeriesList Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multivariate_timeseries.html">Multivariate Time Series</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Arrays and Collections</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#TimeSeriesArray">TimeSeriesArray</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Building-a-4D-array">Building a 4D array</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Array-properties">Array properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sel()-—-fixing-one-dimension-(4D-→-3D-array)"><code class="docutils literal notranslate"><span class="pre">sel()</span></code> — fixing one dimension (4D → 3D array)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sel()-—-fixing-two-dimensions-(4D-→-2D-→-TimeSeriesTable)"><code class="docutils literal notranslate"><span class="pre">sel()</span></code> — fixing two dimensions (4D → 2D → TimeSeriesTable)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sel()-—-fixing-three-dimensions-(4D-→-1D-→-TimeSeriesList)"><code class="docutils literal notranslate"><span class="pre">sel()</span></code> — fixing three dimensions (4D → 1D → TimeSeriesList)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#isel()-—-index-based-selection"><code class="docutils literal notranslate"><span class="pre">isel()</span></code> — index-based selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Slicing-a-dimension">Slicing a dimension</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Converting-to-pandas">Converting to pandas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Building-an-array-from-a-list-of-TimeSeriesList">Building an array from a list of TimeSeriesList</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#TimeSeriesCollection">TimeSeriesCollection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Creating-a-collection">Creating a collection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Dictionary-like-access">Dictionary-like access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Adding-and-removing-series">Adding and removing series</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Iterating-over-a-collection">Iterating over a collection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data_quality_and_coverage.html">Data Quality and Coverage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io_and_interoperability.html">I/O and Interoperability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geographical_support.html">Geographical Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hierarchical_timeseries.html">Hierarchical Time Series</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">timedatamodel</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Arrays and Collections</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/arrays_and_collections.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Arrays-and-Collections">
+<h1>Arrays and Collections<a class="headerlink" href="#Arrays-and-Collections" title="Link to this heading"></a></h1>
+<p>For multi-dimensional data (e.g., scenario × time, or region × quantile × time) use <code class="docutils literal notranslate"><span class="pre">TimeSeriesArray</span></code>. For grouping heterogeneous time series that don’t share the same timestamps, use <code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code>.</p>
+<section id="TimeSeriesArray">
+<h2>TimeSeriesArray<a class="headerlink" href="#TimeSeriesArray" title="Link to this heading"></a></h2>
+<div class="line-block">
+<div class="line">An array stores an N-dimensional array with named <code class="docutils literal notranslate"><span class="pre">Dimension</span></code> objects. Each dimension has a name and a list of labels (datetimes, strings, or numbers).</div>
+<div class="line">Common use cases include ensemble forecasts, scenario analysis, and multi-site probabilistic forecasts.</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">timezone</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">timedatamodel</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tdm</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Building-a-4D-array">
+<h3>Building a 4D array<a class="headerlink" href="#Building-a-4D-array" title="Link to this heading"></a></h3>
+<p>Imagine a wind power forecasting system that produces:</p>
+<ul class="simple">
+<li><p><strong>3 knowledge times</strong> — forecasts issued at 00:00, 06:00, and 12:00</p></li>
+<li><p><strong>24 valid times</strong> — hourly forecast horizon</p></li>
+<li><p><strong>3 wind farms</strong> — Alpha, Bravo, Charlie</p></li>
+<li><p><strong>5 quantiles</strong> — probabilistic spread from q10 to q90</p></li>
+</ul>
+<p>That gives a <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">24,</span> <span class="pre">3,</span> <span class="pre">5)</span></code> array with <strong>1 080 values</strong>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">knowledge_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">12</span><span class="p">]]</span>
+<span class="n">valid_times</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
+<span class="n">wind_farms</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Alpha&quot;</span><span class="p">,</span> <span class="s2">&quot;Bravo&quot;</span><span class="p">,</span> <span class="s2">&quot;Charlie&quot;</span><span class="p">]</span>
+<span class="n">quantiles</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;q10&quot;</span><span class="p">,</span> <span class="s2">&quot;q25&quot;</span><span class="p">,</span> <span class="s2">&quot;q50&quot;</span><span class="p">,</span> <span class="s2">&quot;q75&quot;</span><span class="p">,</span> <span class="s2">&quot;q90&quot;</span><span class="p">]</span>
+
+<span class="n">nk</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">knowledge_times</span><span class="p">)</span>
+<span class="n">nv</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_times</span><span class="p">)</span>
+<span class="n">nw</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wind_farms</span><span class="p">)</span>
+<span class="n">nq</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">quantiles</span><span class="p">)</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">nk</span><span class="p">,</span> <span class="n">nv</span><span class="p">,</span> <span class="n">nw</span><span class="p">,</span> <span class="n">nq</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nk</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nw</span><span class="p">):</span>
+        <span class="n">capacity</span> <span class="o">=</span> <span class="mi">50</span> <span class="o">+</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">w</span>
+        <span class="n">daily_shape</span> <span class="o">=</span> <span class="n">capacity</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">nv</span><span class="p">)))</span>
+        <span class="k">for</span> <span class="n">q_idx</span><span class="p">,</span> <span class="n">q_spread</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="o">-</span><span class="mf">0.4</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.15</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">]):</span>
+            <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">,</span> <span class="p">:,</span> <span class="n">w</span><span class="p">,</span> <span class="n">q_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">daily_shape</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">q_spread</span><span class="p">)</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">nv</span><span class="p">)</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="mi">5</span>
+
+<span class="n">cube</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesArray</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timezone</span><span class="o">=</span><span class="s2">&quot;UTC&quot;</span><span class="p">,</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wind_power&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+    <span class="n">data_type</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">DataType</span><span class="o">.</span><span class="n">FORECAST</span><span class="p">,</span>
+    <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;knowledge_time&quot;</span><span class="p">,</span> <span class="n">knowledge_times</span><span class="p">),</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;valid_time&quot;</span><span class="p">,</span> <span class="n">valid_times</span><span class="p">),</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;wind_farm&quot;</span><span class="p">,</span> <span class="n">wind_farms</span><span class="p">),</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;quantile&quot;</span><span class="p">,</span> <span class="n">quantiles</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cube</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesArray</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>wind_power</td></tr>
+<tr><td>Dimensions</td><td>knowledge_time: 3, valid_time: 24, wind_farm: 3, quantile: 5</td></tr>
+<tr><td>Shape</td><td>(3, 24, 3, 5)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>FORECAST</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<thead>
+<tr><th rowspan="2">knowledge_time</th><th rowspan="2">valid_time</th><th colspan="4">Alpha</th><th>&hellip;</th><th colspan="4">Charlie</th></tr>
+<tr><th>q10</th><th>q25</th><th>q50</th><th>q75</th><th>&hellip;</th><th>q25</th><th>q50</th><th>q75</th><th>q90</th></tr>
+</thead>
+<tbody>
+<tr><td class="ts-idx">2024-01-15 00:00</td><td class="ts-idx">2024-01-15 00:00</td><td>30.9142</td><td>41.215</td><td>52.0367</td><td>54.7416</td><td class="ts-ellipsis">&hellip;</td><td>77.9146</td><td>89.1235</td><td>108.732</td><td>123.987</td></tr>
+<tr><td class="ts-idx">2024-01-15 00:00</td><td class="ts-idx">2024-01-15 01:00</td><td>29.3082</td><td>44.8835</td><td>54.2497</td><td>63.6455</td><td class="ts-ellipsis">&hellip;</td><td>85.73</td><td>96.974</td><td>113.194</td><td>137.134</td></tr>
+<tr><td class="ts-idx">2024-01-15 00:00</td><td class="ts-idx">2024-01-15 02:00</td><td>36.9276</td><td>50.7216</td><td>58.6611</td><td>66.8901</td><td class="ts-ellipsis">&hellip;</td><td>88.8907</td><td>103.273</td><td>122.117</td><td>149.106</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td class="ts-idx">2024-01-15 12:00</td><td class="ts-idx">2024-01-15 21:00</td><td>38.8869</td><td>40.5245</td><td>51.7531</td><td>57.0253</td><td class="ts-ellipsis">&hellip;</td><td>75.5962</td><td>89.1078</td><td>104.702</td><td>124.787</td></tr>
+<tr><td class="ts-idx">2024-01-15 12:00</td><td class="ts-idx">2024-01-15 22:00</td><td>34.51</td><td>49.311</td><td>53.7148</td><td>60.9618</td><td class="ts-ellipsis">&hellip;</td><td>82.3184</td><td>96.2784</td><td>100.991</td><td>124.042</td></tr>
+<tr><td class="ts-idx">2024-01-15 12:00</td><td class="ts-idx">2024-01-15 23:00</td><td>34.4205</td><td>50.8314</td><td>56.2491</td><td>68.4344</td><td class="ts-ellipsis">&hellip;</td><td>85.3755</td><td>100.608</td><td>117.916</td><td>140.306</td></tr>
+</tbody>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="Array-properties">
+<h3>Array properties<a class="headerlink" href="#Array-properties" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape:      </span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dimensions: </span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">dim_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;N dims:     </span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Begin:      </span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">begin</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;End:        </span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">end</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has missing:</span><span class="si">{</span><span class="n">cube</span><span class="o">.</span><span class="n">has_missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Shape:      (3, 24, 3, 5)
+Dimensions: (&#39;knowledge_time&#39;, &#39;valid_time&#39;, &#39;wind_farm&#39;, &#39;quantile&#39;)
+N dims:     4
+Begin:      2024-01-15 00:00:00+00:00
+End:        2024-01-15 23:00:00+00:00
+Has missing:False
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">coords</span>
+<span class="k">for</span> <span class="n">dim_name</span><span class="p">,</span> <span class="n">labels</span> <span class="ow">in</span> <span class="n">coords</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">preview</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">suffix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; ... (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="si">}</span><span class="s2"> total)&quot;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dim_name</span><span class="si">:</span><span class="s2">18s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">preview</span><span class="si">}{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+knowledge_time     [datetime.datetime(2024, 1, 15, 0, 0, tzinfo=datetime.timezone.utc), datetime.datetime(2024, 1, 15, 6, 0, tzinfo=datetime.timezone.utc), datetime.datetime(2024, 1, 15, 12, 0, tzinfo=datetime.timezone.utc)]
+valid_time         [datetime.datetime(2024, 1, 15, 0, 0, tzinfo=datetime.timezone.utc), datetime.datetime(2024, 1, 15, 1, 0, tzinfo=datetime.timezone.utc), datetime.datetime(2024, 1, 15, 2, 0, tzinfo=datetime.timezone.utc)] ... (24 total)
+wind_farm          [&#39;Alpha&#39;, &#39;Bravo&#39;, &#39;Charlie&#39;]
+quantile           [&#39;q10&#39;, &#39;q25&#39;, &#39;q50&#39;] ... (5 total)
+</pre></div></div>
+</div>
+</section>
+<section id="sel()-—-fixing-one-dimension-(4D-→-3D-array)">
+<h3><code class="docutils literal notranslate"><span class="pre">sel()</span></code> — fixing one dimension (4D → 3D array)<a class="headerlink" href="#sel()-—-fixing-one-dimension-(4D-→-3D-array)" title="Link to this heading"></a></h3>
+<div class="line-block">
+<div class="line">Fix <code class="docutils literal notranslate"><span class="pre">knowledge_time</span></code> to get all farms and quantiles for a single forecast issuance.</div>
+<div class="line">The result is still an array because 3 dimensions remain.</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">noon_forecast</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">knowledge_time</span><span class="o">=</span><span class="n">knowledge_times</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>  <span class="c1"># 12:00 issuance</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type:  </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">noon_forecast</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape: </span><span class="si">{</span><span class="n">noon_forecast</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dims:  </span><span class="si">{</span><span class="n">noon_forecast</span><span class="o">.</span><span class="n">dim_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Type:  TimeSeriesArray
+Shape: (24, 3, 5)
+Dims:  (&#39;valid_time&#39;, &#39;wind_farm&#39;, &#39;quantile&#39;)
+</pre></div></div>
+</div>
+</section>
+<section id="sel()-—-fixing-two-dimensions-(4D-→-2D-→-TimeSeriesTable)">
+<h3><code class="docutils literal notranslate"><span class="pre">sel()</span></code> — fixing two dimensions (4D → 2D → TimeSeriesTable)<a class="headerlink" href="#sel()-—-fixing-two-dimensions-(4D-→-2D-→-TimeSeriesTable)" title="Link to this heading"></a></h3>
+<div class="line-block">
+<div class="line">Fix <code class="docutils literal notranslate"><span class="pre">knowledge_time</span></code> and <code class="docutils literal notranslate"><span class="pre">wind_farm</span></code> to see all quantiles over time for one farm.</div>
+<div class="line">Only 2 dimensions remain (<code class="docutils literal notranslate"><span class="pre">valid_time</span> <span class="pre">×</span> <span class="pre">quantile</span></code>), so the array auto-collapses to a <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code>.</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">alpha_quantiles</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span>
+    <span class="n">knowledge_time</span><span class="o">=</span><span class="n">knowledge_times</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="n">wind_farm</span><span class="o">=</span><span class="s2">&quot;Alpha&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type:    </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">alpha_quantiles</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns: </span><span class="si">{</span><span class="n">alpha_quantiles</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">alpha_quantiles</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Type:    TimeSeriesTable
+Columns: (&#39;q10&#39;, &#39;q25&#39;, &#39;q50&#39;, &#39;q75&#39;, &#39;q90&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>q10, q25, q50, q75, q90</td></tr>
+<tr><td>Length</td><td>24 × 5</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>q10</th><th>q25</th><th>q50</th><th>q75</th><th>q90</th></tr>
+<tr><td>2024-01-15 00:00</td><td>39.7115</td><td>52.7971</td><td>56.1605</td><td>69.0337</td><td>78.794</td></tr>
+<tr><td>2024-01-15 01:00</td><td>45.8122</td><td>58.7324</td><td>69.0924</td><td>73.3278</td><td>86.398</td></tr>
+<tr><td>2024-01-15 02:00</td><td>37.834</td><td>64.5175</td><td>72.9807</td><td>71.1027</td><td>91.7309</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>38.8869</td><td>40.5245</td><td>51.7531</td><td>57.0253</td><td>73.3712</td></tr>
+<tr><td>2024-01-15 22:00</td><td>34.51</td><td>49.311</td><td>53.7148</td><td>60.9618</td><td>79.8464</td></tr>
+<tr><td>2024-01-15 23:00</td><td>34.4205</td><td>50.8314</td><td>56.2491</td><td>68.4344</td><td>78.9922</td></tr>
+</table></div>
+</div></div>
+</div>
+<p>Fix a different pair — <code class="docutils literal notranslate"><span class="pre">knowledge_time</span></code> and <code class="docutils literal notranslate"><span class="pre">quantile</span></code> — to compare farms at the median:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">farms_median</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span>
+    <span class="n">knowledge_time</span><span class="o">=</span><span class="n">knowledge_times</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="n">quantile</span><span class="o">=</span><span class="s2">&quot;q50&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type:    </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">farms_median</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns: </span><span class="si">{</span><span class="n">farms_median</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">farms_median</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Type:    TimeSeriesTable
+Columns: (&#39;Alpha&#39;, &#39;Bravo&#39;, &#39;Charlie&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>Alpha, Bravo, Charlie</td></tr>
+<tr><td>Length</td><td>24 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>Alpha</th><th>Bravo</th><th>Charlie</th></tr>
+<tr><td>2024-01-15 00:00</td><td>56.1605</td><td>72.4949</td><td>102.269</td></tr>
+<tr><td>2024-01-15 01:00</td><td>69.0924</td><td>80.5538</td><td>108.421</td></tr>
+<tr><td>2024-01-15 02:00</td><td>72.9807</td><td>88.4122</td><td>110.324</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>51.7531</td><td>65.86</td><td>89.1078</td></tr>
+<tr><td>2024-01-15 22:00</td><td>53.7148</td><td>72.079</td><td>96.2784</td></tr>
+<tr><td>2024-01-15 23:00</td><td>56.2491</td><td>81.1911</td><td>100.608</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="sel()-—-fixing-three-dimensions-(4D-→-1D-→-TimeSeriesList)">
+<h3><code class="docutils literal notranslate"><span class="pre">sel()</span></code> — fixing three dimensions (4D → 1D → TimeSeriesList)<a class="headerlink" href="#sel()-—-fixing-three-dimensions-(4D-→-1D-→-TimeSeriesList)" title="Link to this heading"></a></h3>
+<p>Fix everything except <code class="docutils literal notranslate"><span class="pre">valid_time</span></code> to extract a single time series.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">single</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span>
+    <span class="n">knowledge_time</span><span class="o">=</span><span class="n">knowledge_times</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="n">wind_farm</span><span class="o">=</span><span class="s2">&quot;Alpha&quot;</span><span class="p">,</span>
+    <span class="n">quantile</span><span class="o">=</span><span class="s2">&quot;q50&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">single</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Len:  </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">single</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">single</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Type: TimeSeriesList
+Len:  24
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>wind_power</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+<tr><td>Data type</td><td>FORECAST</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind_power</th></tr>
+<tr><td>2024-01-15 00:00</td><td>56.1605</td></tr>
+<tr><td>2024-01-15 01:00</td><td>69.0924</td></tr>
+<tr><td>2024-01-15 02:00</td><td>72.9807</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>51.7531</td></tr>
+<tr><td>2024-01-15 22:00</td><td>53.7148</td></tr>
+<tr><td>2024-01-15 23:00</td><td>56.2491</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="isel()-—-index-based-selection">
+<h3><code class="docutils literal notranslate"><span class="pre">isel()</span></code> — index-based selection<a class="headerlink" href="#isel()-—-index-based-selection" title="Link to this heading"></a></h3>
+<p>Use integer positions instead of labels.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">bravo_p90</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
+    <span class="n">knowledge_time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">wind_farm</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>       <span class="c1"># Bravo</span>
+    <span class="n">quantile</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>       <span class="c1"># q90 (last)</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">bravo_p90</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">, len=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bravo_p90</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mean: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">bravo_p90</span><span class="o">.</span><span class="n">arr</span><span class="p">)</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2"> MW&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Type: TimeSeriesList, len=24
+Mean: 97.7 MW
+</pre></div></div>
+</div>
+</section>
+<section id="Slicing-a-dimension">
+<h3>Slicing a dimension<a class="headerlink" href="#Slicing-a-dimension" title="Link to this heading"></a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">slice()</span></code> to keep a range of labels. The dimension is preserved (not collapsed).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">narrow</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span>
+    <span class="n">knowledge_time</span><span class="o">=</span><span class="n">knowledge_times</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+    <span class="n">wind_farm</span><span class="o">=</span><span class="s2">&quot;Alpha&quot;</span><span class="p">,</span>
+    <span class="n">quantile</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="s2">&quot;q25&quot;</span><span class="p">,</span> <span class="s2">&quot;q75&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Type:    </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">narrow</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Columns: </span><span class="si">{</span><span class="n">narrow</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">narrow</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Type:    TimeSeriesTable
+Columns: (&#39;q25&#39;, &#39;q50&#39;, &#39;q75&#39;)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesTable</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>unnamed</td></tr>
+<tr><td>Columns</td><td>q25, q50, q75</td></tr>
+<tr><td>Length</td><td>24 × 3</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>q25</th><th>q50</th><th>q75</th></tr>
+<tr><td>2024-01-15 00:00</td><td>52.7971</td><td>56.1605</td><td>69.0337</td></tr>
+<tr><td>2024-01-15 01:00</td><td>58.7324</td><td>69.0924</td><td>73.3278</td></tr>
+<tr><td>2024-01-15 02:00</td><td>64.5175</td><td>72.9807</td><td>71.1027</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>40.5245</td><td>51.7531</td><td>57.0253</td></tr>
+<tr><td>2024-01-15 22:00</td><td>49.311</td><td>53.7148</td><td>60.9618</td></tr>
+<tr><td>2024-01-15 23:00</td><td>50.8314</td><td>56.2491</td><td>68.4344</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="Converting-to-pandas">
+<h3>Converting to pandas<a class="headerlink" href="#Converting-to-pandas" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">to_pandas_dataframe()</span></code> produces a long-format DataFrame with a <code class="docutils literal notranslate"><span class="pre">MultiIndex</span></code> covering all dimensions.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">to_pandas_dataframe</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Shape:        </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Index levels: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Shape:        (1080, 1)
+Index levels: [&#39;knowledge_time&#39;, &#39;valid_time&#39;, &#39;wind_farm&#39;, &#39;quantile&#39;]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>wind_power</th>
+    </tr>
+    <tr>
+      <th>knowledge_time</th>
+      <th>valid_time</th>
+      <th>wind_farm</th>
+      <th>quantile</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="10" valign="top">2024-01-15 00:00:00+00:00</th>
+      <th rowspan="10" valign="top">2024-01-15 00:00:00+00:00</th>
+      <th rowspan="5" valign="top">Alpha</th>
+      <th>q10</th>
+      <td>30.914151</td>
+    </tr>
+    <tr>
+      <th>q25</th>
+      <td>41.215017</td>
+    </tr>
+    <tr>
+      <th>q50</th>
+      <td>52.036741</td>
+    </tr>
+    <tr>
+      <th>q75</th>
+      <td>54.741643</td>
+    </tr>
+    <tr>
+      <th>q90</th>
+      <td>66.031901</td>
+    </tr>
+    <tr>
+      <th rowspan="5" valign="top">Bravo</th>
+      <th>q10</th>
+      <td>38.929508</td>
+    </tr>
+    <tr>
+      <th>q25</th>
+      <td>57.061177</td>
+    </tr>
+    <tr>
+      <th>q50</th>
+      <td>69.530086</td>
+    </tr>
+    <tr>
+      <th>q75</th>
+      <td>79.350438</td>
+    </tr>
+    <tr>
+      <th>q90</th>
+      <td>99.614346</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="Building-an-array-from-a-list-of-TimeSeriesList">
+<h3>Building an array from a list of TimeSeriesList<a class="headerlink" href="#Building-an-array-from-a-list-of-TimeSeriesList" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">from_timeseries_list()</span></code> is handy when you already have individual forecasts.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">base_prices</span> <span class="o">=</span> <span class="mi">50</span> <span class="o">+</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span>
+
+<span class="n">series_list</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+        <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+        <span class="n">timestamps</span><span class="o">=</span><span class="n">valid_times</span><span class="p">,</span>
+        <span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="n">base_prices</span> <span class="o">*</span> <span class="n">factor</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;price&quot;</span><span class="p">,</span>
+        <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;EUR/MWh&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">factor</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.15</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">]</span>
+<span class="p">]</span>
+
+<span class="n">ensemble</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesArray</span><span class="o">.</span><span class="n">from_timeseries_list</span><span class="p">(</span>
+    <span class="n">series_list</span><span class="p">,</span>
+    <span class="n">dimension</span><span class="o">=</span><span class="n">tdm</span><span class="o">.</span><span class="n">Dimension</span><span class="p">(</span><span class="s2">&quot;percentile&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;p10&quot;</span><span class="p">,</span> <span class="s2">&quot;p25&quot;</span><span class="p">,</span> <span class="s2">&quot;p50&quot;</span><span class="p">,</span> <span class="s2">&quot;p75&quot;</span><span class="p">,</span> <span class="s2">&quot;p90&quot;</span><span class="p">]),</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;price_ensemble&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ensemble</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesArray</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>price_ensemble</td></tr>
+<tr><td>Dimensions</td><td>percentile: 5, valid_time: 24</td></tr>
+<tr><td>Shape</td><td>(5, 24)</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>EUR/MWh</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<thead>
+<tr><th>valid_time</th><th>p10</th><th>p25</th><th>p50</th><th>p75</th><th>p90</th></tr>
+</thead>
+<tbody>
+<tr><td class="ts-idx">2024-01-15 00:00</td><td>35.4875</td><td>40.3053</td><td>49.5122</td><td>58.0453</td><td>63.4761</td></tr>
+<tr><td class="ts-idx">2024-01-15 01:00</td><td>38.4747</td><td>48.488</td><td>51.201</td><td>62.5824</td><td>72.312</td></tr>
+<tr><td class="ts-idx">2024-01-15 02:00</td><td>43.1394</td><td>48.6213</td><td>58.6033</td><td>70.8461</td><td>79.2416</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td class="ts-idx">2024-01-15 21:00</td><td>28.954</td><td>33.1268</td><td>41.6687</td><td>43.5539</td><td>49.6378</td></tr>
+<tr><td class="ts-idx">2024-01-15 22:00</td><td>32.4195</td><td>41.4561</td><td>44.9722</td><td>51.125</td><td>60.9551</td></tr>
+<tr><td class="ts-idx">2024-01-15 23:00</td><td>36.0393</td><td>42.3031</td><td>51.9253</td><td>54.2996</td><td>62.8834</td></tr>
+</tbody>
+</table></div>
+</div></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="TimeSeriesCollection">
+<h2>TimeSeriesCollection<a class="headerlink" href="#TimeSeriesCollection" title="Link to this heading"></a></h2>
+<p>A <code class="docutils literal notranslate"><span class="pre">TimeSeriesCollection</span></code> groups time series that may have different frequencies, time ranges, or numbers of points. Think of it as a named bag of <code class="docutils literal notranslate"><span class="pre">TimeSeriesList</span></code> and <code class="docutils literal notranslate"><span class="pre">TimeSeriesTable</span></code> objects.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">daily_base</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+<span class="n">hours</span> <span class="o">=</span> <span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">hours</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)]</span>
+
+<span class="n">ts_hourly</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">hours</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">100.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wind_hourly&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">ts_daily</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">P1D</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="p">[</span><span class="n">daily_base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">)],</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">2400.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">30</span><span class="p">)],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wind_daily_energy&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MWh&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">ts_15min</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT15M</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">15</span> <span class="o">*</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">96</span><span class="p">)],</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">50.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">96</span><span class="p">)],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;solar_15min&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;MW&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="Creating-a-collection">
+<h3>Creating a collection<a class="headerlink" href="#Creating-a-collection" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">collection</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesCollection</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">ts_hourly</span><span class="p">,</span> <span class="n">ts_daily</span><span class="p">,</span> <span class="n">ts_15min</span><span class="p">],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Plant overview&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Mixed-frequency data for a single plant&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">collection</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesCollection</div>
+<div class="ts-data"><table style="text-align: left;">
+<tr><th>name</th><th>type</th><th>freq</th><th>tz</th><th>length</th><th>begin</th><th>end</th></tr>
+<tr><td>wind_hourly</td><td>TimeSeriesList</td><td>PT1H</td><td>UTC</td><td>24</td><td style="white-space:nowrap">2024-01-15 00:00</td><td style="white-space:nowrap">2024-01-15 23:00</td></tr>
+<tr><td>wind_daily_energy</td><td>TimeSeriesList</td><td>P1D</td><td>UTC</td><td>30</td><td style="white-space:nowrap">2024-01-01 00:00</td><td style="white-space:nowrap">2024-01-30 00:00</td></tr>
+<tr><td>solar_15min</td><td>TimeSeriesList</td><td>PT15M</td><td>UTC</td><td>96</td><td style="white-space:nowrap">2024-01-15 00:00</td><td style="white-space:nowrap">2024-01-15 23:45</td></tr>
+</table></div></div></div>
+</div>
+</section>
+<section id="Dictionary-like-access">
+<h3>Dictionary-like access<a class="headerlink" href="#Dictionary-like-access" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Names: </span><span class="si">{</span><span class="n">collection</span><span class="o">.</span><span class="n">names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Count: </span><span class="si">{</span><span class="n">collection</span><span class="o">.</span><span class="n">series_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">collection</span><span class="p">[</span><span class="s2">&quot;wind_hourly&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Names: [&#39;wind_hourly&#39;, &#39;wind_daily_energy&#39;, &#39;solar_15min&#39;]
+Count: 3
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.ts-repr { font-family: monospace; font-size: 13px; max-width: 640px; display: inline-grid; }
+.ts-repr .ts-header {
+  font-weight: bold; font-size: 14px;
+  padding: 6px 10px; border-bottom: 2px solid #4a4a4a;
+  background: #f0f0f0; color: #1a1a1a;
+}
+.ts-repr .ts-meta { padding: 6px 10px; background: #fafafa; overflow: hidden; min-width: 0; }
+.ts-repr .ts-meta table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
+.ts-repr .ts-meta td:first-child { color: #475569; font-weight: 600; width: 90px; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; overflow: hidden; text-overflow: ellipsis; }
+.ts-repr .ts-data { padding: 6px 10px; }
+.ts-repr .ts-data table {
+  border-collapse: collapse; text-align: right;
+}
+.ts-repr .ts-data th {
+  text-align: right; padding: 3px 10px; border-bottom: 1px solid #ccc;
+  color: #555; font-weight: 600;
+}
+.ts-repr .ts-data th.ts-idx { text-align: left; }
+.ts-repr .ts-data td { padding: 2px 10px; }
+.ts-repr .ts-data tr:hover { background: #f5f5f5; }
+.ts-repr .ts-data td:first-child { text-align: left; color: #1e293b; }
+.ts-repr .ts-data td.ts-idx { text-align: left; color: #1e293b; }
+.ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
+</style>
+<div class="ts-repr">
+<div class="ts-header">TimeSeriesList</div>
+<div class="ts-meta"><table>
+<tr><td>Name</td><td>wind_hourly</td></tr>
+<tr><td>Length</td><td>24</td></tr>
+<tr><td>Frequency</td><td>PT1H</td></tr>
+<tr><td>Timezone</td><td>UTC (+00:00)</td></tr>
+<tr><td>Unit</td><td>MW</td></tr>
+</table></div>
+<div class="ts-data"><table>
+<tr><th class="ts-idx">timestamp</th><th>wind_hourly</th></tr>
+<tr><td>2024-01-15 00:00</td><td>86.7746</td></tr>
+<tr><td>2024-01-15 01:00</td><td>95.1381</td></tr>
+<tr><td>2024-01-15 02:00</td><td>104.202</td></tr>
+<tr><td class="ts-ellipsis">&hellip;</td><td class="ts-ellipsis">&hellip;</td></tr>
+<tr><td>2024-01-15 21:00</td><td>112.906</td></tr>
+<tr><td>2024-01-15 22:00</td><td>104.11</td></tr>
+<tr><td>2024-01-15 23:00</td><td>107.826</td></tr>
+</table></div>
+</div></div>
+</div>
+</section>
+<section id="Adding-and-removing-series">
+<h3>Adding and removing series<a class="headerlink" href="#Adding-and-removing-series" title="Link to this heading"></a></h3>
+<p>Collections are immutable — <code class="docutils literal notranslate"><span class="pre">add()</span></code> and <code class="docutils literal notranslate"><span class="pre">remove()</span></code> return new collections.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ts_price</span> <span class="o">=</span> <span class="n">tdm</span><span class="o">.</span><span class="n">TimeSeriesList</span><span class="p">(</span>
+    <span class="n">tdm</span><span class="o">.</span><span class="n">Frequency</span><span class="o">.</span><span class="n">PT1H</span><span class="p">,</span>
+    <span class="n">timestamps</span><span class="o">=</span><span class="n">hours</span><span class="p">,</span>
+    <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">45.0</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">24</span><span class="p">)],</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;spot_price&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;EUR/MWh&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">extended</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ts_price</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original: </span><span class="si">{</span><span class="n">collection</span><span class="o">.</span><span class="n">names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extended: </span><span class="si">{</span><span class="n">extended</span><span class="o">.</span><span class="n">names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Original: [&#39;wind_hourly&#39;, &#39;wind_daily_energy&#39;, &#39;solar_15min&#39;]
+Extended: [&#39;wind_hourly&#39;, &#39;wind_daily_energy&#39;, &#39;solar_15min&#39;, &#39;spot_price&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">reduced</span> <span class="o">=</span> <span class="n">extended</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;wind_daily_energy&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reduced: </span><span class="si">{</span><span class="n">reduced</span><span class="o">.</span><span class="n">names</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Reduced: [&#39;wind_hourly&#39;, &#39;solar_15min&#39;, &#39;spot_price&#39;]
+</pre></div></div>
+</div>
+</section>
+<section id="Iterating-over-a-collection">
+<h3>Iterating over a collection<a class="headerlink" href="#Iterating-over-a-collection" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">collection</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">20s</span><span class="si">}</span><span class="s2">  freq=</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">frequency</span><span class="p">)</span><span class="si">:</span><span class="s2">5s</span><span class="si">}</span><span class="s2">  len=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">series</span><span class="p">)</span><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2">  begin=</span><span class="si">{</span><span class="n">series</span><span class="o">.</span><span class="n">begin</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+wind_hourly           freq=PT1H   len= 24  begin=2024-01-15 00:00:00+00:00
+wind_daily_energy     freq=P1D    len= 30  begin=2024-01-01 00:00:00+00:00
+solar_15min           freq=PT15M  len= 96  begin=2024-01-15 00:00:00+00:00
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="Summary">
+<h2>Summary<a class="headerlink" href="#Summary" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>``TimeSeriesArray``</strong>: N-dimensional time series with <code class="docutils literal notranslate"><span class="pre">Dimension</span></code> labels; slice with <code class="docutils literal notranslate"><span class="pre">sel()</span></code> / <code class="docutils literal notranslate"><span class="pre">isel()</span></code>; auto-collapses to Table or Series</p></li>
+<li><p><strong>``TimeSeriesCollection``</strong>: heterogeneous container for series with different frequencies and time ranges; dictionary-like access; immutable add/remove</p></li>
+</ul>
+<p>Next up: <strong>nb_07</strong> covers data quality tools — coverage bars and validation.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="multivariate_timeseries.html" class="btn btn-neutral float-left" title="Multivariate Time Series" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data_quality_and_coverage.html" class="btn btn-neutral float-right" title="Data Quality and Coverage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Rebase Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
