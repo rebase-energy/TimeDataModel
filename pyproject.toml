@@ -80,14 +80,12 @@ ignore = [
     "E501",   # line too long (handled by formatter)
     "E402",   # module level import not at top (circular import workarounds)
     "F821",   # undefined name (quoted forward references)
-    "F841",   # local variable assigned but unused (intentional unpacking)
     "UP007",  # use X | Y for union types (NamedTuple compat)
     "UP017",  # use datetime.UTC alias (keep timezone.utc for broader compat)
     "UP035",  # import from collections.abc (keep typing imports)
     "UP037",  # remove quotes from type annotation (forward references)
     "B007",   # unused loop variable (intentional unpacking)
     "B905",   # zip() without strict= (Python 3.10+ style, keep compat)
-    "E741",   # ambiguous variable name (single-letter in comprehensions)
     "SIM105", # contextlib.suppress (explicit try/except preferred for clarity)
     "SIM108", # ternary operator (readability preference)
     "SIM114", # combine if branches (readability preference)
@@ -97,7 +95,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["B015", "B018"]
+"tests/**" = ["B015", "B018", "F841", "E741"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["timedatamodel"]

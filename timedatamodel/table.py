@@ -370,6 +370,28 @@ class TimeSeriesTable(
             list(self._timestamps), self._values.copy()
         )
 
+    def __copy__(self) -> TimeSeriesTable:
+        return self.copy()
+
+    def __deepcopy__(self, memo: dict) -> TimeSeriesTable:
+        import copy
+
+        return TimeSeriesTable(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=copy.deepcopy(self._timestamps, memo),
+            values=self._values.copy(),
+            names=copy.deepcopy(self.names, memo),
+            units=copy.deepcopy(self.units, memo),
+            descriptions=copy.deepcopy(self.descriptions, memo),
+            data_types=copy.deepcopy(self.data_types, memo),
+            locations=copy.deepcopy(self.locations, memo),
+            timeseries_types=copy.deepcopy(self.timeseries_types, memo),
+            attributes=copy.deepcopy(self.attributes, memo),
+            labels=copy.deepcopy(self.labels, memo),
+            index_names=copy.deepcopy(self._index_names, memo),
+        )
+
     def validate(self) -> list[str]:
         """Return a list of validation warnings."""
         warnings = _TimeSeriesBase.validate(self)

@@ -216,6 +216,28 @@ class TimeSeriesList(
             **self._meta_kwargs(),
         )
 
+    def __copy__(self) -> TimeSeriesList:
+        return self.copy()
+
+    def __deepcopy__(self, memo: dict) -> TimeSeriesList:
+        import copy
+
+        return TimeSeriesList(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=copy.deepcopy(self._timestamps, memo),
+            values=copy.deepcopy(self._values, memo),
+            name=self.name,
+            unit=self.unit,
+            description=self.description,
+            data_type=self.data_type,
+            location=copy.deepcopy(self.location, memo),
+            timeseries_type=self.timeseries_type,
+            attributes=copy.deepcopy(self.attributes, memo),
+            labels=copy.deepcopy(self.labels, memo),
+            index_names=copy.deepcopy(self._index_names, memo),
+        )
+
     def validate(self) -> list[str]:
         """Return a list of validation warnings."""
         warnings = _TimeSeriesBase.validate(self)

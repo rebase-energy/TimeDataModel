@@ -63,11 +63,28 @@ class TimeSeriesArray(_TimeSeriesArrayReprMixin):
             arr = np.asarray(values, dtype=np.float64)
             self._values = np.ma.MaskedArray(arr, mask=np.isnan(arr))
 
+        # Validate unique dimension labels
+        for dim in self.dimensions:
+            seen = set()
+            dupes = []
+            for label in dim.labels:
+                if label in seen and label not in dupes:
+                    dupes.append(label)
+                seen.add(label)
+            if dupes:
+                preview = dupes[:5]
+                raise ValueError(
+                    f"Dimension {dim.name!r} has duplicate labels: {preview}"
+                )
+
         expected = tuple(len(d.labels) for d in self.dimensions)
         if self._values.shape != expected:
+            dim_desc = ", ".join(
+                f"{d.name}={len(d.labels)}" for d in self.dimensions
+            )
             raise ValueError(
                 f"values shape {self._values.shape} does not match "
-                f"dimensions {expected}"
+                f"dimensions ({dim_desc})"
             )
 
     __hash__ = None
@@ -142,7 +159,9 @@ class TimeSeriesArray(_TimeSeriesArrayReprMixin):
 
     # ---- sel / isel ----------------------------------------------------------
 
-    def sel(self, **kwargs) -> TimeSeriesArray | "TimeSeriesTable" | "TimeSeriesList":
+    def _select(
+        self, kwargs: dict, *, by_label: bool
+    ) -> "TimeSeriesArray | TimeSeriesTable | TimeSeriesList":
         remaining_dims = list(self.dimensions)
         values = self._values
 
@@ -154,20 +173,29 @@ class TimeSeriesArray(_TimeSeriesArrayReprMixin):
             dim = remaining_dims[axis]
 
             if isinstance(selector, slice):
-                labels = list(dim.labels)
-                start_idx = 0 if selector.start is None else labels.index(selector.start)
-                stop_idx = len(labels) if selector.stop is None else labels.index(selector.stop) + 1
-                slc = slice(start_idx, stop_idx)
+                if by_label:
+                    labels = list(dim.labels)
+                    start_idx = 0 if selector.start is None else labels.index(selector.start)
+                    stop_idx = (
+                        len(labels) if selector.stop is None
+                        else labels.index(selector.stop) + 1
+                    )
+                    slc = slice(start_idx, stop_idx)
+                else:
+                    slc = selector
                 values = values[(slice(None),) * axis + (slc,)]
-                remaining_dims[axis] = Dimension(dim.name, labels[slc])
+                remaining_dims[axis] = Dimension(dim.name, list(dim.labels)[slc])
             else:
                 any_scalar = True
-                try:
-                    idx = list(dim.labels).index(selector)
-                except ValueError:
-                    raise KeyError(
-                        f"Label {selector!r} not found in dimension {dim_name!r}"
-                    ) from None
+                if by_label:
+                    try:
+                        idx = list(dim.labels).index(selector)
+                    except ValueError:
+                        raise KeyError(
+                            f"Label {selector!r} not found in dimension {dim_name!r}"
+                        ) from None
+                else:
+                    idx = selector
                 values = np.take(values, idx, axis=axis)
                 remaining_dims.pop(axis)
 
@@ -179,32 +207,11 @@ class TimeSeriesArray(_TimeSeriesArrayReprMixin):
             )
         return self._maybe_collapse(values, remaining_dims)
 
-    def isel(self, **kwargs) -> TimeSeriesArray | "TimeSeriesTable" | "TimeSeriesList":
-        remaining_dims = list(self.dimensions)
-        values = self._values
+    def sel(self, **kwargs) -> "TimeSeriesArray | TimeSeriesTable | TimeSeriesList":
+        return self._select(kwargs, by_label=True)
 
-        any_scalar = False
-        for dim_name, selector in kwargs.items():
-            axis = next(
-                i for i, d in enumerate(remaining_dims) if d.name == dim_name
-            )
-            dim = remaining_dims[axis]
-
-            if isinstance(selector, slice):
-                values = values[(slice(None),) * axis + (selector,)]
-                remaining_dims[axis] = Dimension(dim.name, list(dim.labels)[selector])
-            else:
-                any_scalar = True
-                values = np.take(values, selector, axis=axis)
-                remaining_dims.pop(axis)
-
-        if not any_scalar:
-            return TimeSeriesArray(
-                self.frequency, timezone=self.timezone,
-                dimensions=remaining_dims, values=values,
-                **self._meta_kwargs(),
-            )
-        return self._maybe_collapse(values, remaining_dims)
+    def isel(self, **kwargs) -> "TimeSeriesArray | TimeSeriesTable | TimeSeriesList":
+        return self._select(kwargs, by_label=False)
 
     def _maybe_collapse(self, values, remaining_dims):
         ndim = values.ndim if hasattr(values, 'ndim') else 0
@@ -269,6 +276,36 @@ class TimeSeriesArray(_TimeSeriesArrayReprMixin):
             timestamps=timestamps,
             values=values_list,
             **self._meta_kwargs(),
+        )
+
+    # ---- copy protocol -------------------------------------------------------
+
+    def copy(self) -> TimeSeriesArray:
+        """Return a shallow copy."""
+        return TimeSeriesArray(
+            self.frequency,
+            timezone=self.timezone,
+            dimensions=[Dimension(d.name, list(d.labels)) for d in self.dimensions],
+            values=self._values.copy(),
+            **self._meta_kwargs(),
+        )
+
+    def __copy__(self) -> TimeSeriesArray:
+        return self.copy()
+
+    def __deepcopy__(self, memo: dict) -> TimeSeriesArray:
+        import copy
+
+        return TimeSeriesArray(
+            self.frequency,
+            timezone=self.timezone,
+            dimensions=copy.deepcopy(self.dimensions, memo),
+            values=self._values.copy(),
+            name=self.name,
+            unit=self.unit,
+            description=self.description,
+            data_type=self.data_type,
+            attributes=copy.deepcopy(self.attributes, memo),
         )
 
     # ---- conversion methods --------------------------------------------------
@@ -431,7 +468,7 @@ class TimeSeriesArray(_TimeSeriesArrayReprMixin):
     def _array_to_pandas_df(self, non_time):
         """Convert array to a pandas DataFrame with time index and non-time columns."""
 
-        pd = _import_pandas()
+        _import_pandas()
         da = self.to_xarray()
         ptd_name = self.primary_time_dim.name
 

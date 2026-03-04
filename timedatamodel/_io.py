@@ -248,7 +248,7 @@ class _TimeSeriesTableIOMixin:
             payload["attributes"] = self.attributes
         if any(lbl for lbl in self.labels):
             payload["labels"] = self.labels
-        if any(l is not None for l in self.locations):
+        if any(loc is not None for loc in self.locations):
             payload["locations"] = [
                 _location_to_json(loc) if loc is not None else None
                 for loc in self.locations
