@@ -2754,3 +2754,35 @@ class TestTimeSeriesTableLabels:
         )
         result = table + 10
         assert result.labels == [{"site": "A"}, {"site": "B"}]
+
+
+class TestDataPointRepr:
+    def test_repr_basic(self):
+        dp = tdm.DataPoint(datetime(2024, 1, 1, tzinfo=timezone.utc), 42.0)
+        r = repr(dp)
+        assert "DataPoint" in r
+        assert "2024-01-01" in r
+        assert "42.0" in r
+        assert "\u250c" in r  # box-drawing top-left
+
+    def test_repr_html_basic(self):
+        dp = tdm.DataPoint(datetime(2024, 1, 1, tzinfo=timezone.utc), 42.0)
+        html = dp._repr_html_()
+        assert "DataPoint" in html
+        assert "ts-repr" in html
+        assert "42.0" in html
+
+    def test_repr_none_value(self):
+        dp = tdm.DataPoint(datetime(2024, 6, 15, tzinfo=timezone.utc), None)
+        r = repr(dp)
+        assert "NaN" in r
+        html = dp._repr_html_()
+        assert "NaN" in html
+
+    def test_repr_naive_timestamp(self):
+        dp = tdm.DataPoint(datetime(2024, 3, 1), 10.0)
+        r = repr(dp)
+        assert "2024-03-01" in r
+        assert "Timezone" not in r
+        html = dp._repr_html_()
+        assert "Timezone" not in html

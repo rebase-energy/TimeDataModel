@@ -446,8 +446,8 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
     def _repr_meta_lines(self) -> list[str]:
         label_w = 18
         lines: list[str] = []
-        lines.append(f"{'Columns:':<{label_w}}{self.name or 'unnamed'}")
-        lines.append(f"{'Shape:':<{label_w}}({len(self._timestamps)},)")
+        lines.append(f"{'Name:':<{label_w}}{self.name or 'unnamed'}")
+        lines.append(f"{'Length:':<{label_w}}{len(self._timestamps)}")
         lines.append(f"{'Frequency:':<{label_w}}{self.frequency}")
         lines.append(f"{'Timezone:':<{label_w}}{_fmt_tz_with_offset(self.timezone, self._timestamps)}")
         if self.unit:
@@ -478,8 +478,8 @@ class TimeSeries(_TimeSeriesBase, _DataFrameMixin):
         n = len(self._timestamps)
 
         meta_rows: list[tuple[str, str]] = [
-            ("Columns", disp_name),
-            ("Shape", f"({n:,},)"),
+            ("Name", disp_name),
+            ("Length", f"{n:,}"),
             ("Frequency", escape(str(self.frequency))),
             ("Timezone", escape(_fmt_tz_with_offset(self.timezone, self._timestamps))),
         ]

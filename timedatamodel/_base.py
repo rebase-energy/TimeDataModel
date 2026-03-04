@@ -172,6 +172,7 @@ _REPR_CSS = """\
 .ts-repr .ts-meta table { border-collapse: collapse; }
 .ts-repr .ts-meta td { padding: 1px 8px 1px 0; white-space: nowrap; }
 .ts-repr .ts-meta td:first-child { color: #666; font-weight: 600; }
+.ts-repr .ts-meta td:last-child { color: #1a1a1a; }
 .ts-repr .ts-data { padding: 6px 10px; }
 .ts-repr .ts-data table {
   border-collapse: collapse; width: 100%; text-align: right;
@@ -185,6 +186,18 @@ _REPR_CSS = """\
 .ts-repr .ts-data td:first-child { text-align: left; color: #333; }
 .ts-repr .ts-data td.ts-idx { text-align: left; color: #333; }
 .ts-repr .ts-ellipsis { text-align: center !important; color: #999; }
+@media (prefers-color-scheme: dark) {
+  .ts-repr .ts-header { background: #1e293b; color: #e2e8f0; border-color: #475569; }
+  .ts-repr .ts-meta { background: #0f172a; }
+  .ts-repr .ts-meta td:first-child { color: #94a3b8; }
+  .ts-repr .ts-meta td:last-child { color: #e2e8f0; }
+  .ts-repr .ts-data th { color: #94a3b8; border-color: #334155; }
+  .ts-repr .ts-data td { color: #e2e8f0; }
+  .ts-repr .ts-data td:first-child { color: #cbd5e1; }
+  .ts-repr .ts-data td.ts-idx { color: #cbd5e1; }
+  .ts-repr .ts-data tr:hover { background: #1e293b; }
+  .ts-repr .ts-ellipsis { color: #64748b; }
+}
 </style>"""
 
 
