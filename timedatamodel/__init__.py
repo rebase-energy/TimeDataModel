@@ -11,6 +11,11 @@ from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode
 from .location import GeoArea, GeoLocation, Location
 from .table import TimeSeriesTable
 from .timeseries import TimeSeriesList
+from .timeseries_arrow import DataShape, TimeSeries
+from .table import TimeSeriesTable, MultivariateTimeSeries, MultiTimeSeries
+from .collection import TimeSeriesCollection
+from .array import Dimension, NDTimeSeries, TimeSeriesArray
+from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode
 
 __version__ = version("timedatamodel")
 
@@ -31,6 +36,7 @@ def __getattr__(name: str):
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 __all__ = [
     "AggregationMethod",
+    "DataShape",
     "get_default_df",
     "get_repr_width",
     "get_theme",
@@ -52,6 +58,7 @@ __all__ = [
     "TimeSeriesArray",
     "TimeSeriesTable",
     "TimeSeriesType",
+    "TimeSeries",
     "TimeSeriesList",
     "reset_theme",
     "set_default_df",
