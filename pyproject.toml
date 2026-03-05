@@ -45,6 +45,7 @@ dev = [
     "mypy>=1.13",
     "pre-commit>=4.0",
     "pandas>=2.0",
+    ["pyarrow>=14.0",
     "pint>=0.24",
     "shapely>=2.0",
     "polars>=1.0",
