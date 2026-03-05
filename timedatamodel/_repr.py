@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Callable
 import numpy as np
 
 from ._theme import THEME, get_theme_version
-from .location import GeoArea, GeoLocation, Location
+from .location import GeoArea, GeoLocation
 
 if TYPE_CHECKING:
     from .hierarchy import HierarchyNode
@@ -233,7 +233,7 @@ def _build_repr_html(
 
         if not show_all:
             ellipsis_cells = "".join(
-                f'<td class="ts-ellipsis">&hellip;</td>'
+                '<td class="ts-ellipsis">&hellip;</td>'
                 for _ in range(total_cols)
             )
             html.append(f"<tr>{ellipsis_cells}</tr>")
@@ -260,7 +260,7 @@ def _render_box(
     if max_width is None:
         max_width = get_repr_width()
 
-    max_w = max((len(l) for l in content_lines if l is not None), default=0)
+    max_w = max((len(line) for line in content_lines if line is not None), default=0)
 
     # Cap content width when a max_width is active
     # Total width = 2 (borders) + 2*padding + content
@@ -348,9 +348,6 @@ class CoverageBar:
         if not self._masks:
             return ""
         n_bins = self._SVG_BINS
-        # Use actual bin count (may be less than n_bins for short series)
-        max_mask_len = max(len(m) for _, m in self._masks) if self._masks else 0
-        actual_bins = min(n_bins, max_mask_len) if max_mask_len > 0 else n_bins
         label_w = 120  # px reserved for labels
         bar_w = 480  # px for the bar area
         row_h = 22
@@ -1276,8 +1273,8 @@ class _TimeSeriesCollectionReprMixin:
             end = item.end
 
             # Import here to check type without circular import
-            from .timeseries import TimeSeriesList
             from .table import TimeSeriesTable
+            from .timeseries import TimeSeriesList
 
             if isinstance(item, TimeSeriesList):
                 label = key

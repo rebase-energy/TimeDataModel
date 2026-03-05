@@ -2913,3 +2913,62 @@ class TestReprWidth:
         r = repr(coll)
         for line in r.split("\n"):
             assert len(line) <= 60, f"Line too long ({len(line)}): {line!r}"
+
+
+# ---------------------------------------------------------------------------
+# Copy protocol
+# ---------------------------------------------------------------------------
+
+
+class TestTimeSeriesListCopyProtocol:
+    def test_copy_returns_independent_copy(self, sample_ts):
+        import copy
+
+        ts_copy = copy.copy(sample_ts)
+        assert ts_copy[0].value == sample_ts[0].value
+        ts_copy._values[0] = 999.0
+        assert sample_ts[0].value != 999.0
+
+    def test_deepcopy_returns_independent_copy(self, sample_ts):
+        import copy
+
+        ts_deep = copy.deepcopy(sample_ts)
+        assert ts_deep[0].value == sample_ts[0].value
+        ts_deep._values[0] = 999.0
+        assert sample_ts[0].value != 999.0
+
+    def test_deepcopy_attributes_independent(self, sample_ts):
+        import copy
+
+        sample_ts.attributes["key"] = "val"
+        ts_deep = copy.deepcopy(sample_ts)
+        ts_deep.attributes["key"] = "changed"
+        assert sample_ts.attributes["key"] == "val"
+
+
+class TestTimeSeriesTableCopyProtocol:
+    @pytest.fixture
+    def sample_table(self):
+        base = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        timestamps = [base + timedelta(hours=i) for i in range(3)]
+        values = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+        return tdm.TimeSeriesTable(
+            tdm.Frequency.PT1H,
+            timestamps=timestamps,
+            values=values,
+            names=["a", "b"],
+        )
+
+    def test_copy_independent(self, sample_table):
+        import copy
+
+        tbl_copy = copy.copy(sample_table)
+        tbl_copy._values[0, 0] = 999.0
+        assert sample_table._values[0, 0] != 999.0
+
+    def test_deepcopy_independent(self, sample_table):
+        import copy
+
+        tbl_deep = copy.deepcopy(sample_table)
+        tbl_deep._values[0, 0] = 999.0
+        assert sample_table._values[0, 0] != 999.0

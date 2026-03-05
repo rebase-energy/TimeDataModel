@@ -158,7 +158,7 @@ class _TimeSeriesListIOMixin:
         labels: dict[str, str] | None = None,
     ):
         """Read a TimeSeriesList from a CSV file produced by to_csv()."""
-        with open(path, "r", newline="") as f:
+        with open(path, newline="") as f:
             reader = csv.reader(f)
             header = next(reader)
 
@@ -248,7 +248,7 @@ class _TimeSeriesTableIOMixin:
             payload["attributes"] = self.attributes
         if any(lbl for lbl in self.labels):
             payload["labels"] = self.labels
-        if any(l is not None for l in self.locations):
+        if any(loc is not None for loc in self.locations):
             payload["locations"] = [
                 _location_to_json(loc) if loc is not None else None
                 for loc in self.locations
@@ -373,7 +373,7 @@ class _TimeSeriesTableIOMixin:
         labels: list[dict[str, str]] | None = None,
     ):
         """Read a TimeSeriesTable from a CSV file produced by to_csv()."""
-        with open(path, "r", newline="") as f:
+        with open(path, newline="") as f:
             reader = csv.reader(f)
             header = next(reader)
 

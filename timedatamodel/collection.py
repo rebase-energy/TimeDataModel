@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Iterator
 
 from ._base import _DataFrameMixin, _import_polars

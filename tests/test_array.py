@@ -7,7 +7,6 @@ import xarray as xr
 
 import timedatamodel as tdm
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -707,3 +706,52 @@ class TestArrayApplyPolars:
         cube = tdm.TimeSeriesArray(tdm.Frequency.PT1H, dimensions=dims, values=data)
         with pytest.raises(ValueError, match="at most 2 non-time"):
             cube.apply_polars(lambda df: df)
+
+
+# ---------------------------------------------------------------------------
+# Duplicate dimension labels
+# ---------------------------------------------------------------------------
+
+
+class TestDuplicateDimensionLabels:
+    def test_duplicate_labels_rejected(self, timestamps_5h):
+        dims = [
+            tdm.Dimension("scenario", ["a", "b", "a"]),
+            tdm.Dimension("valid_time", timestamps_5h),
+        ]
+        data = np.ones((3, 5))
+        with pytest.raises(ValueError, match="duplicate labels"):
+            tdm.TimeSeriesArray(
+                tdm.Frequency.PT1H, dimensions=dims, values=data,
+            )
+
+
+# ---------------------------------------------------------------------------
+# Copy protocol
+# ---------------------------------------------------------------------------
+
+
+class TestTimeSeriesArrayCopyProtocol:
+    def test_copy_independent(self, cube_2d):
+        import copy
+
+        arr_copy = copy.copy(cube_2d)
+        assert arr_copy.equals(cube_2d)
+        arr_copy._values[0, 0] = 9999.0
+        assert cube_2d._values[0, 0] != 9999.0
+
+    def test_deepcopy_independent(self, cube_2d):
+        import copy
+
+        arr_deep = copy.deepcopy(cube_2d)
+        assert arr_deep.equals(cube_2d)
+        arr_deep._values[0, 0] = 9999.0
+        assert cube_2d._values[0, 0] != 9999.0
+
+    def test_deepcopy_attributes_independent(self, cube_2d):
+        import copy
+
+        cube_2d.attributes["key"] = "val"
+        arr_deep = copy.deepcopy(cube_2d)
+        arr_deep.attributes["key"] = "changed"
+        assert cube_2d.attributes["key"] == "val"

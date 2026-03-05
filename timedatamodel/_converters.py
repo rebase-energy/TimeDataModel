@@ -378,7 +378,7 @@ class _TimeSeriesListConverterMixin:
         """Apply a pandas transformation, preserving metadata and auto-detecting frequency."""
         from .timeseries import TimeSeriesList
 
-        pd = _import_pandas()
+        _import_pandas()
         df = self.to_pandas_dataframe()
         result = func(df)
         new_freq, new_tz = self._infer_freq_tz(
@@ -616,13 +616,13 @@ class _TimeSeriesTableConverterMixin:
             return isinstance(vals[0], (np.datetime64, pd.Timestamp))
 
         if _is_datetime_coord(coord0):
-            ts_dim, col_dim = dim0, dim1
+            ts_dim = dim0
             values = da.values.astype(np.float64)
         elif _is_datetime_coord(coord1):
-            ts_dim, col_dim = dim1, dim0
+            ts_dim = dim1
             values = da.values.astype(np.float64).T
         else:
-            ts_dim, col_dim = dim0, dim1
+            ts_dim = dim0
             values = da.values.astype(np.float64)
 
         timestamps = _xarray_labels_to_list(da.coords[ts_dim].values)
@@ -766,7 +766,7 @@ class _TimeSeriesTableConverterMixin:
         """Create a new TimeSeriesTable from a DataFrame, preserving metadata."""
         from .table import TimeSeriesTable
 
-        pd = _import_pandas()
+        _import_pandas()
         timestamps, index_names = _extract_timestamps_from_pandas_index(df)
 
         values = df.to_numpy(dtype=np.float64)
@@ -823,7 +823,7 @@ class _TimeSeriesTableConverterMixin:
         """Apply a pandas transformation, preserving metadata and auto-detecting frequency."""
         from .table import TimeSeriesTable
 
-        pd = _import_pandas()
+        _import_pandas()
         df = self.to_pandas_dataframe()
         result = func(df)
         new_freq, new_tz = self._infer_freq_tz(

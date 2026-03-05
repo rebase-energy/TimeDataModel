@@ -4,6 +4,7 @@ import warnings
 
 import pytest
 
+from timedatamodel._repr import _get_repr_css
 from timedatamodel._theme import (
     _DEFAULT_THEME,
     get_theme,
@@ -11,7 +12,6 @@ from timedatamodel._theme import (
     reset_theme,
     set_theme,
 )
-from timedatamodel._repr import _get_repr_css
 
 
 @pytest.fixture(autouse=True)

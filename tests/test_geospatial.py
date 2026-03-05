@@ -1,8 +1,8 @@
-import pytest
 from datetime import datetime
 
-import timedatamodel as tdm
+import pytest
 
+import timedatamodel as tdm
 
 # ---- GeoLocation methods --------------------------------------------------
 

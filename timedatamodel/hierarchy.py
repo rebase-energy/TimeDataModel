@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Iterator
 import numpy as np
 
 from ._base import _convert_unit_values
-from ._repr import HierarchyTree, _HierarchicalTimeSeriesReprMixin
+from ._repr import _HierarchicalTimeSeriesReprMixin
 from .enums import Frequency
 from .location import Location
 from .timeseries import TimeSeriesList
@@ -417,7 +417,11 @@ class HierarchicalTimeSeries(_HierarchicalTimeSeriesReprMixin):
                     found = True
                     break
             if not found:
-                raise KeyError(f"key {key!r} not found under {node.key!r}")
+                available = [c.key for c in node.children]
+                raise KeyError(
+                    f"key {key!r} not found under {node.key!r}. "
+                    f"Available: {available}"
+                )
         return node
 
     def get_level(self, level: str | int) -> list[HierarchyNode]:
@@ -456,7 +460,7 @@ class HierarchicalTimeSeries(_HierarchicalTimeSeriesReprMixin):
         import copy
         node = self.get_node(*path)
         new_root = copy.deepcopy(node)
-        remaining_levels = [l for l in self._levels if l in {n.level for n in self._walk_pre(new_root)}]
+        remaining_levels = [lvl for lvl in self._levels if lvl in {n.level for n in self._walk_pre(new_root)}]
         return HierarchicalTimeSeries(
             new_root,
             name=self._name,

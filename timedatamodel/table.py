@@ -7,9 +7,9 @@ from typing import Iterator, overload
 import numpy as np
 
 from ._base import (
+    _convert_unit_values,
     _DataFrameMixin,
     _TimeSeriesBase,
-    _convert_unit_values,
     _validate_timestamp_sequence,
 )
 from ._converters import _TimeSeriesTableConverterMixin
@@ -192,32 +192,15 @@ class TimeSeriesTable(
                 if column not in names:
                     raise KeyError(f"Column '{column}' not found. Available: {names}")
                 column = names.index(column)
-            src_unit = self._get_attr(self.units, column)
-            if src_unit is None:
-                raise ValueError(
-                    f"cannot convert units: source unit is None for column {column}"
-                )
-            new_vals = self._values.copy()
-            new_vals[:, column] = _convert_unit_values(
-                new_vals[:, column], src_unit, target_unit
-            )
-            new_units = [
-                self._get_attr(self.units, i) for i in range(self.n_columns)
-            ]
-            new_units[column] = target_unit
-            kwargs = self._list_meta_kwargs()
-            kwargs["units"] = new_units
-            return TimeSeriesTable(
-                self.frequency,
-                timezone=self.timezone,
-                timestamps=list(self._timestamps),
-                values=new_vals,
-                **kwargs,
-            )
-        # Convert all columns
+            cols_to_convert = [column]
+        else:
+            cols_to_convert = list(range(self.n_columns))
+
         new_vals = self._values.copy()
-        new_units: list[str | None] = []
-        for col in range(self.n_columns):
+        new_units = [
+            self._get_attr(self.units, i) for i in range(self.n_columns)
+        ]
+        for col in cols_to_convert:
             src_unit = self._get_attr(self.units, col)
             if src_unit is None:
                 raise ValueError(
@@ -226,7 +209,8 @@ class TimeSeriesTable(
             new_vals[:, col] = _convert_unit_values(
                 new_vals[:, col], src_unit, target_unit
             )
-            new_units.append(target_unit)
+            new_units[col] = target_unit
+
         kwargs = self._list_meta_kwargs()
         kwargs["units"] = new_units
         return TimeSeriesTable(
@@ -386,6 +370,28 @@ class TimeSeriesTable(
             list(self._timestamps), self._values.copy()
         )
 
+    def __copy__(self) -> TimeSeriesTable:
+        return self.copy()
+
+    def __deepcopy__(self, memo: dict) -> TimeSeriesTable:
+        import copy
+
+        return TimeSeriesTable(
+            self.frequency,
+            timezone=self.timezone,
+            timestamps=copy.deepcopy(self._timestamps, memo),
+            values=self._values.copy(),
+            names=copy.deepcopy(self.names, memo),
+            units=copy.deepcopy(self.units, memo),
+            descriptions=copy.deepcopy(self.descriptions, memo),
+            data_types=copy.deepcopy(self.data_types, memo),
+            locations=copy.deepcopy(self.locations, memo),
+            timeseries_types=copy.deepcopy(self.timeseries_types, memo),
+            attributes=copy.deepcopy(self.attributes, memo),
+            labels=copy.deepcopy(self.labels, memo),
+            index_names=copy.deepcopy(self._index_names, memo),
+        )
+
     def validate(self) -> list[str]:
         """Return a list of validation warnings."""
         warnings = _TimeSeriesBase.validate(self)
@@ -399,5 +405,20 @@ class TimeSeriesTable(
         return warnings
 
 
-MultivariateTimeSeries = TimeSeriesTable
-MultiTimeSeries = TimeSeriesTable
+def __getattr__(name: str):
+    import warnings
+    if name == "MultivariateTimeSeries":
+        warnings.warn(
+            "MultivariateTimeSeries is deprecated, use TimeSeriesTable instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return TimeSeriesTable
+    if name == "MultiTimeSeries":
+        warnings.warn(
+            "MultiTimeSeries is deprecated, use TimeSeriesTable instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return TimeSeriesTable
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
