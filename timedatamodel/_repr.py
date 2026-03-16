@@ -1478,3 +1478,17 @@ class _TimeSeriesArrowReprMixin:
             n_rows=self.num_rows,
             html_row_fn=_html_row,
         )
+
+    def _coverage_masks(self) -> list[tuple[str, list[bool]]]:
+        values = self._table.column("value").to_pylist()
+        return [(self.name or "value", [v is not None for v in values])]
+
+    def coverage_bar(self) -> CoverageBar:
+        """Return a displayable coverage bar."""
+        if self.num_rows > 0:
+            begin = self._table.column("valid_time")[0].as_py()
+            end = self._table.column("valid_time")[-1].as_py()
+        else:
+            begin = None
+            end = None
+        return CoverageBar(self._coverage_masks(), begin, end)
