@@ -192,5 +192,5 @@ Describes the index structure of a time series:
 ## Next steps
 
 - {doc}`usage` — quick-start examples for common operations
-- {doc}`tutorials/index` — hands-on notebooks
+- {doc}`examples/index` — hands-on notebooks
 - {doc}`api` — full API reference

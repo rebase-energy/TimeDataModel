@@ -22,9 +22,9 @@ usage
 
 ```{toctree}
 :maxdepth: 1
-:caption: Tutorials
+:caption: Examples
 
-tutorials/index
+examples/index
 ```
 
 ```{toctree}

@@ -8,7 +8,7 @@ import timedatamodel as tdm
 
 _REPO_ROOT = Path(__file__).parent.parent
 _EXAMPLES_DIR = _REPO_ROOT / "examples"
-_TUTORIALS_DIR = Path(__file__).parent / "tutorials"
+_EXAMPLES_OUT_DIR = Path(__file__).parent / "examples"
 _NB_PREFIX = re.compile(r"^nb_\d+_(.+\.ipynb)$")
 
 
@@ -23,14 +23,14 @@ def _strip_outputs(nb: dict) -> dict:
 
 
 def _copy_notebooks(app) -> None:
-    """Copy example notebooks into docs/tutorials/, stripping the nb_XX_ prefix."""
-    _TUTORIALS_DIR.mkdir(parents=True, exist_ok=True)
+    """Copy example notebooks into docs/examples/, stripping the nb_XX_ prefix."""
+    _EXAMPLES_OUT_DIR.mkdir(parents=True, exist_ok=True)
     for src in sorted(_EXAMPLES_DIR.glob("*.ipynb")):
         m = _NB_PREFIX.match(src.name)
         dest_name = m.group(1) if m else src.name
         with src.open(encoding="utf-8") as f:
             nb = json.load(f)
-        with (_TUTORIALS_DIR / dest_name).open("w", encoding="utf-8") as f:
+        with (_EXAMPLES_OUT_DIR / dest_name).open("w", encoding="utf-8") as f:
             json.dump(_strip_outputs(nb), f, indent=1, ensure_ascii=False)
 
 
