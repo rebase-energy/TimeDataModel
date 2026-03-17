@@ -51,10 +51,10 @@ import numpy as np
 import pandas as pd
 
 from ._base import _get_pint_registry
+from ._datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS
 from ._repr import _TimeSeriesNumpyReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
-from .timeseries_polars import DataShape, _REQUIRED_COLUMNS, _TIME_COLS
 
 
 # ---------------------------------------------------------------------------
@@ -192,7 +192,7 @@ class TimeSeriesNumpy(_TimeSeriesNumpyReprMixin):
             1-D ``float64`` array of observations.  Use ``np.nan`` for
             missing values.
         """
-        ts_arr = np.asarray(timestamps, dtype=_NP_DT_DTYPE)
+        ts_arr = _ensure_utc_numpy(timestamps)
         val_arr = np.asarray(values, dtype=np.float64)
         return cls(
             {"valid_time": ts_arr, "value": val_arr},
@@ -409,6 +409,41 @@ class TimeSeriesNumpy(_TimeSeriesNumpyReprMixin):
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+
+def _ensure_utc_numpy(timestamps) -> np.ndarray:
+    """Normalise *timestamps* to UTC and return a ``datetime64[us]`` array.
+
+    Mirrors the UTC enforcement in :func:`_ingest_pandas_to_numpy`:
+
+    * Timezone-aware, non-UTC → converted to UTC.
+    * Timezone-naive Python datetimes → assumed UTC with a warning.
+    * Already UTC or already ``datetime64`` without tz → passed through.
+    """
+    s = pd.to_datetime(timestamps)
+    tz = getattr(s, "tz", None)
+    if tz is None:
+        # Check whether the source objects carry tzinfo (Python datetimes)
+        src = list(timestamps) if not isinstance(timestamps, (list, np.ndarray)) else timestamps
+        first = src[0] if len(src) else None
+        if hasattr(first, "tzinfo") and first.tzinfo is not None:
+            # tz-aware datetimes but pd.to_datetime lost it somehow — re-parse
+            s = pd.to_datetime(timestamps, utc=True)
+        else:
+            warnings.warn(
+                "Timestamps have no timezone; assuming UTC.",
+                UserWarning,
+                stacklevel=3,
+            )
+            s = s.tz_localize("UTC")
+    elif str(tz) != "UTC":
+        warnings.warn(
+            f"Timestamps are not UTC (got {tz!r}); converting to UTC.",
+            UserWarning,
+            stacklevel=3,
+        )
+        s = s.tz_convert("UTC")
+    return s.values.astype(_NP_DT_DTYPE)
 
 
 def _ingest_pandas_to_numpy(df: pd.DataFrame) -> Dict[str, np.ndarray]:

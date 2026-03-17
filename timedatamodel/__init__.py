@@ -11,9 +11,14 @@ from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode
 from .location import GeoArea, GeoLocation, Location
 from .table import TimeSeriesTable
 from .timeseries import TimeSeriesList
+from ._datashape import DataShape
 from .timeseries_numpy import TimeSeriesNumpy
-from .timeseries_polars import DataShape, TimeSeriesPolars
-from .timeseriestable_polars import TimeSeriesTablePolars
+
+try:
+    from .timeseries_polars import TimeSeriesPolars
+    from .timeseriestable_polars import TimeSeriesTablePolars
+except ImportError:
+    pass
 
 __version__ = version("timedatamodel")
 

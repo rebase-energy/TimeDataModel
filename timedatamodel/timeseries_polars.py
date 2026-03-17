@@ -1,14 +1,16 @@
 """
 TimeSeriesPolars — a Polars-backed container for time series data.
 
-This module mirrors ``timeseries_arrow.py`` but uses a ``polars.DataFrame``
-as the internal storage instead of a ``pyarrow.Table``.
+Uses a ``polars.DataFrame`` as the internal storage backend.
 
 Data shapes
 -----------
-See ``timeseries_arrow.py`` for the full description of the four shapes
-(SIMPLE, VERSIONED, CORRECTED, AUDIT).  The same column conventions apply
-here.
+Four temporal shapes are supported (see :class:`~timedatamodel._datashape.DataShape`):
+
+* **SIMPLE**:    ``valid_time`` + ``value``
+* **VERSIONED**: ``knowledge_time`` + ``valid_time`` + ``value``
+* **CORRECTED**: ``valid_time`` + ``change_time`` + ``value``
+* **AUDIT**:     ``knowledge_time`` + ``change_time`` + ``valid_time`` + ``value``
 
 Timestamp representation
 ------------------------
@@ -38,46 +40,16 @@ valid_time
 from __future__ import annotations
 
 import warnings
-from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 import polars as pl
 
 from ._base import _get_pint_registry
+from ._datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
 from ._repr import _TimeSeriesPolarsReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
-
-
-# ---------------------------------------------------------------------------
-# DataShape — shared with timeseries_arrow (defined here to avoid pyarrow dep)
-# ---------------------------------------------------------------------------
-
-
-class DataShape(str, Enum):
-    """Which temporal columns are present in the underlying data store."""
-
-    SIMPLE     = "SIMPLE"     # valid_time + value
-    VERSIONED  = "VERSIONED"  # knowledge_time + valid_time + value
-    AUDIT      = "AUDIT"      # knowledge_time + change_time + valid_time + value
-    CORRECTED  = "CORRECTED"  # valid_time + change_time + value
-
-
-#: Required columns per shape.
-_REQUIRED_COLUMNS: Dict[DataShape, List[str]] = {
-    DataShape.SIMPLE:     ["valid_time", "value"],
-    DataShape.VERSIONED:  ["knowledge_time", "valid_time", "value"],
-    DataShape.AUDIT:      ["knowledge_time", "change_time", "valid_time", "value"],
-    DataShape.CORRECTED:  ["valid_time", "change_time", "value"],
-}
-
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
-_TIME_COLS: frozenset = frozenset({"valid_time", "valid_time_end", "knowledge_time", "change_time"})
 _TS_DTYPE = pl.Datetime("us", time_zone="UTC")
 
 
