@@ -125,7 +125,7 @@ pip install timedatamodel
 
 Install with **optional dependencies**:
 ```bash
-pip install timedatamodel[pandas]    # pandas interop (from_pandas / to_pandas)
+pip install timedatamodel[pandas]    # pandas interop (includes pyarrow for tz-aware columns)
 pip install timedatamodel[pint]      # unit conversion
 pip install timedatamodel[geo]       # geospatial support (shapely)
 pip install timedatamodel[all]       # all optional extras

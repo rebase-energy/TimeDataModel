@@ -12,7 +12,7 @@ pip install timedatamodel
 
 | Extra | Command | Description |
 |-------|---------|-------------|
-| `pandas` | `pip install timedatamodel[pandas]` | `from_pandas` / `to_pandas` support |
+| `pandas` | `pip install timedatamodel[pandas]` | `from_pandas` / `to_pandas` support (includes pyarrow for timezone-aware columns) |
 | `pint` | `pip install timedatamodel[pint]` | Physical unit conversion |
 | `geo` | `pip install timedatamodel[geo]` | Geospatial support (shapely) |
 | `all` | `pip install timedatamodel[all]` | All optional extras |
