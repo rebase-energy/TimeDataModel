@@ -51,7 +51,7 @@ import numpy as np
 import pandas as pd
 
 from ._base import _get_pint_registry
-from ._datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS
+from .datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS
 from ._repr import _TimeSeriesNumpyReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation

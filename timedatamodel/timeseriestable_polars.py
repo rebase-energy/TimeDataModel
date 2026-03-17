@@ -44,7 +44,7 @@ import polars as pl
 from ._repr import _TimeSeriesTablePolarsReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation
-from ._datashape import DataShape
+from .datashape import DataShape
 from .timeseries_polars import TimeSeriesPolars, _ingest_pandas_to_polars
 
 

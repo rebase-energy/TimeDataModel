@@ -11,7 +11,7 @@ from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode
 from .location import GeoArea, GeoLocation, Location
 from .table import TimeSeriesTable
 from .timeseries import TimeSeriesList
-from ._datashape import DataShape
+from .datashape import DataShape
 from .timeseries_numpy import TimeSeriesNumpy
 
 try:
