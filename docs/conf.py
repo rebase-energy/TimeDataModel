@@ -65,34 +65,15 @@ autodoc_typehints = "description"
 autodoc_default_options = {
     "undoc-members": False,
     "exclude-members": ", ".join([
-        # _TimeSeriesBase internals
-        "_from_float_array",
-        "_fmt_value",
-        "_fmt_location",
-        "_infer_freq_tz",
-        # TimeSeries internals
+        # repr internals
         "_repr_html_",
         "_repr_meta_lines",
         "_repr_data_rows",
-        "_apply_scalar",
-        "_apply_binary",
-        "_apply_comparison",
-        "_to_float_array",
-        "_validate_alignment",
-        "_convert_other_values",
-        "_meta_kwargs",
-        "_coverage_masks",
-        # TimeSeriesTable internals
-        "_get_attr",
-        "_list_meta_kwargs",
-        "_clone_with",
-        # TimeSeriesArray internals
-        "_get_dim",
-        "_dim_index",
-        "_maybe_collapse",
-        # TimeSeriesCollection internals
-        "_item_summary",
-        "_rebin_to_global",
+        # TimeSeriesPolars internals
+        "_clone",
+        "_validate_table",
+        # TimeSeriesTablePolars internals
+        "_clone_df",
     ]),
 }
 
