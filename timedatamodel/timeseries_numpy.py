@@ -1,40 +1,45 @@
 """
-TimeSeriesPolars — a Polars-backed container for time series data.
+TimeSeriesNumpy — a NumPy-backed container for time series data.
 
-Uses a ``polars.DataFrame`` as the internal storage backend.
+Mirrors the public API of :class:`~timedatamodel.timeseries_polars.TimeSeriesPolars`
+but stores data internally as a dict of ``numpy.ndarray`` objects rather than a
+``polars.DataFrame``.
 
-Data shapes
------------
-Four temporal shapes are supported (see :class:`~timedatamodel._datashape.DataShape`):
+Internal storage
+----------------
+``_data`` is a ``Dict[str, np.ndarray]`` with one array per column:
 
-* **SIMPLE**:    ``valid_time`` + ``value``
-* **VERSIONED**: ``knowledge_time`` + ``valid_time`` + ``value``
-* **CORRECTED**: ``valid_time`` + ``change_time`` + ``value``
-* **AUDIT**:     ``knowledge_time`` + ``change_time`` + ``valid_time`` + ``value``
+* Timestamp columns (``valid_time``, ``knowledge_time``, ``change_time``) use
+  ``np.dtype("datetime64[us]")``.  UTC is assumed; timezone is not encoded in the
+  dtype — the ``timezone`` metadata field is a display hint only.
+* The ``value`` column uses ``np.float64``.  Missing values are represented as
+  ``np.nan``.
 
-Timestamp representation
-------------------------
-All timestamp columns are stored internally as ``pl.Datetime("us", time_zone="UTC")``.
-The ``timezone`` metadata field is a display/context hint (IANA zone string).
+Supported shapes follow the same :class:`DataShape` conventions as the Polars
+backend:
+
+* **SIMPLE**:     ``{"valid_time": …, "value": …}``
+* **VERSIONED**:  ``{"knowledge_time": …, "valid_time": …, "value": …}``
+* **CORRECTED**:  ``{"valid_time": …, "change_time": …, "value": …}``
+* **AUDIT**:      ``{"knowledge_time": …, "change_time": …, "valid_time": …, "value": …}``
 
 Example usage
 -------------
+>>> import numpy as np
 >>> import pandas as pd
->>> from timedatamodel.timeseries_polars import TimeSeriesPolars
->>> from timedatamodel.enums import DataType
+>>> from timedatamodel.timeseries_numpy import TimeSeriesNumpy
 >>>
 >>> df = pd.DataFrame({
 ...     "valid_time": pd.date_range("2024-01-01", periods=4, freq="1h", tz="UTC"),
 ...     "value": [1.0, 2.0, 3.0, 4.0],
 ... })
->>> ts = TimeSeriesPolars.from_pandas(df, name="wind_power", unit="MW")
->>> ts
-TimeSeriesPolars('wind_power', shape=SIMPLE, rows=4, unit='MW', type=flat)
->>> ts.to_pandas()
-                           value
-valid_time
-2024-01-01 00:00:00+00:00    1.0
-...
+>>> ts = TimeSeriesNumpy.from_pandas(df, name="wind_power", unit="MW")
+>>> ts.num_rows
+4
+>>> ts.has_missing
+False
+>>> ts.to_pandas().index.name
+'valid_time'
 """
 
 from __future__ import annotations
@@ -42,31 +47,37 @@ from __future__ import annotations
 import warnings
 from typing import Dict, List, Optional, Tuple
 
+import numpy as np
 import pandas as pd
-import polars as pl
 
 from ._base import _get_pint_registry
-from ._datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
-from ._repr import _TimeSeriesPolarsReprMixin
+from ._datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS
+from ._repr import _TimeSeriesNumpyReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
 
-_TS_DTYPE = pl.Datetime("us", time_zone="UTC")
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+_NP_DT_DTYPE = np.dtype("datetime64[us]")
 
 
 # ---------------------------------------------------------------------------
-# TimeSeriesPolars
+# TimeSeriesNumpy
 # ---------------------------------------------------------------------------
 
-class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
-    """Polars-backed container for time series data with rich metadata.
+
+class TimeSeriesNumpy(_TimeSeriesNumpyReprMixin):
+    """NumPy-backed container for time series data with rich metadata.
 
     Parameters
     ----------
-    df:
-        A ``polars.DataFrame`` whose columns conform to one of the recognised
-        :class:`~timedatamodel._datashape.DataShape` patterns.  All
-        timestamp columns must use ``pl.Datetime("us", time_zone="UTC")``.
+    data:
+        A ``Dict[str, np.ndarray]`` whose keys conform to one of the recognised
+        :class:`DataShape` patterns.  Timestamp arrays must use
+        ``np.dtype("datetime64[us]")``; the value array must be ``float64``.
     name:
         Series name (e.g. ``"wind_power"``).
     description:
@@ -79,7 +90,7 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         IANA timezone string for display purposes.  Internal data is always
         UTC; this is a metadata hint only.
     frequency:
-        Pandas offset alias describing the expected data cadence.
+        Expected data cadence (:class:`~timedatamodel.enums.Frequency`).
     data_type:
         Semantic nature of the observations (:class:`~timedatamodel.enums.DataType`).
     location:
@@ -90,7 +101,7 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
 
     def __init__(
         self,
-        df: pl.DataFrame,
+        data: Dict[str, np.ndarray],
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -102,13 +113,13 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> None:
-        if not isinstance(df, pl.DataFrame):
-            raise TypeError(f"df must be a polars.DataFrame, got {type(df)!r}")
+        if not isinstance(data, dict):
+            raise TypeError(f"data must be a dict of np.ndarray, got {type(data)!r}")
 
-        shape = _infer_shape(df)
-        _validate_table(df, shape)
+        shape = _infer_shape_numpy(data)
+        _validate_numpy(data, shape)
 
-        self._df: pl.DataFrame = df
+        self._data: Dict[str, np.ndarray] = data
         self._shape: DataShape = shape
 
         self.name: Optional[str] = name
@@ -127,37 +138,38 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
 
     @property
     def shape(self) -> DataShape:
-        """Which temporal columns are present (inferred from the DataFrame)."""
+        """Which temporal columns are present (inferred from the data dict)."""
         return self._shape
 
     @property
     def num_rows(self) -> int:
         """Number of data rows."""
-        return self._df.height
+        return len(self._data["value"])
 
     @property
     def columns(self) -> List[str]:
-        """Column names present in the underlying Polars DataFrame."""
-        return self._df.columns
+        """Column names present in the underlying data dict."""
+        return list(self._data.keys())
 
     @property
-    def df(self) -> pl.DataFrame:
-        """The underlying ``polars.DataFrame`` (read-only by convention)."""
-        return self._df
+    def data(self) -> Dict[str, np.ndarray]:
+        """The underlying dict of arrays (read-only by convention)."""
+        return self._data
 
     @property
     def has_missing(self) -> bool:
-        """True if the ``value`` column contains any null values."""
-        return self._df["value"].is_null().any()
+        """True if the ``value`` array contains any ``np.nan``."""
+        return bool(np.any(np.isnan(self._data["value"])))
 
     # ------------------------------------------------------------------
     # Constructors
     # ------------------------------------------------------------------
 
     @classmethod
-    def from_polars(
+    def from_numpy(
         cls,
-        df: pl.DataFrame,
+        timestamps: np.ndarray,
+        values: np.ndarray,
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
@@ -168,14 +180,22 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         data_type: Optional[DataType] = None,
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
-    ) -> "TimeSeriesPolars":
-        """Create a :class:`TimeSeriesPolars` directly from a ``polars.DataFrame``.
+    ) -> "TimeSeriesNumpy":
+        """Convenience constructor for a **SIMPLE**-shape series from two arrays.
 
-        All timestamp columns must already use
-        ``pl.Datetime("us", time_zone="UTC")``.
+        Parameters
+        ----------
+        timestamps:
+            1-D array of timestamps.  Any dtype convertible to
+            ``datetime64[us]`` is accepted.
+        values:
+            1-D ``float64`` array of observations.  Use ``np.nan`` for
+            missing values.
         """
+        ts_arr = _ensure_utc_numpy(timestamps)
+        val_arr = np.asarray(values, dtype=np.float64)
         return cls(
-            df,
+            {"valid_time": ts_arr, "value": val_arr},
             name=name,
             description=description,
             unit=unit,
@@ -201,8 +221,8 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         data_type: Optional[DataType] = None,
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
-    ) -> "TimeSeriesPolars":
-        """Create a :class:`TimeSeriesPolars` from a ``pandas.DataFrame``.
+    ) -> "TimeSeriesNumpy":
+        """Create a :class:`TimeSeriesNumpy` from a ``pandas.DataFrame``.
 
         Only ``SIMPLE`` and ``VERSIONED`` shapes can be constructed via
         ``from_pandas``.  ``AUDIT`` and ``CORRECTED`` shapes (which require a
@@ -216,16 +236,16 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         ValueError
             If the DataFrame contains a ``change_time`` column.
         """
-        polars_df = _ingest_pandas_to_polars(df)
-        shape = _infer_shape(polars_df)
+        numpy_data = _ingest_pandas_to_numpy(df)
+        shape = _infer_shape_numpy(numpy_data)
         if shape in (DataShape.AUDIT, DataShape.CORRECTED):
             raise ValueError(
                 f"from_pandas produced shape {shape.value} because 'change_time' is present. "
                 f"Only SIMPLE and VERSIONED shapes can be created via from_pandas. "
-                f"Use from_polars() to wrap an existing read result with change_time."
+                f"Use from_numpy() with the full data dict for CORRECTED/AUDIT."
             )
         return cls(
-            polars_df,
+            numpy_data,
             name=name,
             description=description,
             unit=unit,
@@ -241,16 +261,15 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
     # Conversion
     # ------------------------------------------------------------------
 
-    def validate_for_insert(self) -> "Tuple[pl.DataFrame, DataShape]":
-        """Validate that this TimeSeriesPolars can be inserted and return the underlying
-        DataFrame with its shape.
+    def validate_for_insert(self) -> "Tuple[Dict[str, np.ndarray], DataShape]":
+        """Validate that this TimeSeriesNumpy can be inserted and return the data dict.
 
         Only :attr:`DataShape.SIMPLE` and :attr:`DataShape.VERSIONED` are
         supported for insert.
 
         Returns
         -------
-        Tuple[pl.DataFrame, DataShape]
+        Tuple[Dict[str, np.ndarray], DataShape]
 
         Raises
         ------
@@ -260,13 +279,15 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         """
         if self._shape in (DataShape.AUDIT, DataShape.CORRECTED):
             raise ValueError(
-                f"TimeSeriesPolars with shape {self._shape.value} cannot be inserted. "
+                f"TimeSeriesNumpy with shape {self._shape.value} cannot be inserted. "
                 f"Only SIMPLE and VERSIONED shapes are supported for insert."
             )
-        return self._df, self._shape
+        return self._data, self._shape
 
     def to_pandas(self) -> pd.DataFrame:
         """Convert to a ``pandas.DataFrame``.
+
+        Timestamp arrays are converted to timezone-aware ``datetime64[us, UTC]``.
 
         Restores the conventional index:
 
@@ -275,10 +296,13 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         * ``AUDIT``     — ``(knowledge_time, change_time, valid_time)`` MultiIndex.
         * ``CORRECTED`` — ``(valid_time, change_time)`` MultiIndex.
         """
-        df = self._df.to_pandas()
-
-        # Polars converts Datetime("us", tz="UTC") to pandas datetime64[us, UTC]
-        # which is exactly what we want.
+        series_dict = {}
+        for col, arr in self._data.items():
+            if col in _TIME_COLS:
+                series_dict[col] = pd.to_datetime(arr, utc=True)
+            else:
+                series_dict[col] = arr
+        df = pd.DataFrame(series_dict)
 
         if self._shape == DataShape.SIMPLE:
             return df.set_index("valid_time")
@@ -294,20 +318,20 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
     # Data access helpers
     # ------------------------------------------------------------------
 
-    def head(self, n: int = 5) -> "TimeSeriesPolars":
-        """Return the first *n* rows as a new :class:`TimeSeriesPolars`."""
-        return self._clone(self._df.head(n))
+    def head(self, n: int = 5) -> "TimeSeriesNumpy":
+        """Return the first *n* rows as a new :class:`TimeSeriesNumpy`."""
+        return self._clone({k: v[:n] for k, v in self._data.items()})
 
-    def tail(self, n: int = 5) -> "TimeSeriesPolars":
-        """Return the last *n* rows as a new :class:`TimeSeriesPolars`."""
-        return self._clone(self._df.tail(n))
+    def tail(self, n: int = 5) -> "TimeSeriesNumpy":
+        """Return the last *n* rows as a new :class:`TimeSeriesNumpy`."""
+        return self._clone({k: v[-n:] for k, v in self._data.items()})
 
     # ------------------------------------------------------------------
     # Unit conversion
     # ------------------------------------------------------------------
 
-    def convert_unit(self, target_unit: str) -> "TimeSeriesPolars":
-        """Return a new :class:`TimeSeriesPolars` with values converted to *target_unit*.
+    def convert_unit(self, target_unit: str) -> "TimeSeriesNumpy":
+        """Return a new :class:`TimeSeriesNumpy` with values converted to *target_unit*.
 
         Uses the pint library for unit conversion.  The ``unit`` metadata field
         is updated to *target_unit*.
@@ -324,28 +348,22 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         pint.DimensionalityError
             If the current unit and *target_unit* are dimensionally incompatible.
         """
-        try:
-            ureg = _get_pint_registry()
-        except ImportError as exc:
-            raise ImportError(
-                "Unit conversion requires the optional 'pint' dependency. "
-                "Install it with: pip install timedatamodel[pint]"
-            ) from exc
+        ureg = _get_pint_registry()
         factor = float(ureg.Quantity(1.0, self.unit).to(target_unit).magnitude)
-        new_df = self._df.with_columns(pl.col("value") * factor)
-        return self._clone(new_df, unit=target_unit)
+        new_data = {**self._data, "value": self._data["value"] * factor}
+        return self._clone(new_data, unit=target_unit)
 
     # ------------------------------------------------------------------
     # Internal clone helper
     # ------------------------------------------------------------------
 
-    def _clone(self, new_df: pl.DataFrame, **overrides) -> "TimeSeriesPolars":
-        """Create a new :class:`TimeSeriesPolars` with *new_df* and the same metadata.
+    def _clone(self, new_data: Dict[str, np.ndarray], **overrides) -> "TimeSeriesNumpy":
+        """Create a new :class:`TimeSeriesNumpy` with *new_data* and the same metadata.
 
         Any keyword in *overrides* replaces the corresponding metadata field.
         """
-        return TimeSeriesPolars(
-            new_df,
+        return TimeSeriesNumpy(
+            new_data,
             name=overrides.get("name", self.name),
             description=overrides.get("description", self.description),
             unit=overrides.get("unit", self.unit),
@@ -385,7 +403,7 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
     # ------------------------------------------------------------------
 
     def __len__(self) -> int:
-        return self._df.height
+        return len(self._data["value"])
 
 
 # ---------------------------------------------------------------------------
@@ -393,13 +411,47 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
 # ---------------------------------------------------------------------------
 
 
-def _ingest_pandas_to_polars(df: pd.DataFrame) -> pl.DataFrame:
-    """Ingest a pandas DataFrame into a ``pl.DataFrame``.
+def _ensure_utc_numpy(timestamps) -> np.ndarray:
+    """Normalise *timestamps* to UTC and return a ``datetime64[us]`` array.
+
+    Mirrors the UTC enforcement in :func:`_ingest_pandas_to_numpy`:
+
+    * Timezone-aware, non-UTC → converted to UTC.
+    * Timezone-naive Python datetimes → assumed UTC with a warning.
+    * Already UTC or already ``datetime64`` without tz → passed through.
+    """
+    s = pd.to_datetime(timestamps)
+    tz = getattr(s, "tz", None)
+    if tz is None:
+        # Check whether the source objects carry tzinfo (Python datetimes)
+        src = list(timestamps) if not isinstance(timestamps, (list, np.ndarray)) else timestamps
+        first = src[0] if len(src) else None
+        if hasattr(first, "tzinfo") and first.tzinfo is not None:
+            # tz-aware datetimes but pd.to_datetime lost it somehow — re-parse
+            s = pd.to_datetime(timestamps, utc=True)
+        else:
+            warnings.warn(
+                "Timestamps have no timezone; assuming UTC.",
+                UserWarning,
+                stacklevel=3,
+            )
+            s = s.tz_localize("UTC")
+    elif str(tz) != "UTC":
+        warnings.warn(
+            f"Timestamps are not UTC (got {tz!r}); converting to UTC.",
+            UserWarning,
+            stacklevel=3,
+        )
+        s = s.tz_convert("UTC")
+    return s.values.astype(_NP_DT_DTYPE)
+
+
+def _ingest_pandas_to_numpy(df: pd.DataFrame) -> Dict[str, np.ndarray]:
+    """Ingest a pandas DataFrame into a dict of NumPy arrays.
 
     1. Flatten any temporal index levels into regular columns.
-    2. Normalize timestamp columns to UTC-aware pandas Series.
-    3. Convert to Polars and cast timestamp columns to
-       ``pl.Datetime("us", time_zone="UTC")``.
+    2. Normalize timestamp columns to UTC-aware ``datetime64[us]``.
+    3. Convert to NumPy arrays.
     """
     # ── 1. Flatten index ────────────────────────────────────────────────────
     if isinstance(df.index, pd.MultiIndex):
@@ -438,27 +490,22 @@ def _ingest_pandas_to_polars(df: pd.DataFrame) -> pl.DataFrame:
             df[col] = s.dt.tz_localize("UTC")
         elif str(tz) != "UTC":
             df[col] = s.dt.tz_convert("UTC")
-        # else: already UTC — no allocation
 
-    # ── 3. Convert to Polars and cast timestamp columns ─────────────────────
-    polars_df = pl.from_pandas(df)
-
-    cast_exprs = [
-        pl.col(c).cast(_TS_DTYPE)
-        for c in _TIME_COLS
-        if c in polars_df.columns
-    ]
-    if cast_exprs:
-        polars_df = polars_df.with_columns(cast_exprs)
-
-    return polars_df
+    # ── 3. Convert to NumPy arrays ───────────────────────────────────────────
+    result: Dict[str, np.ndarray] = {}
+    for col in df.columns:
+        if col in _TIME_COLS:
+            result[col] = df[col].values.astype(_NP_DT_DTYPE)
+        else:
+            result[col] = df[col].to_numpy(dtype=np.float64, na_value=np.nan)
+    return result
 
 
-def _infer_shape(df: pl.DataFrame) -> DataShape:
-    """Infer :class:`DataShape` from the column names present in *df*."""
-    names = set(df.columns)
-    has_kt = "knowledge_time" in names
-    has_ct = "change_time" in names
+def _infer_shape_numpy(data: Dict[str, np.ndarray]) -> DataShape:
+    """Infer :class:`DataShape` from the keys present in *data*."""
+    keys = set(data.keys())
+    has_kt = "knowledge_time" in keys
+    has_ct = "change_time" in keys
     if has_kt and has_ct:
         return DataShape.AUDIT
     if has_ct:
@@ -468,32 +515,21 @@ def _infer_shape(df: pl.DataFrame) -> DataShape:
     return DataShape.SIMPLE
 
 
-def _validate_table(df: pl.DataFrame, shape: DataShape) -> None:
-    """Raise ``ValueError`` if required columns are missing or have wrong type."""
-    names = set(df.columns)
+def _validate_numpy(data: Dict[str, np.ndarray], shape: DataShape) -> None:
+    """Raise ``ValueError`` if required columns are missing or have wrong dtype."""
+    keys = set(data.keys())
     required = _REQUIRED_COLUMNS[shape]
-    missing = [c for c in required if c not in names]
+    missing = [c for c in required if c not in keys]
     if missing:
         raise ValueError(
-            f"DataFrame is missing required columns for shape {shape.value}: {missing}"
+            f"data dict is missing required keys for shape {shape.value}: {missing}"
         )
 
-    # Check timestamp columns have the right dtype
     for col in _TIME_COLS:
-        if col not in names:
+        if col not in keys:
             continue
-        dtype = df[col].dtype
-        if not isinstance(dtype, pl.Datetime):
+        arr = data[col]
+        if not np.issubdtype(arr.dtype, np.datetime64):
             raise TypeError(
-                f"Column '{col}' must be a Polars Datetime type, got {dtype!r}"
-            )
-        if dtype.time_zone is None:
-            raise TypeError(
-                f"Column '{col}' must be timezone-aware with time_zone='UTC', "
-                f"got time_zone=None"
-            )
-        if dtype.time_zone != "UTC":
-            raise TypeError(
-                f"Column '{col}' must have time_zone='UTC', "
-                f"got time_zone={dtype.time_zone!r}"
+                f"Array '{col}' must have a datetime64 dtype, got {arr.dtype!r}"
             )
