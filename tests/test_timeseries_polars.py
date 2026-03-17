@@ -338,3 +338,72 @@ class TestMetadataDict:
 
     def test_no_location(self, simple_ts):
         assert simple_ts.metadata_dict()["location"] is None
+
+
+# ---------------------------------------------------------------------------
+# Conversion methods
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def simple_ts_with_nulls(missing_df):
+    return TimeSeriesPolars.from_pandas(missing_df, name="wind", unit="MW")
+
+
+class TestConversionMethods:
+    def test_to_polars_returns_dataframe(self, simple_ts):
+        result = simple_ts.to_polars()
+        assert isinstance(result, pl.DataFrame)
+        assert list(result.columns) == ["valid_time", "value"]
+
+    def test_to_python_list_structure(self, simple_ts):
+        result = simple_ts.to_python_list()
+        assert isinstance(result, list)
+        assert len(result) == 5
+        assert "valid_time" in result[0]
+        assert "value" in result[0]
+        assert result[0]["value"] == 1.0
+
+    def test_to_python_list_nulls(self, simple_ts_with_nulls):
+        result = simple_ts_with_nulls.to_python_list()
+        values = [row["value"] for row in result]
+        assert None in values
+
+    def test_to_numpy(self, simple_ts):
+        import numpy as np
+        result = simple_ts.to_numpy()
+        assert isinstance(result, np.ndarray)
+        assert result.dtype.names is not None  # structured array
+        assert "value" in result.dtype.names
+        assert "valid_time" in result.dtype.names
+        assert len(result) == 5
+
+    def test_to_numpy_missing_dep(self, simple_ts, monkeypatch):
+        import builtins
+        real_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "numpy":
+                raise ImportError
+            return real_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+        with pytest.raises(ImportError, match="numpy"):
+            simple_ts.to_numpy()
+
+    def test_to_pyarrow(self, simple_ts):
+        import pyarrow as pa
+        result = simple_ts.to_pyarrow()
+        assert isinstance(result, pa.Table)
+        assert "valid_time" in result.column_names
+        assert "value" in result.column_names
+        assert len(result) == 5
+
+    def test_to_pyarrow_missing_dep(self, simple_ts, monkeypatch):
+        import builtins
+        real_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "pyarrow":
+                raise ImportError
+            return real_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+        with pytest.raises(ImportError, match="pyarrow"):
+            simple_ts.to_pyarrow()

@@ -43,7 +43,6 @@ Supported metadata fields: `name`, `frequency`, `timezone`, `unit`, `data_type`,
 
 | Operation | Example |
 |-----------|---------|
-| Arithmetic | `ts * 2`, `ts + other`, `ts / other` |
 | Slicing | `ts.head(n)`, `ts.tail(n)` |
 | Unit conversion | `ts.convert_unit("kW")` *(requires `[pint]`)* |
 | Pandas round-trip | `ts.to_pandas()`, `TimeSeriesPolars.from_pandas(df, ...)` |
@@ -70,12 +69,12 @@ table = TimeSeriesTablePolars.from_timeseries(
 ts_wind = table.select_column("wind_power")
 
 # Spatial filtering (requires [geo] extra)
-nearby = table.filter_by_location(center, radius_km=50)
-nearest_col = table.nearest(center)
+nearby = table.filter_columns_by_location(center, radius_km=50)
+nearest_col = table.nearest_columns(center)
 ```
 
-**Key operations:** `select_column`, `filter_by_location`, `nearest`, `from_timeseries`,
-`to_timeseries_list`, `from_pandas`, `to_pandas`, `head`, `tail`.
+**Key operations:** `select_column`, `filter_columns_by_location`, `nearest_columns`,
+`from_timeseries`, `from_pandas`, `to_pandas`, `head`, `tail`.
 
 ---
 
@@ -171,7 +170,7 @@ area = GeoArea.from_coordinates([(59.0, 17.5), (59.0, 18.5), (59.5, 18.5), (59.5
 
 Provides `contains_point()`, `overlaps()`, `centroid`, and `bounding_box()`.
 
-`TimeSeriesTablePolars` supports spatial queries: `filter_by_location()` and `nearest()`.
+`TimeSeriesTablePolars` supports spatial queries: `filter_columns_by_location()` and `nearest_columns()`.
 
 ---
 

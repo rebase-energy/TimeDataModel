@@ -1,6 +1,6 @@
 from importlib.metadata import version
 
-from ._repr import get_repr_width, set_repr_width
+from ._repr import CoverageBar, get_repr_width, set_repr_width
 from ._theme import get_theme, reset_theme, set_theme
 from .datapoint import DataPoint
 from .datashape import DataShape
@@ -12,6 +12,7 @@ from .timeseriestable_polars import TimeSeriesTablePolars
 __version__ = version("timedatamodel")
 
 __all__ = [
+    "CoverageBar",
     "DataPoint",
     "DataShape",
     "DataType",
