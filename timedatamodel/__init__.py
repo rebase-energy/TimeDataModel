@@ -11,11 +11,8 @@ from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode
 from .location import GeoArea, GeoLocation, Location
 from .table import TimeSeriesTable
 from .timeseries import TimeSeriesList
-from .timeseries_arrow import DataShape, TimeSeries
-from .table import TimeSeriesTable, MultivariateTimeSeries, MultiTimeSeries
-from .collection import TimeSeriesCollection
-from .array import Dimension, NDTimeSeries, TimeSeriesArray
-from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode
+from .timeseries_polars import DataShape, TimeSeriesPolars
+from .timeseriestable_polars import TimeSeriesTablePolars
 
 __version__ = version("timedatamodel")
 
@@ -58,7 +55,8 @@ __all__ = [
     "TimeSeriesArray",
     "TimeSeriesTable",
     "TimeSeriesType",
-    "TimeSeries",
+    "TimeSeriesPolars",
+    "TimeSeriesTablePolars",
     "TimeSeriesList",
     "reset_theme",
     "set_default_df",
