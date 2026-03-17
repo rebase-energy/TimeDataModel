@@ -31,10 +31,10 @@ Repository = "https://github.com/rebase-energy/TimeDataModel"
 Issues = "https://github.com/rebase-energy/TimeDataModel/issues"
 
 [project.optional-dependencies]
-pandas = ["pandas>=2.0"]
+pandas = ["pandas>=2.0", "pyarrow>=14.0"]
 pint = ["pint>=0.24"]
 geo = ["shapely>=2.0"]
-all = ["pandas>=2.0", "pint>=0.24", "shapely>=2.0"]
+all = ["pandas>=2.0", "pyarrow>=14.0", "pint>=0.24", "shapely>=2.0"]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
@@ -42,6 +42,7 @@ dev = [
     "mypy>=1.13",
     "pre-commit>=4.0",
     "pandas>=2.0",
+    "pyarrow>=14.0",
     "pint>=0.24",
     "shapely>=2.0",
     "polars>=1.0",
