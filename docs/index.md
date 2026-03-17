@@ -1,16 +1,14 @@
 # timedatamodel
 
-A lightweight data model for time series data with pandas, numpy, polars, and xarray support.
+A lightweight, metadata-rich data model for time series data, built on [Polars](https://pola.rs).
 
 ## Features
 
-- **TimeSeries** -- univariate time series with rich metadata (unit, frequency, location, ...)
-- **TimeSeriesTable** -- multivariate time series sharing the same index
-- **TimeSeriesArray** -- N-dimensional time series with named dimensions and label-based selection
-- **TimeSeriesCollection** -- heterogeneous container for series that don't share an index
-- Built-in conversions to/from **pandas**, **numpy**, and **polars**
-- Enum-based frequency (ISO 8601 durations) and data-type annotations
-- **Hierarchical time series** -- define aggregation trees and reconcile forecasts
+- **TimeSeriesPolars** — univariate time series with rich metadata (name, unit, frequency, timezone, location, …) backed by a Polars DataFrame
+- **TimeSeriesTablePolars** — multivariate time series sharing the same `valid_time` index, with per-column metadata
+- **Four data shapes** — `SIMPLE`, `VERSIONED`, `CORRECTED`, `AUDIT` — model everything from standard point-in-time data to full bi-temporal audit trails
+- Built-in conversions to/from **pandas** (`from_pandas` / `to_pandas`)
+- Enum-based **Frequency** (ISO 8601 durations) and **DataType** annotations
 - Optional **pint** unit support and **shapely** geo-location metadata
 
 ```{toctree}
@@ -26,16 +24,7 @@ usage
 :maxdepth: 1
 :caption: Tutorials
 
-tutorials/getting_started
-tutorials/numpy_and_pandas_transforms
-tutorials/unit_handling_and_validation
-tutorials/timeseries_operations
-tutorials/multivariate_timeseries
-tutorials/arrays_and_collections
-tutorials/data_quality_and_coverage
-tutorials/io_and_interoperability
-tutorials/geographical_support
-tutorials/hierarchical_timeseries
+tutorials/index
 ```
 
 ```{toctree}

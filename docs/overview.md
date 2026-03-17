@@ -1,107 +1,128 @@
 # Overview
 
-**TimeDataModel** is a lightweight Python data model for time series data. It provides a set of
-structured containers — from single univariate series to N-dimensional arrays and hierarchical
-trees — with built-in metadata (units, frequency, location, data type) and native conversions
-to pandas, numpy, polars, and xarray.
+**TimeDataModel** is a lightweight Python library for working with time series data. It provides
+two structured, metadata-rich containers backed by [Polars](https://pola.rs), together with
+enums and geographic types for annotating your data.
 
-The library is designed for energy and weather data workflows where you need to carry metadata
-alongside your numeric data, but it is general enough for any domain that works with time series.
+The library is designed for energy, weather, and forecasting workflows where data arrives from
+many sources at different times — but it is general enough for any domain that works with
+timestamped numerical data.
+
+---
 
 ## Core data structures
 
-TimeDataModel offers five data structures, each suited to a different shape of time series data.
+### TimeSeriesPolars
 
-### TimeSeriesList
-
-A single univariate time series: one sequence of timestamps paired with one sequence of values,
-plus metadata fields like `name`, `unit`, `frequency`, `data_type`, and `location`.
+A single univariate time series backed by a Polars DataFrame. The DataFrame always has a
+`"value"` column and one or more timestamp columns whose layout is determined by the chosen
+`DataShape` (see below).
 
 ```python
-ts = TimeSeriesList(
-    timestamps=[datetime(2024, 1, 1), datetime(2024, 1, 2)],
-    values=[10.5, 12.3],
-    frequency=Frequency.P1D,
-    name="temperature",
-    unit="degC",
+import pandas as pd
+from timedatamodel import TimeSeriesPolars, DataShape, Frequency
+
+df = pd.DataFrame({
+    "valid_time": pd.date_range("2024-01-01", periods=48, freq="h", tz="UTC"),
+    "value": [float(i) for i in range(48)],
+})
+
+ts = TimeSeriesPolars.from_pandas(
+    df,
+    shape=DataShape.SIMPLE,
+    frequency=Frequency.PT1H,
+    name="wind_power",
+    unit="MW",
 )
 ```
 
-Supports element-wise arithmetic (`+`, `-`, `*`, `/`), iteration over `DataPoint` named tuples,
-and conversion to/from pandas, polars, numpy, and xarray.
+Supported metadata fields: `name`, `frequency`, `timezone`, `unit`, `data_type`, `location`,
+`description`, `timeseries_type`, `labels`.
 
-### TimeSeriesTable
+**Key operations:**
 
-Multiple columns sharing the same timestamp index — a multivariate time series backed by a 2D
-numpy array. Each column carries its own metadata (name, unit, data type, location).
+| Operation | Example |
+|-----------|---------|
+| Arithmetic | `ts * 2`, `ts + other`, `ts / other` |
+| Slicing | `ts.head(n)`, `ts.tail(n)` |
+| Unit conversion | `ts.convert_unit("kW")` *(requires `[pint]`)* |
+| Pandas round-trip | `ts.to_pandas()`, `TimeSeriesPolars.from_pandas(df, ...)` |
+| Validation | `ts.validate_for_insert()` |
+
+---
+
+### TimeSeriesTablePolars
+
+Multiple co-indexed time series stored as named columns in a single Polars DataFrame. All
+columns share the same `valid_time` index. Each column carries independent metadata — unit,
+data type, and geographic location.
 
 ```python
-table = TimeSeriesTable(
-    timestamps=[datetime(2024, 1, 1), datetime(2024, 1, 2)],
-    values=np.array([[1.0, 2.0], [3.0, 4.0]]),
-    frequency=Frequency.P1D,
-    names=["solar", "wind"],
-    units=["MW", "MW"],
+from timedatamodel import TimeSeriesTablePolars
+
+# Build from a list of TimeSeriesPolars (all must have identical valid_time values)
+table = TimeSeriesTablePolars.from_timeseries(
+    [ts_wind, ts_solar, ts_load],
+    frequency=Frequency.PT1H,
 )
+
+# Select a single column back as a TimeSeriesPolars
+ts_wind = table.select_column("wind_power")
+
+# Spatial filtering (requires [geo] extra)
+nearby = table.filter_by_location(center, radius_km=50)
+nearest_col = table.nearest(center)
 ```
 
-Use `select_column()` to extract a single `TimeSeriesList`, or spatial filtering methods like
-`filter_columns_by_location()` to select columns by geographic proximity.
+**Key operations:** `select_column`, `filter_by_location`, `nearest`, `from_timeseries`,
+`to_timeseries_list`, `from_pandas`, `to_pandas`, `head`, `tail`.
 
-### TimeSeriesArray
+---
 
-An N-dimensional time series with named dimensions and label-based selection. Values are stored
-as a numpy masked array. Useful for forecast ensembles, weather grids, or any data with more
-than two axes.
+## Data shapes
 
-```python
-array = TimeSeriesArray.from_numpy(
-    dimensions=[
-        Dimension("valid_time", [datetime(2024, 1, 1), datetime(2024, 1, 2)]),
-        Dimension("model", ["A", "B", "C"]),
-    ],
-    values=np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]),
-    frequency=Frequency.P1D,
-)
-```
+The `DataShape` enum controls which timestamp columns are present in the underlying DataFrame.
+This lets a single class cover standard time series as well as bi-temporal and audit-trail
+patterns:
 
-Use `sel()` and `isel()` for label-based and index-based slicing. Selecting down to two
-dimensions returns a `TimeSeriesTable`; selecting down to one returns a `TimeSeriesList`.
+| Shape | Columns | Use case |
+|-------|---------|----------|
+| `SIMPLE` | `valid_time`, `value` | Standard time series |
+| `VERSIONED` | `knowledge_time`, `valid_time`, `value` | Bi-temporal: record *when* each value was produced |
+| `CORRECTED` | `valid_time`, `change_time`, `value` | Track *when* a value was revised |
+| `AUDIT` | `knowledge_time`, `change_time`, `valid_time`, `value` | Full audit trail |
 
-### TimeSeriesCollection
+All timestamp columns are stored as `pl.Datetime("us", time_zone="UTC")`.
 
-A heterogeneous container for series that don't share the same index. Stores an ordered
-dictionary of `TimeSeriesList` and/or `TimeSeriesTable` objects, each potentially with different
-frequencies, timezones, or time ranges.
+---
 
-```python
-collection = TimeSeriesCollection([ts_hourly, ts_daily, table_weekly])
-```
+## Frequency
 
-Implements the mapping protocol (`len`, `in`, iteration, key/index access) and supports spatial
-filtering across all contained series.
+The `Frequency` enum defines ISO 8601 duration values. Three are **calendar-based** (their
+exact duration depends on the calendar); the rest are **fixed-interval**:
 
-### HierarchicalTimeSeries
+| Value | Description | Calendar-based |
+|-------|-------------|:--------------:|
+| `P1Y` | 1 year | yes |
+| `P3M` | 3 months (quarter) | yes |
+| `P1M` | 1 month | yes |
+| `P1W` | 1 week | |
+| `P1D` | 1 day | |
+| `PT1H` | 1 hour | |
+| `PT30M` | 30 minutes | |
+| `PT15M` | 15 minutes | |
+| `PT10M` | 10 minutes | |
+| `PT5M` | 5 minutes | |
+| `PT1M` | 1 minute | |
+| `PT1S` | 1 second | |
+| `NONE` | No fixed frequency | |
 
-A tree of time series organised into named hierarchy levels, designed for aggregation and
-reconciliation. Each leaf node holds a `TimeSeriesList`; inner nodes aggregate their children
-using a configurable `AggregationMethod` (sum, mean, min, max).
-
-```python
-hierarchy = HierarchicalTimeSeries.from_dict(
-    tree={"Total": {"Region_A": ["Site_1", "Site_2"], "Region_B": ["Site_3"]}},
-    series_map={"Site_1": ts1, "Site_2": ts2, "Site_3": ts3},
-    levels=["country", "region", "site"],
-)
-```
-
-Use `aggregate()` to roll up values bottom-up, `get_level()` to retrieve all nodes at a
-hierarchy level, and `to_collection()` or `to_table()` to flatten back to other structures.
+---
 
 ## DataType taxonomy
 
 Every time series can carry a `DataType` annotation describing the nature of the data. The
-taxonomy has two roots and 12 leaf/branch types:
+taxonomy has two roots and 10 leaf types:
 
 ```
 ACTUAL
@@ -121,91 +142,56 @@ CALCULATED
     └── IDEAL ─────────── theoretical optimum or design values
 ```
 
-Each `DataType` member exposes `.parent`, `.children`, `.is_leaf`, and `.root` properties for
-navigating the hierarchy programmatically.
+Each `DataType` member exposes `.parent`, `.children`, `.is_leaf`, and `.root` properties.
 
-## Frequency
-
-The `Frequency` enum defines 13 ISO 8601 duration values. Three are **calendar-based** (their
-exact duration depends on the calendar), and the rest are **fixed-interval**:
-
-| Value    | Description        | Calendar-based |
-|----------|--------------------|:--------------:|
-| `P1Y`    | 1 year             | yes            |
-| `P3M`    | 3 months (quarter) | yes            |
-| `P1M`    | 1 month            | yes            |
-| `P1W`    | 1 week             |                |
-| `P1D`    | 1 day              |                |
-| `PT1H`   | 1 hour             |                |
-| `PT30M`  | 30 minutes         |                |
-| `PT15M`  | 15 minutes         |                |
-| `PT10M`  | 10 minutes         |                |
-| `PT5M`   | 5 minutes          |                |
-| `PT1M`   | 1 minute           |                |
-| `PT1S`   | 1 second           |                |
-| `NONE`   | No fixed frequency |                |
-
-Use `.is_calendar_based` to check, and `.to_timedelta()` to get a `timedelta` (returns `None`
-for calendar-based frequencies and `NONE`).
-
-## Other enums and concepts
-
-### TimeSeriesType
-
-Describes whether a time series has a flat (non-overlapping) or overlapping index:
-
-- `FLAT` — standard time series with non-overlapping timestamps
-- `OVERLAPPING` — overlapping windows, e.g. rolling forecasts with a multi-index of
-  `(issue_time, valid_time)`
-
-### AggregationMethod
-
-Used by `HierarchicalTimeSeries` to define how children are aggregated into parents:
-
-- `SUM` — sum of children (default)
-- `MEAN` — arithmetic mean
-- `MIN` — minimum value
-- `MAX` — maximum value
-
-### DataPoint
-
-A lightweight `NamedTuple` with two fields:
-
-- `timestamp` — a `datetime` object
-- `value` — a `float` or `None`
-
-Returned when indexing or iterating over a `TimeSeriesList`.
+---
 
 ## Geographic support
 
 Time series can carry geographic metadata via the `location` field, which accepts either a
-`GeoLocation` or a `GeoArea`.
+`GeoLocation` or `GeoArea`.
 
 **GeoLocation** — a single point defined by `latitude` and `longitude`:
 
 ```python
+from timedatamodel import GeoLocation
+
 loc = GeoLocation(latitude=59.33, longitude=18.07)  # Stockholm
 ```
 
-Provides methods for `distance_to()` (Haversine), `bearing_to()`, `midpoint()`, and `offset()`.
+Provides `distance_to()` (Haversine), `bearing_to()`, `midpoint()`, and `offset()`.
 
-**GeoArea** — a polygon region (requires the `[geo]` extra for shapely):
+**GeoArea** — a polygon region (requires the `[geo]` extra):
 
 ```python
+from timedatamodel import GeoArea
+
 area = GeoArea.from_coordinates([(59.0, 17.5), (59.0, 18.5), (59.5, 18.5), (59.5, 17.5)])
 ```
 
 Provides `contains_point()`, `overlaps()`, `centroid`, and `bounding_box()`.
 
-Both `TimeSeriesTable` and `TimeSeriesCollection` support spatial queries:
-`filter_columns_by_location()`, `filter_by_area()`, and `nearest()`.
+`TimeSeriesTablePolars` supports spatial queries: `filter_by_location()` and `nearest()`.
+
+---
+
+## Other types
+
+### DataPoint
+
+A `NamedTuple` with two fields: `timestamp` (a `datetime`) and `value` (a `float` or `None`).
+
+### TimeSeriesType
+
+Describes the index structure of a time series:
+
+- `FLAT` — standard non-overlapping timestamps
+- `OVERLAPPING` — overlapping windows (e.g. rolling forecasts with a `(issue_time, valid_time)` multi-index)
+
+---
 
 ## Next steps
 
-- {doc}`usage` — quick-start integrations with pandas, polars, and numpy
-- {doc}`tutorials/getting_started` — hands-on tutorial building your first time series
-- {doc}`tutorials/multivariate_timeseries` — working with tables and multiple columns
-- {doc}`tutorials/arrays_and_collections` — N-dimensional arrays and heterogeneous collections
-- {doc}`tutorials/hierarchical_timeseries` — building and aggregating hierarchical trees
-- {doc}`tutorials/geographical_support` — attaching locations and spatial filtering
+- {doc}`usage` — quick-start examples for common operations
+- {doc}`tutorials/index` — hands-on notebooks
 - {doc}`api` — full API reference

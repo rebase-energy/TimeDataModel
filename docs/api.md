@@ -1,48 +1,27 @@
 # API Reference
 
-## DataPoint
+## TimeSeriesPolars
 
 ```{eval-rst}
-.. autoclass:: timedatamodel.DataPoint
-   :members:
-```
-
-## TimeSeries
-
-```{eval-rst}
-.. autoclass:: timedatamodel.TimeSeries
+.. autoclass:: timedatamodel.TimeSeriesPolars
    :members:
    :show-inheritance:
 ```
 
-## TimeSeriesTable
+## TimeSeriesTablePolars
 
 ```{eval-rst}
-.. autoclass:: timedatamodel.TimeSeriesTable
+.. autoclass:: timedatamodel.TimeSeriesTablePolars
    :members:
    :show-inheritance:
 ```
 
-## TimeSeriesArray
+## DataShape
 
 ```{eval-rst}
-.. autoclass:: timedatamodel.TimeSeriesArray
+.. autoclass:: timedatamodel.DataShape
    :members:
-   :show-inheritance:
-```
-
-## Dimension
-
-```{eval-rst}
-.. autoclass:: timedatamodel.Dimension
-   :members:
-```
-
-## TimeSeriesCollection
-
-```{eval-rst}
-.. autoclass:: timedatamodel.TimeSeriesCollection
-   :members:
+   :undoc-members:
 ```
 
 ## Frequency
@@ -69,6 +48,13 @@
    :undoc-members:
 ```
 
+## DataPoint
+
+```{eval-rst}
+.. autoclass:: timedatamodel.DataPoint
+   :members:
+```
+
 ## GeoLocation
 
 ```{eval-rst}
@@ -81,34 +67,4 @@
 ```{eval-rst}
 .. autoclass:: timedatamodel.GeoArea
    :members:
-```
-
-## AggregationMethod
-
-```{eval-rst}
-.. autoclass:: timedatamodel.AggregationMethod
-   :members:
-   :undoc-members:
-```
-
-## HierarchyNode
-
-```{eval-rst}
-.. autoclass:: timedatamodel.HierarchyNode
-   :members:
-```
-
-## HierarchyTree
-
-```{eval-rst}
-.. autoclass:: timedatamodel.HierarchyTree
-   :members:
-```
-
-## HierarchicalTimeSeries
-
-```{eval-rst}
-.. autoclass:: timedatamodel.HierarchicalTimeSeries
-   :members:
-   :show-inheritance:
 ```

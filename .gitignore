@@ -11,3 +11,5 @@ wheels/
 
 # Generated tutorial notebooks (copied from examples/ by Sphinx hook)
 docs/tutorials/*.ipynb
+
+CLAUDE.md
