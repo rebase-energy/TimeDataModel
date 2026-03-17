@@ -2,7 +2,7 @@
 
 # TimeDataModel
 
-**A lightweight Python data model for time series data with native bridges to numpy, pandas, polars, and xarray.**
+**A lightweight Python data model for time series data, built on [Polars](https://pola.rs).**
 
 <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square"></a>
 <a href="https://pypi.org/project/timedatamodel/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/timedatamodel?color=blue&style=flat-square"></a>
@@ -13,14 +13,7 @@
 
 <br/>
 
-**TimeDataModel** provides a structured, metadata-rich representation of time series data that lets you:
-
-* 📐 **Structure** - Represent univariate, multivariate, N-dimensional, and hierarchical time series as typed Python objects;
-* 🔄 **Convert** - Seamlessly convert between pandas DataFrames, numpy arrays, and polars DataFrames;
-* 🗺️ **Locate** - Attach geographic coordinates and areas to time series with spatial filtering;
-* 📏 **Measure** - Track and convert physical units with automatic dimensional validation;
-* 📊 **Validate** - Inspect data quality with coverage bars, gap detection, and consistency checks;
-* 💾 **Serialize** - Read and write time series to JSON and CSV with full metadata preservation.
+**TimeDataModel** is a metadata-rich, Polars-backed container for time series data. It lets you carry your data *and* its context — name, unit, frequency, timezone, location — as a single, self-describing object, while staying fully interoperable with pandas.
 
 **⬇️ [Installation](#installation)**
 &ensp;|&ensp;
@@ -32,89 +25,94 @@
 
 ## 🧱 Core Data Classes
 
-**TimeDataModel** represents time series data at multiple levels of complexity. The table below gives a summary of the available data classes.
-
 | Class | Description |
-| :---- | :---- |
-| 📈&nbsp;`TimeSeries` | Univariate time series with scalar metadata (name, unit, frequency, timezone) |
-| 📊&nbsp;`TimeSeriesTable` | Multivariate time series — multiple columns sharing the same timestamp index |
-| 🧊&nbsp;`TimeSeriesArray` | N-dimensional time series with named dimensions and label-based selection |
-| 📦&nbsp;`TimeSeriesCollection` | Heterogeneous container for series with different indices |
-| 🌳&nbsp;`HierarchicalTimeSeries` | Tree-structured time series with aggregation across hierarchy levels |
+| :---- | :---------- |
+| 📈&nbsp;`TimeSeriesPolars` | Univariate time series backed by a Polars DataFrame, supporting four temporal shapes |
+| 📊&nbsp;`TimeSeriesTablePolars` | Multivariate time series — multiple named columns sharing the same `valid_time` index |
+| 🔷&nbsp;`DataShape` | Enum that selects which timestamp columns are present: `SIMPLE`, `VERSIONED`, `CORRECTED`, or `AUDIT` |
+| ⏱️&nbsp;`Frequency` | ISO 8601 duration-based frequencies (`PT1H`, `P1D`, `P1M`, …) |
+| 🏷️&nbsp;`DataType` | Hierarchical taxonomy: `ACTUAL` → `OBSERVATION`, `DERIVED`; `CALCULATED` → `FORECAST`, `SIMULATION`, … |
 | 🗺️&nbsp;`GeoLocation` / `GeoArea` | Geographic point and polygon types with distance, bearing, and containment |
-| ⏱️&nbsp;`Frequency` | ISO 8601 duration-based frequencies (`PT1H`, `P1D`, `P1M`, etc.) |
-| 🏷️&nbsp;`DataType` | Hierarchical taxonomy: `ACTUAL` → `OBSERVATION`, `DERIVED`; `CALCULATED` → `ESTIMATION`, `REFERENCE`, etc. |
 
 ---
 
-## 🔌 Integrations
+## 📐 Data Shapes
 
-Each class provides `to_X`, `from_X`, and `apply_X` bridges to popular array and dataframe libraries.
+`TimeSeriesPolars` supports four **temporal shapes** to model everything from simple point-in-time
+data to fully bi-temporal audit trails:
 
-| | numpy | pandas | polars | xarray |
-| :--- | :---: | :---: | :---: | :---: |
-| **TimeSeries** | | | | |
-| &nbsp;&nbsp;`to_X` | ✅ | ✅ | ✅ | ✅ |
-| &nbsp;&nbsp;`from_X` | — | ✅ | ✅ | ✅ |
-| &nbsp;&nbsp;`apply_X` | ✅ | ✅ | ✅ | ✅ |
-| **TimeSeriesTable** | | | | |
-| &nbsp;&nbsp;`to_X` | ✅ | ✅ | ✅ | ✅ |
-| &nbsp;&nbsp;`from_X` | — | ✅ | — | ✅ |
-| &nbsp;&nbsp;`apply_X` | ✅ | ✅ | ✅ | ✅ |
-| **TimeSeriesArray** | | | | |
-| &nbsp;&nbsp;`to_X` | ✅ | ✅ | — | ✅ |
-| &nbsp;&nbsp;`from_X` | ✅ | — | — | ✅ |
-| &nbsp;&nbsp;`apply_X` | — | ✅¹ | ✅¹ | ✅ |
-
-¹ Gated: raises `ValueError` if the array has more than 2 non-time dimensions.
+| Shape | Columns | Use case |
+| :---- | :------ | :------- |
+| `SIMPLE` | `valid_time`, `value` | Standard time series |
+| `VERSIONED` | `knowledge_time`, `valid_time`, `value` | Bi-temporal: track *when* each value was produced |
+| `CORRECTED` | `valid_time`, `change_time`, `value` | Corrections: track *when* a value was revised |
+| `AUDIT` | `knowledge_time`, `change_time`, `valid_time`, `value` | Full audit trail |
 
 ---
 
 ## 🚀 Quick Start
 
 ```python
-from datetime import datetime, timezone
-from timedatamodel import TimeSeries, Frequency
+import pandas as pd
+from timedatamodel import TimeSeriesPolars, TimeSeriesTablePolars, DataShape, Frequency
 
-# Create a univariate time series
-ts = TimeSeries(
-    Frequency.PT1H,
-    timezone="UTC",
-    timestamps=[datetime(2024, 1, 1, i, tzinfo=timezone.utc) for i in range(24)],
-    values=[100.0 + i * 2.5 for i in range(24)],
-    name="power_output",
+# --- Univariate series from a pandas DataFrame ---
+df = pd.DataFrame({
+    "valid_time": pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC"),
+    "value": [100.0 + i * 2.5 for i in range(24)],
+})
+
+ts = TimeSeriesPolars.from_pandas(
+    df,
+    shape=DataShape.SIMPLE,
+    frequency=Frequency.PT1H,
+    name="wind_power",
     unit="MW",
 )
 
-# Convert to pandas DataFrame
-df = ts.to_pandas_dataframe()
+print(ts)
+# TimeSeriesPolars ─────────────────────────
+#   Name        wind_power
+#   Shape       SIMPLE
+#   Rows        24
+#   Frequency   PT1H
+#   Timezone    UTC
+#   Unit        MW
+#  ──────────────────────────────────────────
+#                  wind_power
+#  2024-01-01 00:00   100.0
+#  2024-01-01 01:00   102.5
+#  ...
 
-# Convert to numpy array
-arr = ts.to_numpy()
-
-# Arithmetic operations
+# --- Arithmetic ---
 ts_doubled = ts * 2
-ts_shifted = ts + 50
+ts_offset  = ts + 50.0
 
-# Inspect data quality
-print(ts.coverage_bar())
+# --- Unit conversion (requires pint extra) ---
+ts_kw = ts.convert_unit("kW")
 
-# Serialize to JSON
-json_str = ts.to_json()
+# --- Round-trip to pandas ---
+df_out = ts.to_pandas()
+
+# --- Multivariate table ---
+table = TimeSeriesTablePolars.from_timeseries(
+    [ts_wind, ts_solar],
+    frequency=Frequency.PT1H,
+)
 ```
 
 ---
 
 ## ✨ Key Features
 
-- 📐 **Multi-dimensional** - From single series (`TimeSeries`) to N-dimensional arrays (`TimeSeriesArray`) with `.sel()` and `.isel()` for label- and index-based selection;
-- 🔢 **Arithmetic** - Element-wise `+`, `-`, `*`, `/`, comparisons, and `abs()` with automatic NaN handling;
-- 🗺️ **Geospatial** - Attach locations, compute distances (Haversine), filter by radius or area, and find nearest neighbors;
-- 🌳 **Hierarchical** - Build tree structures with automatic aggregation (`SUM`, `MEAN`, `MIN`, `MAX`) and cross-level unit conversion;
-- 📏 **Units** - Optional [pint](https://pint.readthedocs.io/) integration for physical unit tracking and conversion;
-- 📊 **Data Quality** - Coverage bars (terminal + HTML), missing-value detection, and timestamp validation;
-- 💾 **Serialization** - JSON and CSV I/O with full round-trip metadata preservation;
-- 🐍 **Type-safe** - Full type hints with PEP 561 support.
+- 🔷 **Four data shapes** — from `SIMPLE` point-in-time to `AUDIT` full bi-temporal history;
+- 🏷️ **Rich metadata** — name, unit, frequency, timezone, data type, location, labels, description on every series;
+- 📊 **Multivariate tables** — `TimeSeriesTablePolars` groups co-indexed series with per-column metadata;
+- 🔄 **Pandas interop** — `from_pandas` / `to_pandas` with automatic UTC enforcement;
+- 🗺️ **Geospatial** — attach locations, filter by radius or area, find nearest columns;
+- 📏 **Units** — optional [pint](https://pint.readthedocs.io/) integration for dimensional unit conversion;
+- ⚡ **Polars native** — all internal operations use the Polars compute engine;
+- 🐍 **Type-safe** — full type hints with PEP 561 support.
 
 ---
 
@@ -127,11 +125,10 @@ pip install timedatamodel
 
 Install with **optional dependencies**:
 ```bash
-pip install timedatamodel[pandas]    # pandas support
-pip install timedatamodel[polars]    # polars support
+pip install timedatamodel[pandas]    # pandas interop (from_pandas / to_pandas)
+pip install timedatamodel[pint]      # unit conversion
 pip install timedatamodel[geo]       # geospatial support (shapely)
-pip install timedatamodel[pint]      # unit handling (pint)
-pip install timedatamodel[all]       # everything
+pip install timedatamodel[all]       # all optional extras
 ```
 
 Install in editable mode for **development**:
@@ -145,20 +142,10 @@ pip install -e .[dev]
 
 ## 📓 Examples
 
-Explore the library through the example notebooks:
-
 | # | Notebook | Topic |
 | :--- | :--- | :--- |
-| 01 | [Getting Started](examples/nb_01_getting_started.ipynb) | Creating and inspecting time series |
-| 02 | [NumPy & Pandas](examples/nb_02_numpy_and_pandas_transforms.ipynb) | Converting to and from numpy and pandas |
-| 03 | [Unit Handling](examples/nb_03_unit_handling_and_validation.ipynb) | Physical unit conversion with pint |
-| 04 | [Operations](examples/nb_04_timeseries_operations.ipynb) | Arithmetic, slicing, and indexing |
-| 05 | [Multivariate](examples/nb_05_multivariate_timeseries.ipynb) | Working with multi-column time series |
-| 06 | [Arrays & Collections](examples/nb_06_arrays_and_collections.ipynb) | N-dimensional data and heterogeneous containers |
-| 07 | [Data Quality](examples/nb_07_data_quality_and_coverage.ipynb) | Coverage bars and validation |
-| 08 | [I/O](examples/nb_08_io_and_interoperability.ipynb) | JSON and CSV serialization |
-| 09 | [Geospatial](examples/nb_09_geographical_support.ipynb) | Locations, areas, and spatial filtering |
-| 10 | [Hierarchical](examples/nb_10_hierarchical_timeseries.ipynb) | Tree structures and aggregation |
+| 11 | [TimeSeriesPolars](examples/nb_11_timeseries_polars.ipynb) | Creating, inspecting, and operating on univariate polars-backed time series |
+| 05 | [TimeSeriesTablePolars](examples/nb_05_timeseries_table_polars.ipynb) | Multivariate tables with per-column metadata and spatial filtering |
 
 ---
 
@@ -166,7 +153,7 @@ Explore the library through the example notebooks:
 
 Contributions are welcome! Here are some ways to contribute to **TimeDataModel**:
 
-* Propose new data classes or extend existing ones;
+* Propose new features or extend existing classes;
 * Improve documentation or add example notebooks;
 * Report bugs or suggest features via [GitHub Issues](https://github.com/rebase-energy/TimeDataModel/issues).
 

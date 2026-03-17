@@ -45,11 +45,15 @@ from typing import Dict, List, Optional, Tuple
 import pandas as pd
 import polars as pl
 
-from ._base import _get_pint_registry
 from .datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
 from ._repr import _TimeSeriesPolarsReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
+
+def _get_pint_registry():
+    import pint
+    return pint.UnitRegistry()
+
 
 _TS_DTYPE = pl.Datetime("us", time_zone="UTC")
 

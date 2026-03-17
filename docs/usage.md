@@ -1,50 +1,112 @@
 # Basic Usage
 
-## Creating a TimeSeries
+## Creating a TimeSeriesPolars
+
+### From a pandas DataFrame
 
 ```python
-from datetime import datetime
-from timedatamodel import TimeSeries, Frequency
+import pandas as pd
+from timedatamodel import TimeSeriesPolars, DataShape, Frequency
 
-ts = TimeSeries(
-    Frequency.PT1H,
-    timestamps=[datetime(2024, 1, 1, h) for h in range(24)],
-    values=[float(h) for h in range(24)],
-    name="temperature",
-    unit="degC",
+df = pd.DataFrame({
+    "valid_time": pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC"),
+    "value": [float(i) for i in range(24)],
+})
+
+ts = TimeSeriesPolars.from_pandas(
+    df,
+    shape=DataShape.SIMPLE,
+    frequency=Frequency.PT1H,
+    name="wind_power",
+    unit="MW",
 )
 ```
 
-## Converting to pandas / numpy
+### From a Polars DataFrame directly
 
 ```python
-df = ts.df
-arr = ts.arr
+import polars as pl
+from timedatamodel import TimeSeriesPolars, DataShape, Frequency
+
+df = pl.DataFrame({
+    "valid_time": pl.Series(
+        pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC")
+    ),
+    "value": [float(i) for i in range(24)],
+})
+
+ts = TimeSeriesPolars(
+    df,
+    shape=DataShape.SIMPLE,
+    frequency=Frequency.PT1H,
+    name="wind_power",
+    unit="MW",
+)
 ```
 
 ## Arithmetic
 
 ```python
 ts_doubled = ts * 2
+ts_shifted = ts + 50.0
+ts_ratio   = ts_a / ts_b
 ```
 
-## Integrations
+## Slicing
 
-Each class provides `to_X`, `from_X`, and `apply_X` bridges to popular array and dataframe libraries.
+```python
+first_six = ts.head(6)
+last_six  = ts.tail(6)
+```
 
-| | numpy | pandas | polars | xarray |
-| :--- | :---: | :---: | :---: | :---: |
-| **TimeSeries** | | | | |
-| &nbsp;&nbsp;`to_X` | ✅ | ✅ | ✅ | ✅ |
-| &nbsp;&nbsp;`from_X` | — | ✅ | ✅ | ✅ |
-| &nbsp;&nbsp;`apply_X` | ✅ | ✅ | ✅ | ✅ |
-| **TimeSeriesTable** | | | | |
-| &nbsp;&nbsp;`to_X` | ✅ | ✅ | ✅ | ✅ |
-| &nbsp;&nbsp;`from_X` | — | ✅ | — | ✅ |
-| &nbsp;&nbsp;`apply_X` | ✅ | ✅ | ✅ | ✅ |
-| **TimeSeriesArray** | | | | |
-| &nbsp;&nbsp;`to_X` | ✅ | ✅ | — | ✅ |
-| &nbsp;&nbsp;`from_X` | ✅ | — | — | ✅ |
-| &nbsp;&nbsp;`apply_X` | — | ✅¹ | ✅¹ | ✅ |
+## Unit conversion
 
-¹ Gated: raises `ValueError` if the array has more than 2 non-time dimensions.
+Requires the `[pint]` extra:
+
+```python
+ts_kw = ts.convert_unit("kW")
+```
+
+## Converting back to pandas
+
+```python
+df = ts.to_pandas()   # DatetimeTZDtype index, UTC-aware
+```
+
+## Multivariate tables
+
+```python
+from timedatamodel import TimeSeriesTablePolars
+
+# Build from a list of TimeSeriesPolars (must share identical valid_time values)
+table = TimeSeriesTablePolars.from_timeseries(
+    [ts_wind, ts_solar],
+    frequency=Frequency.PT1H,
+)
+
+# Select a single column back as a TimeSeriesPolars
+ts_wind = table.select_column("wind_power")
+
+# Round-trip to pandas (valid_time becomes the index)
+df = table.to_pandas()
+```
+
+## Versioned (bi-temporal) series
+
+```python
+import pandas as pd
+from timedatamodel import TimeSeriesPolars, DataShape, Frequency
+
+df = pd.DataFrame({
+    "knowledge_time": pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC"),
+    "valid_time":     pd.date_range("2024-01-02", periods=24, freq="h", tz="UTC"),
+    "value":          [float(i) for i in range(24)],
+})
+
+ts = TimeSeriesPolars.from_pandas(
+    df,
+    shape=DataShape.VERSIONED,
+    frequency=Frequency.PT1H,
+    name="forecast",
+)
+```
