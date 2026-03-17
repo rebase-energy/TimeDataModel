@@ -121,10 +121,38 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         if "valid_time" not in df.columns:
             raise ValueError("df must have a 'valid_time' column")
         vt_dtype = df["valid_time"].dtype
-        if not isinstance(vt_dtype, pl.Datetime) or vt_dtype.time_zone is None:
+        if (
+            not isinstance(vt_dtype, pl.Datetime)
+            or vt_dtype.time_zone is None
+            or vt_dtype.time_zone != "UTC"
+        ):
             raise TypeError(
-                "valid_time must be pl.Datetime with a timezone (expected UTC), "
+                "valid_time must be pl.Datetime with timezone 'UTC', "
                 f"got {vt_dtype!r}"
+            )
+        if "valid_time_end" in df.columns:
+            vte_dtype = df["valid_time_end"].dtype
+            if (
+                not isinstance(vte_dtype, pl.Datetime)
+                or vte_dtype.time_zone is None
+                or vte_dtype.time_zone != "UTC"
+            ):
+                raise TypeError(
+                    "valid_time_end must be pl.Datetime with timezone 'UTC', "
+                    f"got {vte_dtype!r}"
+                )
+
+        # Reject extra time-like columns that are not currently modeled as
+        # dedicated time axes by TimeSeriesTablePolars. If present, they would
+        # be incorrectly treated as value columns and break metadata broadcasting.
+        _unsupported_time_cols = {"knowledge_time", "change_time"}
+        present_unsupported = _unsupported_time_cols.intersection(df.columns)
+        if present_unsupported:
+            raise ValueError(
+                "df contains unsupported time-like columns that would be "
+                "misinterpreted as value columns: "
+                f"{sorted(present_unsupported)!r}. "
+                "These columns are not yet supported by TimeSeriesTablePolars."
             )
 
         self._df: pl.DataFrame = df
@@ -270,8 +298,10 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         metadata (unit, data_type, location) is derived from each series
         unless explicitly overridden.
 
-        Series are joined on ``valid_time`` using a full outer join —
-        missing observations appear as ``null``.
+        All input series must share identical ``valid_time`` values; a
+        :class:`ValueError` is raised if any series has different timestamps.
+        The series are then joined on ``valid_time``, so the resulting table
+        has the same time index as the inputs.
         """
         if not series_list:
             raise ValueError("series_list must not be empty")
@@ -280,6 +310,15 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
                 raise ValueError(
                     f"from_timeseries only accepts SIMPLE-shape TimeSeriesPolars, "
                     f"got {ts.shape.value} for '{ts.name}'"
+                )
+
+        # Validate all series share identical timestamps
+        ref_times = series_list[0].df["valid_time"]
+        for ts in series_list[1:]:
+            if not ts.df["valid_time"].equals(ref_times):
+                raise ValueError(
+                    f"All series must have identical timestamps. "
+                    f"Series '{ts.name}' has different valid_time values than '{series_list[0].name}'."
                 )
 
         # Build merged DataFrame

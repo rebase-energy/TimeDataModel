@@ -50,6 +50,7 @@ from ._datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
 from ._repr import _TimeSeriesPolarsReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
+
 _TS_DTYPE = pl.Datetime("us", time_zone="UTC")
 
 
@@ -64,7 +65,7 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
     ----------
     df:
         A ``polars.DataFrame`` whose columns conform to one of the recognised
-        :class:`~timedatamodel.timeseries_arrow.DataShape` patterns.  All
+        :class:`~timedatamodel._datashape.DataShape` patterns.  All
         timestamp columns must use ``pl.Datetime("us", time_zone="UTC")``.
     name:
         Series name (e.g. ``"wind_power"``).
@@ -323,7 +324,13 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         pint.DimensionalityError
             If the current unit and *target_unit* are dimensionally incompatible.
         """
-        ureg = _get_pint_registry()
+        try:
+            ureg = _get_pint_registry()
+        except ImportError as exc:
+            raise ImportError(
+                "Unit conversion requires the optional 'pint' dependency. "
+                "Install it with: pip install timedatamodel[pint]"
+            ) from exc
         factor = float(ureg.Quantity(1.0, self.unit).to(target_unit).magnitude)
         new_df = self._df.with_columns(pl.col("value") * factor)
         return self._clone(new_df, unit=target_unit)
@@ -482,6 +489,11 @@ def _validate_table(df: pl.DataFrame, shape: DataShape) -> None:
             )
         if dtype.time_zone is None:
             raise TypeError(
-                f"Column '{col}' must be timezone-aware (expected time_zone='UTC'), "
+                f"Column '{col}' must be timezone-aware with time_zone='UTC', "
                 f"got time_zone=None"
+            )
+        if dtype.time_zone != "UTC":
+            raise TypeError(
+                f"Column '{col}' must have time_zone='UTC', "
+                f"got time_zone={dtype.time_zone!r}"
             )
