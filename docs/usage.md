@@ -66,7 +66,7 @@ All conversion methods return the **full table** (all columns including timestam
 ```python
 # Always available (polars is the base dependency)
 df_pl  = ts.to_polars()       # pl.DataFrame
-rows   = ts.to_python_list()  # list[dict] — one dict per row, datetime objects for timestamps
+cols   = ts.to_list()         # dict[str, list] — column-oriented, datetime objects for timestamps
 
 # Optional dependencies — raises ImportError with install hint if not present
 arr = ts.to_numpy()    # structured np.ndarray; requires numpy

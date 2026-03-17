@@ -356,18 +356,17 @@ class TestConversionMethods:
         assert isinstance(result, pl.DataFrame)
         assert list(result.columns) == ["valid_time", "value"]
 
-    def test_to_python_list_structure(self, simple_ts):
-        result = simple_ts.to_python_list()
-        assert isinstance(result, list)
-        assert len(result) == 5
-        assert "valid_time" in result[0]
-        assert "value" in result[0]
-        assert result[0]["value"] == 1.0
+    def test_to_list_structure(self, simple_ts):
+        result = simple_ts.to_list()
+        assert isinstance(result, dict)
+        assert "valid_time" in result
+        assert "value" in result
+        assert len(result["value"]) == 5
+        assert result["value"][0] == 1.0
 
-    def test_to_python_list_nulls(self, simple_ts_with_nulls):
-        result = simple_ts_with_nulls.to_python_list()
-        values = [row["value"] for row in result]
-        assert None in values
+    def test_to_list_nulls(self, simple_ts_with_nulls):
+        result = simple_ts_with_nulls.to_list()
+        assert None in result["value"]
 
     def test_to_numpy(self, simple_ts):
         import numpy as np
