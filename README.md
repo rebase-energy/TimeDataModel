@@ -17,9 +17,9 @@
 
 **⬇️ [Installation](#installation)**
 &ensp;|&ensp;
-**📖 [Documentation](https://github.com/rebase-energy/TimeDataModel/tree/main/docs)**
+**📖 [Documentation](https://timedatamodel.readthedocs.io/en/latest/)**
 &ensp;|&ensp;
-**🚀 [Examples](https://github.com/rebase-energy/TimeDataModel/tree/main/examples)**
+**🚀 [Examples](https://timedatamodel.readthedocs.io/en/latest/examples/index.html)**
 
 ---
 
