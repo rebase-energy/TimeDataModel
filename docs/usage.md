@@ -44,14 +44,6 @@ ts = TimeSeriesPolars(
 )
 ```
 
-## Arithmetic
-
-```python
-ts_doubled = ts * 2
-ts_shifted = ts + 50.0
-ts_ratio   = ts_a / ts_b
-```
-
 ## Slicing
 
 ```python
@@ -67,20 +59,45 @@ Requires the `[pint]` extra:
 ts_kw = ts.convert_unit("kW")
 ```
 
-## Converting back to pandas
+## Format conversions
+
+All conversion methods return the **full table** (all columns including timestamps).
 
 ```python
-df = ts.to_pandas()   # DatetimeTZDtype index, UTC-aware
+# Always available (polars is the base dependency)
+df_pl  = ts.to_polars()       # pl.DataFrame
+rows   = ts.to_python_list()  # list[dict] — one dict per row, datetime objects for timestamps
+
+# Optional dependencies — raises ImportError with install hint if not present
+arr = ts.to_numpy()    # structured np.ndarray; requires numpy
+tbl = ts.to_pyarrow()  # pa.Table; requires pyarrow
+
+# Pandas interop (requires timedatamodel[pandas])
+df = ts.to_pandas()    # DatetimeTZDtype index per shape
 ```
+
+`to_pandas()` restores the conventional index per shape — see the [API reference](api.md).
+
+## Coverage bar
+
+```python
+cb = ts.coverage_bar()   # CoverageBar — renders as SVG in Jupyter, Unicode blocks in terminal
+```
+
+For `TimeSeriesTablePolars`, one bar row is shown per value column.
 
 ## Multivariate tables
 
 ```python
-from timedatamodel import TimeSeriesTablePolars
+from timedatamodel import TimeSeriesTablePolars, Frequency
+import pandas as pd
 
-# Build from a list of TimeSeriesPolars (must share identical valid_time values)
-table = TimeSeriesTablePolars.from_timeseries(
-    [ts_wind, ts_solar],
+table = TimeSeriesTablePolars.from_pandas(
+    pd.DataFrame({
+        "valid_time":  pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC"),
+        "wind_power":  [float(i) for i in range(24)],
+        "solar_power": [float(i) * 0.5 for i in range(24)],
+    }),
     frequency=Frequency.PT1H,
 )
 

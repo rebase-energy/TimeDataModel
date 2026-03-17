@@ -294,6 +294,61 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
             return df.set_index(["valid_time", "change_time"])
         return df  # unreachable, safe fallback
 
+    def to_polars(self) -> pl.DataFrame:
+        """Return the underlying ``polars.DataFrame``."""
+        return self._df
+
+    def to_python_list(self) -> list:
+        """Return all rows as a list of dicts.
+
+        Each dict maps column names to values (timestamps are Python ``datetime``
+        objects; null values are ``None``).
+        """
+        return self._df.to_dicts()
+
+    def to_numpy(self) -> "np.ndarray":
+        """Return the series as a structured NumPy array.
+
+        Each column maps to a named field. Timestamp columns become
+        ``numpy.datetime64[us]`` values; null values become ``NaN`` or ``NaT``.
+
+        Requires ``numpy``. Install with: ``pip install numpy``.
+        """
+        try:
+            import numpy as np  # noqa: F401
+        except ImportError as e:
+            raise ImportError(
+                "numpy is required for to_numpy(). Install it with: pip install numpy"
+            ) from e
+        return self._df.to_numpy(structured=True, allow_copy=True)
+
+    def to_pyarrow(self) -> "pa.Table":
+        """Return the series as a ``pyarrow.Table``.
+
+        All timestamp columns are Arrow ``timestamp[us, UTC]``.
+
+        Requires ``pyarrow``. Install with: ``pip install pyarrow``.
+        """
+        try:
+            import pyarrow  # noqa: F401
+        except ImportError as e:
+            raise ImportError(
+                "pyarrow is required for to_pyarrow(). Install it with: pip install pyarrow"
+            ) from e
+        return self._df.to_arrow()
+
+    def coverage_bar(self) -> "CoverageBar":
+        """Return a :class:`~timedatamodel.CoverageBar` showing value coverage.
+
+        ``True`` = value present, ``False`` = null/missing.
+        In Jupyter the coverage bar renders as an SVG.
+        """
+        from ._repr import CoverageBar
+        mask = self._df["value"].is_not_null().to_list()
+        begin = self._df["valid_time"][0] if self.num_rows > 0 else None
+        end = self._df["valid_time"][-1] if self.num_rows > 0 else None
+        return CoverageBar([(self.name or "value", mask)], begin, end)
+
     # ------------------------------------------------------------------
     # Data access helpers
     # ------------------------------------------------------------------

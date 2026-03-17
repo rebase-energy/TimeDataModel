@@ -330,3 +330,67 @@ class TestMetadataDict:
         assert set(d["columns"].keys()) == {"wind", "solar"}
         assert d["num_rows"] == 4
         assert str(d["frequency"]) == "PT1H"
+
+
+# ---------------------------------------------------------------------------
+# Conversion methods
+# ---------------------------------------------------------------------------
+
+
+class TestConversionMethods:
+    def test_to_polars_returns_dataframe(self, simple_table):
+        result = simple_table.to_polars()
+        assert isinstance(result, pl.DataFrame)
+        assert "valid_time" in result.columns
+        assert "wind" in result.columns
+        assert "solar" in result.columns
+
+    def test_to_python_list_structure(self, simple_table):
+        result = simple_table.to_python_list()
+        assert isinstance(result, list)
+        assert len(result) == 4
+        assert "valid_time" in result[0]
+        assert "wind" in result[0]
+        assert "solar" in result[0]
+        assert result[0]["wind"] == 1.0
+
+    def test_to_numpy(self, simple_table):
+        import numpy as np
+        result = simple_table.to_numpy()
+        assert isinstance(result, np.ndarray)
+        assert result.dtype.names is not None  # structured array
+        assert "valid_time" in result.dtype.names
+        assert "wind" in result.dtype.names
+        assert "solar" in result.dtype.names
+        assert len(result) == 4
+
+    def test_to_numpy_missing_dep(self, simple_table, monkeypatch):
+        import builtins
+        real_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "numpy":
+                raise ImportError
+            return real_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+        with pytest.raises(ImportError, match="numpy"):
+            simple_table.to_numpy()
+
+    def test_to_pyarrow(self, simple_table):
+        import pyarrow as pa
+        result = simple_table.to_pyarrow()
+        assert isinstance(result, pa.Table)
+        assert "valid_time" in result.column_names
+        assert "wind" in result.column_names
+        assert "solar" in result.column_names
+        assert len(result) == 4
+
+    def test_to_pyarrow_missing_dep(self, simple_table, monkeypatch):
+        import builtins
+        real_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "pyarrow":
+                raise ImportError
+            return real_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+        with pytest.raises(ImportError, match="pyarrow"):
+            simple_table.to_pyarrow()

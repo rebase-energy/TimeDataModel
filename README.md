@@ -84,21 +84,17 @@ print(ts)
 #  2024-01-01 01:00   102.5
 #  ...
 
-# --- Arithmetic ---
-ts_doubled = ts * 2
-ts_offset  = ts + 50.0
-
 # --- Unit conversion (requires pint extra) ---
 ts_kw = ts.convert_unit("kW")
 
-# --- Round-trip to pandas ---
-df_out = ts.to_pandas()
+# --- Format conversions ---
+df_pd  = ts.to_pandas()       # pd.DataFrame with datetime index
+df_pl  = ts.to_polars()       # pl.DataFrame
+rows   = ts.to_python_list()  # list[dict] — one dict per row
+arr    = ts.to_numpy()        # structured np.ndarray (requires numpy)
+tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
 
-# --- Multivariate table ---
-table = TimeSeriesTablePolars.from_timeseries(
-    [ts_wind, ts_solar],
-    frequency=Frequency.PT1H,
-)
+# --- Multivariate table — see examples/nb_02_timeseries_table_polars.ipynb ---
 ```
 
 ---
@@ -108,7 +104,8 @@ table = TimeSeriesTablePolars.from_timeseries(
 - 🔷 **Four data shapes** — from `SIMPLE` point-in-time to `AUDIT` full bi-temporal history;
 - 🏷️ **Rich metadata** — name, unit, frequency, timezone, data type, location, labels, description on every series;
 - 📊 **Multivariate tables** — `TimeSeriesTablePolars` groups co-indexed series with per-column metadata;
-- 🔄 **Pandas interop** — `from_pandas` / `to_pandas` with automatic UTC enforcement;
+- 🔄 **Format conversions** — `to_pandas`, `to_polars`, `to_python_list`, `to_numpy`, `to_pyarrow` with lazy optional-dependency checks;
+- 📊 **Coverage bar** — `coverage_bar()` renders null coverage as a binned SVG in Jupyter or Unicode blocks in terminal;
 - 🗺️ **Geospatial** — attach locations, filter by radius or area, find nearest columns;
 - 📏 **Units** — optional [pint](https://pint.readthedocs.io/) integration for dimensional unit conversion;
 - ⚡ **Polars native** — all internal operations use the Polars compute engine;
@@ -144,8 +141,8 @@ pip install -e .[dev]
 
 | # | Notebook | Topic |
 | :--- | :--- | :--- |
-| 11 | [TimeSeriesPolars](examples/nb_11_timeseries_polars.ipynb) | Creating, inspecting, and operating on univariate polars-backed time series |
-| 05 | [TimeSeriesTablePolars](examples/nb_05_timeseries_table_polars.ipynb) | Multivariate tables with per-column metadata and spatial filtering |
+| 01 | [TimeSeriesPolars](examples/nb_01_timeseries_polars.ipynb) | Creating, inspecting, and operating on univariate polars-backed time series |
+| 02 | [TimeSeriesTablePolars](examples/nb_02_timeseries_table_polars.ipynb) | Multivariate tables with per-column metadata and spatial filtering |
 
 ---
 

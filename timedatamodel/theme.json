@@ -29,6 +29,10 @@
     "data_text": "#e2e8f0",
     "index_text": "#cbd5e1",
     "hover_bg": "#1e293b",
-    "ellipsis": "#64748b"
+    "ellipsis": "#64748b",
+    "coverage_present": "#4CAF50",
+    "coverage_absent": "#334155",
+    "coverage_label": "#94a3b8",
+    "coverage_date": "#64748b"
   }
 }
