@@ -11,6 +11,7 @@ from .hierarchy import AggregationMethod, HierarchicalTimeSeries, HierarchyNode
 from .location import GeoArea, GeoLocation, Location
 from .table import TimeSeriesTable
 from .timeseries import TimeSeriesList
+from .timeseries_numpy import TimeSeriesNumpy
 from .timeseries_polars import DataShape, TimeSeriesPolars
 from .timeseriestable_polars import TimeSeriesTablePolars
 
@@ -55,6 +56,7 @@ __all__ = [
     "TimeSeriesArray",
     "TimeSeriesTable",
     "TimeSeriesType",
+    "TimeSeriesNumpy",
     "TimeSeriesPolars",
     "TimeSeriesTablePolars",
     "TimeSeriesList",
