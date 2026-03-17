@@ -298,13 +298,18 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         """Return the underlying ``polars.DataFrame``."""
         return self._df
 
-    def to_python_list(self) -> list:
-        """Return all rows as a list of dicts.
+    def to_list(self) -> dict:
+        """Return the series as a column-oriented dict of lists.
 
-        Each dict maps column names to values (timestamps are Python ``datetime``
-        objects; null values are ``None``).
+        Each key is a column name; each value is a Python list of that column's
+        values.  Timestamps are Python ``datetime`` objects; null values are
+        ``None``.
+
+        Example::
+
+            {"valid_time": [datetime(...), ...], "value": [1.0, None, 3.0, ...]}
         """
-        return self._df.to_dicts()
+        return self._df.to_dict(as_series=False)
 
     def to_numpy(self) -> "np.ndarray":
         """Return the series as a structured NumPy array.

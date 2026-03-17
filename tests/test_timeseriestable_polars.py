@@ -345,14 +345,14 @@ class TestConversionMethods:
         assert "wind" in result.columns
         assert "solar" in result.columns
 
-    def test_to_python_list_structure(self, simple_table):
-        result = simple_table.to_python_list()
-        assert isinstance(result, list)
-        assert len(result) == 4
-        assert "valid_time" in result[0]
-        assert "wind" in result[0]
-        assert "solar" in result[0]
-        assert result[0]["wind"] == 1.0
+    def test_to_list_structure(self, simple_table):
+        result = simple_table.to_list()
+        assert isinstance(result, dict)
+        assert "valid_time" in result
+        assert "wind" in result
+        assert "solar" in result
+        assert len(result["wind"]) == 4
+        assert result["wind"][0] == 1.0
 
     def test_to_numpy(self, simple_table):
         import numpy as np

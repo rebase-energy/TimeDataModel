@@ -90,7 +90,7 @@ ts_kw = ts.convert_unit("kW")
 # --- Format conversions ---
 df_pd  = ts.to_pandas()       # pd.DataFrame with datetime index
 df_pl  = ts.to_polars()       # pl.DataFrame
-rows   = ts.to_python_list()  # list[dict] — one dict per row
+cols   = ts.to_list()         # dict[str, list] — column-oriented
 arr    = ts.to_numpy()        # structured np.ndarray (requires numpy)
 tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
 
@@ -104,7 +104,7 @@ tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
 - 🔷 **Four data shapes** — from `SIMPLE` point-in-time to `AUDIT` full bi-temporal history;
 - 🏷️ **Rich metadata** — name, unit, frequency, timezone, data type, location, labels, description on every series;
 - 📊 **Multivariate tables** — `TimeSeriesTablePolars` groups co-indexed series with per-column metadata;
-- 🔄 **Format conversions** — `to_pandas`, `to_polars`, `to_python_list`, `to_numpy`, `to_pyarrow` with lazy optional-dependency checks;
+- 🔄 **Format conversions** — `to_pandas`, `to_polars`, `to_list`, `to_numpy`, `to_pyarrow` with lazy optional-dependency checks;
 - 📊 **Coverage bar** — `coverage_bar()` renders null coverage as a binned SVG in Jupyter or Unicode blocks in terminal;
 - 🗺️ **Geospatial** — attach locations, filter by radius or area, find nearest columns;
 - 📏 **Units** — optional [pint](https://pint.readthedocs.io/) integration for dimensional unit conversion;
