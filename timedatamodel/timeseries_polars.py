@@ -5,7 +5,7 @@ Uses a ``polars.DataFrame`` as the internal storage backend.
 
 Data shapes
 -----------
-Four temporal shapes are supported (see :class:`~timedatamodel._datashape.DataShape`):
+Four temporal shapes are supported (see :class:`~timedatamodel.datashape.DataShape`):
 
 * **SIMPLE**:    ``valid_time`` + ``value``
 * **VERSIONED**: ``knowledge_time`` + ``valid_time`` + ``value``
@@ -46,7 +46,7 @@ import pandas as pd
 import polars as pl
 
 from ._base import _get_pint_registry
-from ._datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
+from .datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
 from ._repr import _TimeSeriesPolarsReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
@@ -65,7 +65,7 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
     ----------
     df:
         A ``polars.DataFrame`` whose columns conform to one of the recognised
-        :class:`~timedatamodel._datashape.DataShape` patterns.  All
+        :class:`~timedatamodel.datashape.DataShape` patterns.  All
         timestamp columns must use ``pl.Datetime("us", time_zone="UTC")``.
     name:
         Series name (e.g. ``"wind_power"``).
