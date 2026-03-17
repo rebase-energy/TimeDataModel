@@ -301,8 +301,10 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         metadata (unit, data_type, location) is derived from each series
         unless explicitly overridden.
 
-        Series are joined on ``valid_time`` using a full outer join —
-        missing observations appear as ``null``.
+        All input series must share identical ``valid_time`` values; a
+        :class:`ValueError` is raised if any series has different timestamps.
+        The series are then joined on ``valid_time``, so the resulting table
+        has the same time index as the inputs.
         """
         if not series_list:
             raise ValueError("series_list must not be empty")
