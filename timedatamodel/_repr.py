@@ -124,8 +124,8 @@ class CoverageBar:
     present, ``False`` = null/missing.  *begin* and *end* are Python
     ``datetime`` objects used for the date axis labels.
 
-    Produced by :meth:`TimeSeriesPolars.coverage_bar` and
-    :meth:`TimeSeriesTablePolars.coverage_bar`.
+    Produced by :meth:`TimeSeries.coverage_bar` and
+    :meth:`TimeSeriesTable.coverage_bar`.
     """
 
     _TERM_BINS = 60
@@ -454,12 +454,12 @@ _SHAPE_INDEX_COLS: dict[str, tuple[str, ...]] = {
 
 
 # ---------------------------------------------------------------------------
-# Mixin: _TimeSeriesPolarsReprMixin
+# Mixin: _TimeSeriesReprMixin
 # ---------------------------------------------------------------------------
 
 
-class _TimeSeriesPolarsReprMixin:
-    """Repr mixin for the Polars-backed TimeSeriesPolars class (timeseries_polars.py)."""
+class _TimeSeriesReprMixin:
+    """Repr mixin for the Polars-backed TimeSeries class (timeseries.py)."""
 
     __slots__ = ()
 
@@ -557,7 +557,7 @@ class _TimeSeriesPolarsReprMixin:
                 for row in tail_data:
                     content_lines.append(_format_row(row))
 
-        return _render_box("TimeSeriesPolars", content_lines)
+        return _render_box("TimeSeries", content_lines)
 
     def _repr_html_(self) -> str:
         idx_cols = _SHAPE_INDEX_COLS[self.shape.value]
@@ -572,7 +572,7 @@ class _TimeSeriesPolarsReprMixin:
             return f"<tr>{idx_cells}<td>{escape(_fmt_value(val))}</td></tr>"
 
         return _build_repr_html(
-            class_name="TimeSeriesPolars",
+            class_name="TimeSeries",
             meta_rows=self._repr_meta_pairs(),
             index_names=idx_cols,
             column_names=col_names,
@@ -582,12 +582,12 @@ class _TimeSeriesPolarsReprMixin:
 
 
 # ---------------------------------------------------------------------------
-# Mixin: _TimeSeriesTablePolarsReprMixin
+# Mixin: _TimeSeriesTableReprMixin
 # ---------------------------------------------------------------------------
 
 
-class _TimeSeriesTablePolarsReprMixin:
-    """Repr mixin for the Polars-backed TimeSeriesTablePolars class (timeseriestable_polars.py)."""
+class _TimeSeriesTableReprMixin:
+    """Repr mixin for the Polars-backed TimeSeriesTable class (timeseriestable.py)."""
 
     __slots__ = ()
 
@@ -685,7 +685,7 @@ class _TimeSeriesTablePolarsReprMixin:
                 for row in tail_data:
                     content_lines.append(_format_row(row))
 
-        return _render_box("TimeSeriesTablePolars", content_lines)
+        return _render_box("TimeSeriesTable", content_lines)
 
     def _repr_html_(self) -> str:
         col_names = self.column_names
@@ -699,7 +699,7 @@ class _TimeSeriesTablePolarsReprMixin:
             return f"<tr>{ts_cell}{val_cells}</tr>"
 
         return _build_repr_html(
-            class_name="TimeSeriesTablePolars",
+            class_name="TimeSeriesTable",
             meta_rows=self._repr_meta_pairs(),
             index_names=("valid_time",),
             column_names=tuple(col_names),

@@ -1,21 +1,20 @@
 # Basic Usage
 
-## Creating a TimeSeriesPolars
+## Creating a TimeSeries
 
 ### From a pandas DataFrame
 
 ```python
 import pandas as pd
-from timedatamodel import TimeSeriesPolars, DataShape, Frequency
+from timedatamodel import TimeSeries, Frequency
 
 df = pd.DataFrame({
     "valid_time": pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC"),
     "value": [float(i) for i in range(24)],
 })
 
-ts = TimeSeriesPolars.from_pandas(
+ts = TimeSeries.from_pandas(
     df,
-    shape=DataShape.SIMPLE,
     frequency=Frequency.PT1H,
     name="wind_power",
     unit="MW",
@@ -26,7 +25,7 @@ ts = TimeSeriesPolars.from_pandas(
 
 ```python
 import polars as pl
-from timedatamodel import TimeSeriesPolars, DataShape, Frequency
+from timedatamodel import TimeSeries, Frequency
 
 df = pl.DataFrame({
     "valid_time": pl.Series(
@@ -35,9 +34,8 @@ df = pl.DataFrame({
     "value": [float(i) for i in range(24)],
 })
 
-ts = TimeSeriesPolars(
+ts = TimeSeries.from_polars(
     df,
-    shape=DataShape.SIMPLE,
     frequency=Frequency.PT1H,
     name="wind_power",
     unit="MW",
@@ -61,7 +59,7 @@ ts_kw = ts.convert_unit("kW")
 
 ## Format conversions
 
-All conversion methods return the **full table** (all columns including timestamps).
+All export methods return the **full table** (all columns including timestamps).
 
 ```python
 # Always available (polars is the base dependency)
@@ -78,21 +76,31 @@ df = ts.to_pandas()    # DatetimeTZDtype index per shape
 
 `to_pandas()` restores the conventional index per shape — see the [API reference](api.md).
 
+Each export format has a matching constructor:
+
+```python
+ts = TimeSeries.from_polars(df_pl, ...)
+ts = TimeSeries.from_list(cols, ...)
+ts = TimeSeries.from_numpy(arr, ...)    # requires numpy
+ts = TimeSeries.from_pyarrow(tbl, ...)  # requires pyarrow
+ts = TimeSeries.from_pandas(df, ...)    # requires pandas
+```
+
 ## Coverage bar
 
 ```python
 cb = ts.coverage_bar()   # CoverageBar — renders as SVG in Jupyter, Unicode blocks in terminal
 ```
 
-For `TimeSeriesTablePolars`, one bar row is shown per value column.
+For `TimeSeriesTable`, one bar row is shown per value column.
 
 ## Multivariate tables
 
 ```python
-from timedatamodel import TimeSeriesTablePolars, Frequency
+from timedatamodel import TimeSeriesTable, Frequency
 import pandas as pd
 
-table = TimeSeriesTablePolars.from_pandas(
+table = TimeSeriesTable.from_pandas(
     pd.DataFrame({
         "valid_time":  pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC"),
         "wind_power":  [float(i) for i in range(24)],
@@ -101,7 +109,7 @@ table = TimeSeriesTablePolars.from_pandas(
     frequency=Frequency.PT1H,
 )
 
-# Select a single column back as a TimeSeriesPolars
+# Select a single column back as a TimeSeries
 ts_wind = table.select_column("wind_power")
 
 # Round-trip to pandas (valid_time becomes the index)
@@ -112,7 +120,7 @@ df = table.to_pandas()
 
 ```python
 import pandas as pd
-from timedatamodel import TimeSeriesPolars, DataShape, Frequency
+from timedatamodel import TimeSeries, Frequency
 
 df = pd.DataFrame({
     "knowledge_time": pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC"),
@@ -120,9 +128,8 @@ df = pd.DataFrame({
     "value":          [float(i) for i in range(24)],
 })
 
-ts = TimeSeriesPolars.from_pandas(
+ts = TimeSeries.from_pandas(
     df,
-    shape=DataShape.VERSIONED,
     frequency=Frequency.PT1H,
     name="forecast",
 )

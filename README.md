@@ -2,7 +2,7 @@
 
 # TimeDataModel
 
-**A lightweight Python data model for time series data, built on [Polars](https://pola.rs).**
+**A lightweight Pythonic data model for time series data, interoperable with NumPy, Pandas and Polars.**
 
 <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square"></a>
 <a href="https://pypi.org/project/timedatamodel/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/timedatamodel?color=blue&style=flat-square"></a>
@@ -13,7 +13,7 @@
 
 <br/>
 
-**TimeDataModel** is a metadata-rich, Polars-backed container for time series data. It lets you carry your data *and* its context — name, unit, frequency, timezone, location — as a single, self-describing object, while staying fully interoperable with pandas.
+**TimeDataModel** is a metadata-rich container for time series data. It lets you carry your data *and* its context — name, unit, frequency, timezone, location — as a single, self-describing object, fully interoperable with pandas, NumPy, Polars, and PyArrow.
 
 **⬇️ [Installation](#installation)**
 &ensp;|&ensp;
@@ -27,8 +27,8 @@
 
 | Class | Description |
 | :---- | :---------- |
-| 📈&nbsp;`TimeSeriesPolars` | Univariate time series backed by a Polars DataFrame, supporting four temporal shapes |
-| 📊&nbsp;`TimeSeriesTablePolars` | Multivariate time series — multiple named columns sharing the same `valid_time` index |
+| 📈&nbsp;`TimeSeries` | Univariate time series supporting four temporal shapes |
+| 📊&nbsp;`TimeSeriesTable` | Multivariate time series — multiple named columns sharing the same `valid_time` index |
 | 🔷&nbsp;`DataShape` | Enum that selects which timestamp columns are present: `SIMPLE`, `VERSIONED`, `CORRECTED`, or `AUDIT` |
 | ⏱️&nbsp;`Frequency` | ISO 8601 duration-based frequencies (`PT1H`, `P1D`, `P1M`, …) |
 | 🏷️&nbsp;`DataType` | Hierarchical taxonomy: `ACTUAL` → `OBSERVATION`, `DERIVED`; `CALCULATED` → `FORECAST`, `SIMULATION`, … |
@@ -38,7 +38,7 @@
 
 ## 📐 Data Shapes
 
-`TimeSeriesPolars` supports four **temporal shapes** to model everything from simple point-in-time
+`TimeSeries` supports four **temporal shapes** to model everything from simple point-in-time
 data to fully bi-temporal audit trails:
 
 | Shape | Columns | Use case |
@@ -54,7 +54,7 @@ data to fully bi-temporal audit trails:
 
 ```python
 import pandas as pd
-from timedatamodel import TimeSeriesPolars, TimeSeriesTablePolars, DataShape, Frequency
+from timedatamodel import TimeSeries, TimeSeriesTable, Frequency
 
 # --- Univariate series from a pandas DataFrame ---
 df = pd.DataFrame({
@@ -62,16 +62,15 @@ df = pd.DataFrame({
     "value": [100.0 + i * 2.5 for i in range(24)],
 })
 
-ts = TimeSeriesPolars.from_pandas(
+ts = TimeSeries.from_pandas(
     df,
-    shape=DataShape.SIMPLE,
     frequency=Frequency.PT1H,
     name="wind_power",
     unit="MW",
 )
 
 print(ts)
-# TimeSeriesPolars ─────────────────────────
+# TimeSeries ─────────────────────────
 #   Name        wind_power
 #   Shape       SIMPLE
 #   Rows        24
@@ -94,7 +93,7 @@ cols   = ts.to_list()         # dict[str, list] — column-oriented
 arr    = ts.to_numpy()        # dict[str, np.ndarray] — column-oriented (requires numpy)
 tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
 
-# --- Multivariate table — see examples/nb_02_timeseries_table_polars.ipynb ---
+# --- Multivariate table — see examples/nb_02_timeseriestable.ipynb ---
 ```
 
 ---
@@ -103,12 +102,12 @@ tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
 
 - 🔷 **Four data shapes** — from `SIMPLE` point-in-time to `AUDIT` full bi-temporal history;
 - 🏷️ **Rich metadata** — name, unit, frequency, timezone, data type, location, labels, description on every series;
-- 📊 **Multivariate tables** — `TimeSeriesTablePolars` groups co-indexed series with per-column metadata;
+- 📊 **Multivariate tables** — `TimeSeriesTable` groups co-indexed series with per-column metadata;
 - 🔄 **Format conversions** — `to_pandas`, `to_polars`, `to_list`, `to_numpy`, `to_pyarrow` with lazy optional-dependency checks;
 - 📊 **Coverage bar** — `coverage_bar()` renders null coverage as a binned SVG in Jupyter or Unicode blocks in terminal;
 - 🗺️ **Geospatial** — attach locations, filter by radius or area, find nearest columns;
 - 📏 **Units** — optional [pint](https://pint.readthedocs.io/) integration for dimensional unit conversion;
-- ⚡ **Polars native** — all internal operations use the Polars compute engine;
+- ⚡ **Polars-powered** — backed by the Polars compute engine for high-performance in-memory processing;
 - 🐍 **Type-safe** — full type hints with PEP 561 support.
 
 ---
@@ -141,8 +140,8 @@ pip install -e .[dev]
 
 | # | Notebook | Topic |
 | :--- | :--- | :--- |
-| 01 | [TimeSeriesPolars](examples/nb_01_timeseries_polars.ipynb) | Creating, inspecting, and operating on univariate polars-backed time series |
-| 02 | [TimeSeriesTablePolars](examples/nb_02_timeseries_table_polars.ipynb) | Multivariate tables with per-column metadata and spatial filtering |
+| 01 | [TimeSeries](examples/nb_01_timeseries.ipynb) | Creating, inspecting, and operating on univariate time series |
+| 02 | [TimeSeriesTable](examples/nb_02_timeseriestable.ipynb) | Multivariate tables with per-column metadata and spatial filtering |
 
 ---
 
