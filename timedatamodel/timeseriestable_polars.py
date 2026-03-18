@@ -21,8 +21,7 @@ Key characteristics
 Example usage
 -------------
 >>> import pandas as pd
->>> from timedatamodel.timeseriestable_polars import TimeSeriesTablePolars
->>> from timedatamodel.enums import Frequency
+>>> from timedatamodel import TimeSeriesTablePolars, Frequency
 >>>
 >>> df = pd.DataFrame({
 ...     "valid_time": pd.date_range("2024-01-01", periods=4, freq="1h", tz="UTC"),
@@ -506,10 +505,10 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         """
         return self._df.to_dict(as_series=False)
 
-    def to_numpy(self) -> "np.ndarray":
-        """Return the table as a structured NumPy array.
+    def to_numpy(self) -> "dict[str, np.ndarray]":
+        """Return the table as a dictionary of NumPy arrays.
 
-        Each column maps to a named field. Timestamp columns become
+        Each column maps to a 1-D ``numpy.ndarray``. Timestamp columns become
         ``numpy.datetime64[us]`` values; null values become ``NaN`` or ``NaT``.
 
         Requires ``numpy``. Install with: ``pip install numpy``.
@@ -520,7 +519,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
             raise ImportError(
                 "numpy is required for to_numpy(). Install it with: pip install numpy"
             ) from e
-        return self._df.to_numpy(structured=True, allow_copy=True)
+        return {col: self._df[col].to_numpy(allow_copy=True) for col in self._df.columns}
 
     def to_pyarrow(self) -> "pa.Table":
         """Return the table as a ``pyarrow.Table``.
@@ -552,7 +551,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         end = self._df["valid_time"][-1] if len(self._df) > 0 else None
         return CoverageBar(masks, begin, end)
 
-    def validate_for_insert(self):
+    def validate_for_insert(self) -> "tuple[pl.DataFrame, DataShape]":
         """Return ``(pl.DataFrame, DataShape.SIMPLE)`` for database write paths."""
         return self._df, DataShape.SIMPLE
 

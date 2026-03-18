@@ -371,11 +371,11 @@ class TestConversionMethods:
     def test_to_numpy(self, simple_ts):
         import numpy as np
         result = simple_ts.to_numpy()
-        assert isinstance(result, np.ndarray)
-        assert result.dtype.names is not None  # structured array
-        assert "value" in result.dtype.names
-        assert "valid_time" in result.dtype.names
-        assert len(result) == 5
+        assert isinstance(result, dict)
+        assert "value" in result
+        assert "valid_time" in result
+        assert isinstance(result["value"], np.ndarray)
+        assert len(result["value"]) == 5
 
     def test_to_numpy_missing_dep(self, simple_ts, monkeypatch):
         import builtins

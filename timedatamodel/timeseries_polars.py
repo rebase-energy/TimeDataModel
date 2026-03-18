@@ -20,8 +20,7 @@ The ``timezone`` metadata field is a display/context hint (IANA zone string).
 Example usage
 -------------
 >>> import pandas as pd
->>> from timedatamodel.timeseries_polars import TimeSeriesPolars
->>> from timedatamodel.enums import DataType
+>>> from timedatamodel import TimeSeriesPolars, DataType
 >>>
 >>> df = pd.DataFrame({
 ...     "valid_time": pd.date_range("2024-01-01", periods=4, freq="1h", tz="UTC"),
@@ -311,10 +310,10 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         """
         return self._df.to_dict(as_series=False)
 
-    def to_numpy(self) -> "np.ndarray":
-        """Return the series as a structured NumPy array.
+    def to_numpy(self) -> "dict[str, np.ndarray]":
+        """Return the series as a dictionary of NumPy arrays.
 
-        Each column maps to a named field. Timestamp columns become
+        Each column maps to a 1-D ``numpy.ndarray``. Timestamp columns become
         ``numpy.datetime64[us]`` values; null values become ``NaN`` or ``NaT``.
 
         Requires ``numpy``. Install with: ``pip install numpy``.
@@ -325,7 +324,7 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
             raise ImportError(
                 "numpy is required for to_numpy(). Install it with: pip install numpy"
             ) from e
-        return self._df.to_numpy(structured=True, allow_copy=True)
+        return {col: self._df[col].to_numpy(allow_copy=True) for col in self._df.columns}
 
     def to_pyarrow(self) -> "pa.Table":
         """Return the series as a ``pyarrow.Table``.
@@ -425,7 +424,7 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
     # Metadata helpers
     # ------------------------------------------------------------------
 
-    def metadata_dict(self) -> Dict:
+    def metadata_dict(self) -> dict:
         """Return all metadata fields as a plain dict."""
         return {
             "name":            self.name,
