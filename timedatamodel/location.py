@@ -84,14 +84,7 @@ class GeoLocation:
 
     def is_within(self, area: GeoArea) -> bool:
         """True if this point is inside *area*."""
-        try:
-            from shapely.geometry import Point
-        except ImportError:
-            raise ImportError(
-                "shapely is required for is_within(). "
-                "Install it with: pip install timedatamodel[geo]"
-            ) from None
-        return area.polygon.contains(Point(self.longitude, self.latitude))
+        return area.contains_point(self)
 
 
 @dataclass(frozen=True, slots=True)

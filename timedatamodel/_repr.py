@@ -12,7 +12,7 @@ from datetime import datetime
 from html import escape
 from typing import Callable
 
-import numpy as np
+import math
 
 from ._theme import THEME, get_theme_version
 from .location import GeoArea, GeoLocation
@@ -95,7 +95,7 @@ def _fmt_tz_with_offset(tz_str: str, timestamps: list) -> str:
 
 
 def _fmt_value(v: float | None) -> str:
-    if v is None or (isinstance(v, float) and np.isnan(v)):
+    if v is None or (isinstance(v, float) and math.isnan(v)):
         return "NaN"
     if v == int(v):
         return f"{v:.1f}"

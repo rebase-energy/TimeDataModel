@@ -69,7 +69,7 @@ df_pl  = ts.to_polars()       # pl.DataFrame
 cols   = ts.to_list()         # dict[str, list] — column-oriented, datetime objects for timestamps
 
 # Optional dependencies — raises ImportError with install hint if not present
-arr = ts.to_numpy()    # structured np.ndarray; requires numpy
+arr = ts.to_numpy()    # dict[str, np.ndarray] — column-oriented; requires numpy
 tbl = ts.to_pyarrow()  # pa.Table; requires pyarrow
 
 # Pandas interop (requires timedatamodel[pandas])

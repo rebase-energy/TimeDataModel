@@ -91,7 +91,7 @@ ts_kw = ts.convert_unit("kW")
 df_pd  = ts.to_pandas()       # pd.DataFrame with datetime index
 df_pl  = ts.to_polars()       # pl.DataFrame
 cols   = ts.to_list()         # dict[str, list] — column-oriented
-arr    = ts.to_numpy()        # structured np.ndarray (requires numpy)
+arr    = ts.to_numpy()        # dict[str, np.ndarray] — column-oriented (requires numpy)
 tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
 
 # --- Multivariate table — see examples/nb_02_timeseries_table_polars.ipynb ---

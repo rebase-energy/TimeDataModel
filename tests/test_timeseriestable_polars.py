@@ -357,12 +357,12 @@ class TestConversionMethods:
     def test_to_numpy(self, simple_table):
         import numpy as np
         result = simple_table.to_numpy()
-        assert isinstance(result, np.ndarray)
-        assert result.dtype.names is not None  # structured array
-        assert "valid_time" in result.dtype.names
-        assert "wind" in result.dtype.names
-        assert "solar" in result.dtype.names
-        assert len(result) == 4
+        assert isinstance(result, dict)
+        assert "valid_time" in result
+        assert "wind" in result
+        assert "solar" in result
+        assert isinstance(result["wind"], np.ndarray)
+        assert len(result["wind"]) == 4
 
     def test_to_numpy_missing_dep(self, simple_table, monkeypatch):
         import builtins
