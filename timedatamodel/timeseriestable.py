@@ -1,5 +1,5 @@
 """
-TimeSeriesTablePolars — a Polars-backed container for multivariate time series.
+TimeSeriesTable — a Polars-backed container for multivariate time series.
 
 Stores multiple co-indexed time series as named columns in a single
 ``polars.DataFrame``.  Each value column represents one signal (wind speed,
@@ -21,14 +21,14 @@ Key characteristics
 Example usage
 -------------
 >>> import pandas as pd
->>> from timedatamodel import TimeSeriesTablePolars, Frequency
+>>> from timedatamodel import TimeSeriesTable, Frequency
 >>>
 >>> df = pd.DataFrame({
 ...     "valid_time": pd.date_range("2024-01-01", periods=4, freq="1h", tz="UTC"),
 ...     "wind":       [8.0, 9.1, 10.2, 9.5],
 ...     "temp":       [-1.0, -0.5, 0.1, -0.3],
 ... })
->>> table = TimeSeriesTablePolars.from_pandas(df, frequency=Frequency.PT1H, units=["m/s", "degC"])
+>>> table = TimeSeriesTable.from_pandas(df, frequency=Frequency.PT1H, units=["m/s", "degC"])
 >>> table.column_names
 ['wind', 'temp']
 """
@@ -40,11 +40,11 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 import polars as pl
 
-from ._repr import _TimeSeriesTablePolarsReprMixin
+from ._repr import _TimeSeriesTableReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation
 from .datashape import DataShape
-from .timeseries_polars import TimeSeriesPolars, _ingest_pandas_to_polars
+from .timeseries import TimeSeries, _ingest_pandas_to_polars, _normalize_time_cols
 
 
 # ---------------------------------------------------------------------------
@@ -72,11 +72,11 @@ def _value_col_names(df: pl.DataFrame) -> List[str]:
 
 
 # ---------------------------------------------------------------------------
-# TimeSeriesTablePolars
+# TimeSeriesTable
 # ---------------------------------------------------------------------------
 
 
-class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
+class TimeSeriesTable(_TimeSeriesTableReprMixin):
     """Polars-backed container for multivariate time series data.
 
     Parameters
@@ -142,7 +142,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
                 )
 
         # Reject extra time-like columns that are not currently modeled as
-        # dedicated time axes by TimeSeriesTablePolars. If present, they would
+        # dedicated time axes by TimeSeriesTable. If present, they would
         # be incorrectly treated as value columns and break metadata broadcasting.
         _unsupported_time_cols = {"knowledge_time", "change_time"}
         present_unsupported = _unsupported_time_cols.intersection(df.columns)
@@ -151,7 +151,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
                 "df contains unsupported time-like columns that would be "
                 "misinterpreted as value columns: "
                 f"{sorted(present_unsupported)!r}. "
-                "These columns are not yet supported by TimeSeriesTablePolars."
+                "These columns are not yet supported by TimeSeriesTable."
             )
 
         self._df: pl.DataFrame = df
@@ -227,14 +227,123 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         locations: Optional[List[Optional[GeoLocation]]] = None,
         timeseries_types: Optional[List[TimeSeriesType]] = None,
         labels: Optional[List[Dict[str, str]]] = None,
-    ) -> "TimeSeriesTablePolars":
-        """Create a :class:`TimeSeriesTablePolars` directly from a ``polars.DataFrame``.
+    ) -> "TimeSeriesTable":
+        """Create a :class:`TimeSeriesTable` directly from a ``polars.DataFrame``.
 
         The DataFrame must have a ``valid_time`` column with dtype
         ``pl.Datetime("us", time_zone="UTC")``.
         """
         return cls(
             df,
+            frequency=frequency,
+            timezone=timezone,
+            units=units,
+            descriptions=descriptions,
+            data_types=data_types,
+            locations=locations,
+            timeseries_types=timeseries_types,
+            labels=labels,
+        )
+
+    @classmethod
+    def from_list(
+        cls,
+        data: "dict[str, list]",
+        *,
+        frequency: Frequency,
+        timezone: str = "UTC",
+        units: Optional[List[Optional[str]]] = None,
+        descriptions: Optional[List[Optional[str]]] = None,
+        data_types: Optional[List[Optional[DataType]]] = None,
+        locations: Optional[List[Optional[GeoLocation]]] = None,
+        timeseries_types: Optional[List[TimeSeriesType]] = None,
+        labels: Optional[List[Dict[str, str]]] = None,
+    ) -> "TimeSeriesTable":
+        """Create a :class:`TimeSeriesTable` from a column-oriented dict of lists.
+
+        Accepts the format returned by :meth:`to_list`.  Timestamp columns are
+        normalised to UTC automatically.
+        """
+        return cls(
+            _normalize_time_cols(pl.DataFrame(data)),
+            frequency=frequency,
+            timezone=timezone,
+            units=units,
+            descriptions=descriptions,
+            data_types=data_types,
+            locations=locations,
+            timeseries_types=timeseries_types,
+            labels=labels,
+        )
+
+    @classmethod
+    def from_numpy(
+        cls,
+        data: "dict[str, np.ndarray]",
+        *,
+        frequency: Frequency,
+        timezone: str = "UTC",
+        units: Optional[List[Optional[str]]] = None,
+        descriptions: Optional[List[Optional[str]]] = None,
+        data_types: Optional[List[Optional[DataType]]] = None,
+        locations: Optional[List[Optional[GeoLocation]]] = None,
+        timeseries_types: Optional[List[TimeSeriesType]] = None,
+        labels: Optional[List[Dict[str, str]]] = None,
+    ) -> "TimeSeriesTable":
+        """Create a :class:`TimeSeriesTable` from a column-oriented dict of NumPy arrays.
+
+        Accepts the format returned by :meth:`to_numpy`.  Timestamp columns
+        (``numpy.datetime64``, always timezone-naive) are localised to UTC.
+
+        Requires ``numpy``.
+        """
+        try:
+            import numpy as np  # noqa: F401
+        except ImportError as e:
+            raise ImportError(
+                "numpy is required for from_numpy(). Install with: pip install numpy"
+            ) from e
+        return cls(
+            _normalize_time_cols(pl.DataFrame(data)),
+            frequency=frequency,
+            timezone=timezone,
+            units=units,
+            descriptions=descriptions,
+            data_types=data_types,
+            locations=locations,
+            timeseries_types=timeseries_types,
+            labels=labels,
+        )
+
+    @classmethod
+    def from_pyarrow(
+        cls,
+        table: "pa.Table",
+        *,
+        frequency: Frequency,
+        timezone: str = "UTC",
+        units: Optional[List[Optional[str]]] = None,
+        descriptions: Optional[List[Optional[str]]] = None,
+        data_types: Optional[List[Optional[DataType]]] = None,
+        locations: Optional[List[Optional[GeoLocation]]] = None,
+        timeseries_types: Optional[List[TimeSeriesType]] = None,
+        labels: Optional[List[Dict[str, str]]] = None,
+    ) -> "TimeSeriesTable":
+        """Create a :class:`TimeSeriesTable` from a PyArrow Table.
+
+        Accepts the format returned by :meth:`to_pyarrow`.  Arrow
+        ``timestamp[us, UTC]`` columns are converted automatically.
+
+        Requires ``pyarrow``.
+        """
+        try:
+            import pyarrow as pa  # noqa: F401
+        except ImportError as e:
+            raise ImportError(
+                "pyarrow is required for from_pyarrow(). Install with: pip install pyarrow"
+            ) from e
+        return cls(
+            pl.from_arrow(table),
             frequency=frequency,
             timezone=timezone,
             units=units,
@@ -258,8 +367,8 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         locations: Optional[List[Optional[GeoLocation]]] = None,
         timeseries_types: Optional[List[TimeSeriesType]] = None,
         labels: Optional[List[Dict[str, str]]] = None,
-    ) -> "TimeSeriesTablePolars":
-        """Create a :class:`TimeSeriesTablePolars` from a ``pandas.DataFrame``.
+    ) -> "TimeSeriesTable":
+        """Create a :class:`TimeSeriesTable` from a ``pandas.DataFrame``.
 
         The DataFrame must have a ``valid_time`` column (or as index) and one
         or more value columns.  Timestamps are normalised to UTC.
@@ -280,7 +389,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
     @classmethod
     def from_timeseries(
         cls,
-        series_list: List[TimeSeriesPolars],
+        series_list: List[TimeSeries],
         *,
         frequency: Optional[Frequency] = None,
         timezone: str = "UTC",
@@ -290,8 +399,8 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         locations: Optional[List[Optional[GeoLocation]]] = None,
         timeseries_types: Optional[List[TimeSeriesType]] = None,
         labels: Optional[List[Dict[str, str]]] = None,
-    ) -> "TimeSeriesTablePolars":
-        """Build a table from a list of SIMPLE-shape :class:`~timedatamodel.timeseries_polars.TimeSeriesPolars`.
+    ) -> "TimeSeriesTable":
+        """Build a table from a list of SIMPLE-shape :class:`~timedatamodel.timeseries.TimeSeries`.
 
         Column names come from each series' ``name`` attribute.  Per-column
         metadata (unit, data_type, location) is derived from each series
@@ -307,7 +416,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         for ts in series_list:
             if ts.shape is not DataShape.SIMPLE:
                 raise ValueError(
-                    f"from_timeseries only accepts SIMPLE-shape TimeSeriesPolars, "
+                    f"from_timeseries only accepts SIMPLE-shape TimeSeries, "
                     f"got {ts.shape.value} for '{ts.name}'"
                 )
 
@@ -332,7 +441,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
 
         merged = merged.sort("valid_time")
 
-        # Derive per-column metadata from individual TimeSeriesPolars if not overridden
+        # Derive per-column metadata from individual TimeSeries if not overridden
         if units is None:
             units = [ts.unit for ts in series_list]
         if descriptions is None:
@@ -369,8 +478,8 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
     # Column selection
     # ------------------------------------------------------------------
 
-    def select_column(self, col: Union[int, str]) -> TimeSeriesPolars:
-        """Extract one value column as a :class:`~timedatamodel.timeseries_polars.TimeSeriesPolars`.
+    def select_column(self, col: Union[int, str]) -> TimeSeries:
+        """Extract one value column as a :class:`~timedatamodel.timeseries.TimeSeries`.
 
         Parameters
         ----------
@@ -390,7 +499,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         col_name = names[idx]
         sub_df = self._df.select(["valid_time", col_name]).rename({col_name: "value"})
 
-        return TimeSeriesPolars(
+        return TimeSeries(
             sub_df,
             name=col_name,
             unit=self._units[idx] or "dimensionless",
@@ -403,12 +512,12 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
             timezone=self.timezone,
         )
 
-    def _select_columns(self, indices: List[int]) -> "TimeSeriesTablePolars":
+    def _select_columns(self, indices: List[int]) -> "TimeSeriesTable":
         """Return a new table keeping only the given column indices."""
         names = self.column_names
         keep_cols = ["valid_time"] + [names[i] for i in indices]
         new_df = self._df.select(keep_cols)
-        return TimeSeriesTablePolars(
+        return TimeSeriesTable(
             new_df,
             frequency=self.frequency,
             timezone=self.timezone,
@@ -426,7 +535,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
 
     def filter_columns_by_location(
         self, center: GeoLocation, radius_km: float
-    ) -> "TimeSeriesTablePolars":
+    ) -> "TimeSeriesTable":
         """Keep only columns whose location is within *radius_km* of *center*."""
         keep = [
             i for i, loc in enumerate(self._locations)
@@ -434,7 +543,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
         ]
         return self._select_columns(keep)
 
-    def filter_columns_by_area(self, area: GeoArea) -> "TimeSeriesTablePolars":
+    def filter_columns_by_area(self, area: GeoArea) -> "TimeSeriesTable":
         """Keep only columns whose location falls inside *area*."""
         keep = [
             i for i, loc in enumerate(self._locations)
@@ -444,7 +553,7 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
 
     def nearest_columns(
         self, target: GeoLocation, n: int = 1
-    ) -> "TimeSeriesTablePolars":
+    ) -> "TimeSeriesTable":
         """Keep the *n* nearest columns to *target* by Haversine distance."""
         dists = [
             (loc.distance_to(target), i)
@@ -459,16 +568,16 @@ class TimeSeriesTablePolars(_TimeSeriesTablePolarsReprMixin):
     # Data access
     # ------------------------------------------------------------------
 
-    def head(self, n: int = 5) -> "TimeSeriesTablePolars":
-        """Return the first *n* rows as a new :class:`TimeSeriesTablePolars`."""
+    def head(self, n: int = 5) -> "TimeSeriesTable":
+        """Return the first *n* rows as a new :class:`TimeSeriesTable`."""
         return self._clone_df(self._df.head(n))
 
-    def tail(self, n: int = 5) -> "TimeSeriesTablePolars":
-        """Return the last *n* rows as a new :class:`TimeSeriesTablePolars`."""
+    def tail(self, n: int = 5) -> "TimeSeriesTable":
+        """Return the last *n* rows as a new :class:`TimeSeriesTable`."""
         return self._clone_df(self._df.tail(n))
 
-    def _clone_df(self, new_df: pl.DataFrame) -> "TimeSeriesTablePolars":
-        return TimeSeriesTablePolars(
+    def _clone_df(self, new_df: pl.DataFrame) -> "TimeSeriesTable":
+        return TimeSeriesTable(
             new_df,
             frequency=self.frequency,
             timezone=self.timezone,

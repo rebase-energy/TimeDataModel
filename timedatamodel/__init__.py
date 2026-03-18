@@ -6,8 +6,8 @@ from .datapoint import DataPoint
 from .datashape import DataShape
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
-from .timeseries_polars import TimeSeriesPolars
-from .timeseriestable_polars import TimeSeriesTablePolars
+from .timeseries import TimeSeries
+from .timeseriestable import TimeSeriesTable
 
 __version__ = version("timedatamodel")
 
@@ -20,8 +20,8 @@ __all__ = [
     "GeoArea",
     "GeoLocation",
     "Location",
-    "TimeSeriesPolars",
-    "TimeSeriesTablePolars",
+    "TimeSeries",
+    "TimeSeriesTable",
     "TimeSeriesType",
     "get_repr_width",
     "get_theme",

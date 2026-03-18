@@ -1,17 +1,17 @@
 # API Reference
 
-## TimeSeriesPolars
+## TimeSeries
 
 ```{eval-rst}
-.. autoclass:: timedatamodel.TimeSeriesPolars
+.. autoclass:: timedatamodel.TimeSeries
    :members:
    :show-inheritance:
 ```
 
-## TimeSeriesTablePolars
+## TimeSeriesTable
 
 ```{eval-rst}
-.. autoclass:: timedatamodel.TimeSeriesTablePolars
+.. autoclass:: timedatamodel.TimeSeriesTable
    :members:
    :show-inheritance:
 ```

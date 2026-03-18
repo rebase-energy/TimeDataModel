@@ -69,10 +69,10 @@ autodoc_default_options = {
         "_repr_html_",
         "_repr_meta_lines",
         "_repr_data_rows",
-        # TimeSeriesPolars internals
+        # TimeSeries internals
         "_clone",
         "_validate_table",
-        # TimeSeriesTablePolars internals
+        # TimeSeriesTable internals
         "_clone_df",
     ]),
 }

@@ -6,6 +6,6 @@ Each example is a Jupyter notebook that you can download and run interactively.
 ```{toctree}
 :maxdepth: 1
 
-timeseries_polars
-timeseries_table_polars
+timeseries
+timeseriestable
 ```

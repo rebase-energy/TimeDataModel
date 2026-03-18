@@ -1,8 +1,9 @@
 # Overview
 
 **TimeDataModel** is a lightweight Python library for working with time series data. It provides
-two structured, metadata-rich containers backed by [Polars](https://pola.rs), together with
-enums and geographic types for annotating your data.
+two structured, metadata-rich containers — backed by [Polars](https://pola.rs) internally, and
+fully interoperable with pandas, NumPy, Polars, and PyArrow — together with enums and geographic
+types for annotating your data.
 
 The library is designed for energy, weather, and forecasting workflows where data arrives from
 many sources at different times — but it is general enough for any domain that works with
@@ -12,24 +13,23 @@ timestamped numerical data.
 
 ## Core data structures
 
-### TimeSeriesPolars
+### TimeSeries
 
-A single univariate time series backed by a Polars DataFrame. The DataFrame always has a
-`"value"` column and one or more timestamp columns whose layout is determined by the chosen
-`DataShape` (see below).
+A single univariate time series. The underlying Polars DataFrame always has a `"value"` column
+and one or more timestamp columns whose layout is determined by the inferred `DataShape`
+(see below).
 
 ```python
 import pandas as pd
-from timedatamodel import TimeSeriesPolars, DataShape, Frequency
+from timedatamodel import TimeSeries, Frequency
 
 df = pd.DataFrame({
     "valid_time": pd.date_range("2024-01-01", periods=48, freq="h", tz="UTC"),
     "value": [float(i) for i in range(48)],
 })
 
-ts = TimeSeriesPolars.from_pandas(
+ts = TimeSeries.from_pandas(
     df,
-    shape=DataShape.SIMPLE,
     frequency=Frequency.PT1H,
     name="wind_power",
     unit="MW",
@@ -45,27 +45,28 @@ Supported metadata fields: `name`, `frequency`, `timezone`, `unit`, `data_type`,
 |-----------|---------|
 | Slicing | `ts.head(n)`, `ts.tail(n)` |
 | Unit conversion | `ts.convert_unit("kW")` *(requires `[pint]`)* |
-| Pandas round-trip | `ts.to_pandas()`, `TimeSeriesPolars.from_pandas(df, ...)` |
+| Format export | `ts.to_pandas()`, `ts.to_polars()`, `ts.to_list()`, `ts.to_numpy()`, `ts.to_pyarrow()` |
+| Format import | `TimeSeries.from_pandas(df, ...)`, `from_polars(...)`, `from_list(...)`, `from_numpy(...)`, `from_pyarrow(...)` |
 | Validation | `ts.validate_for_insert()` |
 
 ---
 
-### TimeSeriesTablePolars
+### TimeSeriesTable
 
 Multiple co-indexed time series stored as named columns in a single Polars DataFrame. All
 columns share the same `valid_time` index. Each column carries independent metadata — unit,
 data type, and geographic location.
 
 ```python
-from timedatamodel import TimeSeriesTablePolars
+from timedatamodel import TimeSeriesTable
 
-# Build from a list of TimeSeriesPolars (all must have identical valid_time values)
-table = TimeSeriesTablePolars.from_timeseries(
+# Build from a list of TimeSeries (all must have identical valid_time values)
+table = TimeSeriesTable.from_timeseries(
     [ts_wind, ts_solar, ts_load],
     frequency=Frequency.PT1H,
 )
 
-# Select a single column back as a TimeSeriesPolars
+# Select a single column back as a TimeSeries
 ts_wind = table.select_column("wind_power")
 
 # Spatial filtering (requires [geo] extra)
@@ -170,7 +171,7 @@ area = GeoArea.from_coordinates([(59.0, 17.5), (59.0, 18.5), (59.5, 18.5), (59.5
 
 Provides `contains_point()`, `overlaps()`, `centroid`, and `bounding_box()`.
 
-`TimeSeriesTablePolars` supports spatial queries: `filter_columns_by_location()` and `nearest_columns()`.
+`TimeSeriesTable` supports spatial queries: `filter_columns_by_location()` and `nearest_columns()`.
 
 ---
 

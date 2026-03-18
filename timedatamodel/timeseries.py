@@ -1,5 +1,5 @@
 """
-TimeSeriesPolars — a Polars-backed container for time series data.
+TimeSeries — a Polars-backed container for time series data.
 
 Uses a ``polars.DataFrame`` as the internal storage backend.
 
@@ -20,15 +20,15 @@ The ``timezone`` metadata field is a display/context hint (IANA zone string).
 Example usage
 -------------
 >>> import pandas as pd
->>> from timedatamodel import TimeSeriesPolars, DataType
+>>> from timedatamodel import TimeSeries, DataType
 >>>
 >>> df = pd.DataFrame({
 ...     "valid_time": pd.date_range("2024-01-01", periods=4, freq="1h", tz="UTC"),
 ...     "value": [1.0, 2.0, 3.0, 4.0],
 ... })
->>> ts = TimeSeriesPolars.from_pandas(df, name="wind_power", unit="MW")
+>>> ts = TimeSeries.from_pandas(df, name="wind_power", unit="MW")
 >>> ts
-TimeSeriesPolars('wind_power', shape=SIMPLE, rows=4, unit='MW', type=flat)
+TimeSeries('wind_power', shape=SIMPLE, rows=4, unit='MW', type=flat)
 >>> ts.to_pandas()
                            value
 valid_time
@@ -45,7 +45,7 @@ import pandas as pd
 import polars as pl
 
 from .datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
-from ._repr import _TimeSeriesPolarsReprMixin
+from ._repr import _TimeSeriesReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
 
@@ -57,11 +57,28 @@ def _get_pint_registry():
 _TS_DTYPE = pl.Datetime("us", time_zone="UTC")
 
 
+def _normalize_time_cols(df: pl.DataFrame) -> pl.DataFrame:
+    """Cast all recognized timestamp columns to pl.Datetime("us", UTC)."""
+    exprs = []
+    for col in _TIME_COLS:
+        if col not in df.columns:
+            continue
+        dtype = df[col].dtype
+        if dtype == _TS_DTYPE:
+            pass  # already correct
+        elif isinstance(dtype, pl.Datetime) and dtype.time_zone is None:
+            # numpy datetime64 arrives as naive — localize to UTC
+            exprs.append(pl.col(col).dt.replace_time_zone("UTC").cast(_TS_DTYPE))
+        else:
+            exprs.append(pl.col(col).cast(_TS_DTYPE))
+    return df.with_columns(exprs) if exprs else df
+
+
 # ---------------------------------------------------------------------------
-# TimeSeriesPolars
+# TimeSeries
 # ---------------------------------------------------------------------------
 
-class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
+class TimeSeries(_TimeSeriesReprMixin):
     """Polars-backed container for time series data with rich metadata.
 
     Parameters
@@ -171,14 +188,129 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         data_type: Optional[DataType] = None,
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
-    ) -> "TimeSeriesPolars":
-        """Create a :class:`TimeSeriesPolars` directly from a ``polars.DataFrame``.
+    ) -> "TimeSeries":
+        """Create a :class:`TimeSeries` directly from a ``polars.DataFrame``.
 
         All timestamp columns must already use
         ``pl.Datetime("us", time_zone="UTC")``.
         """
         return cls(
             df,
+            name=name,
+            description=description,
+            unit=unit,
+            labels=labels,
+            timezone=timezone,
+            frequency=frequency,
+            data_type=data_type,
+            location=location,
+            timeseries_type=timeseries_type,
+        )
+
+    @classmethod
+    def from_list(
+        cls,
+        data: "dict[str, list]",
+        *,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        unit: str = "dimensionless",
+        labels: Optional[Dict[str, str]] = None,
+        timezone: str = "UTC",
+        frequency: Optional[Frequency] = None,
+        data_type: Optional[DataType] = None,
+        location: Optional[GeoLocation] = None,
+        timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
+    ) -> "TimeSeries":
+        """Create a :class:`TimeSeries` from a column-oriented dict of lists.
+
+        Accepts the format returned by :meth:`to_list`.  Timestamp columns are
+        normalised to UTC automatically.
+        """
+        return cls(
+            _normalize_time_cols(pl.DataFrame(data)),
+            name=name,
+            description=description,
+            unit=unit,
+            labels=labels,
+            timezone=timezone,
+            frequency=frequency,
+            data_type=data_type,
+            location=location,
+            timeseries_type=timeseries_type,
+        )
+
+    @classmethod
+    def from_numpy(
+        cls,
+        data: "dict[str, np.ndarray]",
+        *,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        unit: str = "dimensionless",
+        labels: Optional[Dict[str, str]] = None,
+        timezone: str = "UTC",
+        frequency: Optional[Frequency] = None,
+        data_type: Optional[DataType] = None,
+        location: Optional[GeoLocation] = None,
+        timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
+    ) -> "TimeSeries":
+        """Create a :class:`TimeSeries` from a column-oriented dict of NumPy arrays.
+
+        Accepts the format returned by :meth:`to_numpy`.  Timestamp columns
+        (``numpy.datetime64``, always timezone-naive) are localised to UTC.
+
+        Requires ``numpy``.
+        """
+        try:
+            import numpy as np  # noqa: F401
+        except ImportError as e:
+            raise ImportError(
+                "numpy is required for from_numpy(). Install with: pip install numpy"
+            ) from e
+        return cls(
+            _normalize_time_cols(pl.DataFrame(data)),
+            name=name,
+            description=description,
+            unit=unit,
+            labels=labels,
+            timezone=timezone,
+            frequency=frequency,
+            data_type=data_type,
+            location=location,
+            timeseries_type=timeseries_type,
+        )
+
+    @classmethod
+    def from_pyarrow(
+        cls,
+        table: "pa.Table",
+        *,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        unit: str = "dimensionless",
+        labels: Optional[Dict[str, str]] = None,
+        timezone: str = "UTC",
+        frequency: Optional[Frequency] = None,
+        data_type: Optional[DataType] = None,
+        location: Optional[GeoLocation] = None,
+        timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
+    ) -> "TimeSeries":
+        """Create a :class:`TimeSeries` from a PyArrow Table.
+
+        Accepts the format returned by :meth:`to_pyarrow`.  Arrow
+        ``timestamp[us, UTC]`` columns are converted automatically.
+
+        Requires ``pyarrow``.
+        """
+        try:
+            import pyarrow as pa  # noqa: F401
+        except ImportError as e:
+            raise ImportError(
+                "pyarrow is required for from_pyarrow(). Install with: pip install pyarrow"
+            ) from e
+        return cls(
+            pl.from_arrow(table),
             name=name,
             description=description,
             unit=unit,
@@ -204,8 +336,8 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         data_type: Optional[DataType] = None,
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
-    ) -> "TimeSeriesPolars":
-        """Create a :class:`TimeSeriesPolars` from a ``pandas.DataFrame``.
+    ) -> "TimeSeries":
+        """Create a :class:`TimeSeries` from a ``pandas.DataFrame``.
 
         Only ``SIMPLE`` and ``VERSIONED`` shapes can be constructed via
         ``from_pandas``.  ``AUDIT`` and ``CORRECTED`` shapes (which require a
@@ -245,7 +377,7 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
     # ------------------------------------------------------------------
 
     def validate_for_insert(self) -> "Tuple[pl.DataFrame, DataShape]":
-        """Validate that this TimeSeriesPolars can be inserted and return the underlying
+        """Validate that this TimeSeries can be inserted and return the underlying
         DataFrame with its shape.
 
         Only :attr:`DataShape.SIMPLE` and :attr:`DataShape.VERSIONED` are
@@ -263,7 +395,7 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
         """
         if self._shape in (DataShape.AUDIT, DataShape.CORRECTED):
             raise ValueError(
-                f"TimeSeriesPolars with shape {self._shape.value} cannot be inserted. "
+                f"TimeSeries with shape {self._shape.value} cannot be inserted. "
                 f"Only SIMPLE and VERSIONED shapes are supported for insert."
             )
         return self._df, self._shape
@@ -357,20 +489,20 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
     # Data access helpers
     # ------------------------------------------------------------------
 
-    def head(self, n: int = 5) -> "TimeSeriesPolars":
-        """Return the first *n* rows as a new :class:`TimeSeriesPolars`."""
+    def head(self, n: int = 5) -> "TimeSeries":
+        """Return the first *n* rows as a new :class:`TimeSeries`."""
         return self._clone(self._df.head(n))
 
-    def tail(self, n: int = 5) -> "TimeSeriesPolars":
-        """Return the last *n* rows as a new :class:`TimeSeriesPolars`."""
+    def tail(self, n: int = 5) -> "TimeSeries":
+        """Return the last *n* rows as a new :class:`TimeSeries`."""
         return self._clone(self._df.tail(n))
 
     # ------------------------------------------------------------------
     # Unit conversion
     # ------------------------------------------------------------------
 
-    def convert_unit(self, target_unit: str) -> "TimeSeriesPolars":
-        """Return a new :class:`TimeSeriesPolars` with values converted to *target_unit*.
+    def convert_unit(self, target_unit: str) -> "TimeSeries":
+        """Return a new :class:`TimeSeries` with values converted to *target_unit*.
 
         Uses the pint library for unit conversion.  The ``unit`` metadata field
         is updated to *target_unit*.
@@ -402,12 +534,12 @@ class TimeSeriesPolars(_TimeSeriesPolarsReprMixin):
     # Internal clone helper
     # ------------------------------------------------------------------
 
-    def _clone(self, new_df: pl.DataFrame, **overrides) -> "TimeSeriesPolars":
-        """Create a new :class:`TimeSeriesPolars` with *new_df* and the same metadata.
+    def _clone(self, new_df: pl.DataFrame, **overrides) -> "TimeSeries":
+        """Create a new :class:`TimeSeries` with *new_df* and the same metadata.
 
         Any keyword in *overrides* replaces the corresponding metadata field.
         """
-        return TimeSeriesPolars(
+        return TimeSeries(
             new_df,
             name=overrides.get("name", self.name),
             description=overrides.get("description", self.description),

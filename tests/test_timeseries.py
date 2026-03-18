@@ -6,9 +6,9 @@ import pandas as pd
 import polars as pl
 import pytest
 
-from timedatamodel.timeseries_polars import (
+from timedatamodel.timeseries import (
     DataShape,
-    TimeSeriesPolars,
+    TimeSeries,
     _infer_shape,
     _validate_table,
 )
@@ -37,7 +37,7 @@ def simple_df(timestamps):
 
 @pytest.fixture
 def simple_ts(simple_df):
-    return TimeSeriesPolars.from_pandas(simple_df, name="wind", unit="MW")
+    return TimeSeries.from_pandas(simple_df, name="wind", unit="MW")
 
 
 @pytest.fixture
@@ -55,19 +55,19 @@ def missing_df(timestamps):
 
 class TestFromPandas:
     def test_basic(self, simple_df):
-        ts = TimeSeriesPolars.from_pandas(simple_df, name="wind", unit="MW")
+        ts = TimeSeries.from_pandas(simple_df, name="wind", unit="MW")
         assert ts.name == "wind"
         assert ts.unit == "MW"
         assert ts.num_rows == 5
 
     def test_shape_simple(self, simple_df):
-        ts = TimeSeriesPolars.from_pandas(simple_df)
+        ts = TimeSeries.from_pandas(simple_df)
         assert ts.shape is DataShape.SIMPLE
 
     def test_datetime_index(self, timestamps):
         df = pd.DataFrame({"value": [1.0, 2.0, 3.0, 4.0, 5.0]}, index=timestamps)
         df.index.name = "valid_time"
-        ts = TimeSeriesPolars.from_pandas(df, name="solar")
+        ts = TimeSeries.from_pandas(df, name="solar")
         assert ts.num_rows == 5
         assert ts.shape is DataShape.SIMPLE
 
@@ -77,7 +77,7 @@ class TestFromPandas:
             "valid_time": timestamps,
             "value": [1.0, 2.0, 3.0, 4.0, 5.0],
         })
-        ts = TimeSeriesPolars.from_pandas(df)
+        ts = TimeSeries.from_pandas(df)
         assert ts.shape is DataShape.VERSIONED
 
     def test_change_time_raises(self, timestamps):
@@ -87,10 +87,10 @@ class TestFromPandas:
             "value": [1.0, 2.0, 3.0, 4.0, 5.0],
         })
         with pytest.raises(ValueError, match="change_time"):
-            TimeSeriesPolars.from_pandas(df)
+            TimeSeries.from_pandas(df)
 
     def test_metadata_defaults(self, simple_df):
-        ts = TimeSeriesPolars.from_pandas(simple_df)
+        ts = TimeSeries.from_pandas(simple_df)
         assert ts.name is None
         assert ts.unit == "dimensionless"
         assert ts.labels == {}
@@ -102,7 +102,7 @@ class TestFromPandas:
 
     def test_all_metadata(self, simple_df):
         loc = GeoLocation(latitude=59.9, longitude=10.7)
-        ts = TimeSeriesPolars.from_pandas(
+        ts = TimeSeries.from_pandas(
             simple_df,
             name="power",
             description="Wind farm output",
@@ -131,19 +131,19 @@ class TestFromPolars:
             "valid_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
             "value": [1.0, 2.0, 3.0, 4.0, 5.0],
         })
-        ts = TimeSeriesPolars.from_polars(df, name="wind", unit="kW")
+        ts = TimeSeries.from_polars(df, name="wind", unit="kW")
         assert ts.name == "wind"
         assert ts.shape is DataShape.SIMPLE
         assert ts.num_rows == 5
 
     def test_invalid_type_raises(self):
         with pytest.raises(TypeError, match="polars.DataFrame"):
-            TimeSeriesPolars({"not": "a dataframe"})
+            TimeSeries({"not": "a dataframe"})
 
     def test_missing_column_raises(self):
         df = pl.DataFrame({"value": [1.0, 2.0]})
         with pytest.raises(ValueError, match="valid_time"):
-            TimeSeriesPolars(df)
+            TimeSeries(df)
 
 
 # ---------------------------------------------------------------------------
@@ -169,7 +169,7 @@ class TestProperties:
         assert simple_ts.has_missing is False
 
     def test_has_missing_true(self, missing_df):
-        ts = TimeSeriesPolars.from_pandas(missing_df)
+        ts = TimeSeries.from_pandas(missing_df)
         assert ts.has_missing is True
 
 
@@ -198,12 +198,12 @@ class TestToPandas:
             "valid_time": timestamps,
             "value": [1.0, 2.0, 3.0, 4.0, 5.0],
         })
-        ts = TimeSeriesPolars.from_pandas(df)
+        ts = TimeSeries.from_pandas(df)
         result = ts.to_pandas()
         assert result.index.names == ["knowledge_time", "valid_time"]
 
     def test_round_trip(self, simple_ts):
-        ts2 = TimeSeriesPolars.from_pandas(
+        ts2 = TimeSeries.from_pandas(
             simple_ts.to_pandas(), name=simple_ts.name, unit=simple_ts.unit
         )
         assert ts2.num_rows == simple_ts.num_rows
@@ -285,7 +285,7 @@ class TestValidateForInsert:
             "valid_time": timestamps,
             "value": [1.0, 2.0, 3.0, 4.0, 5.0],
         })
-        ts = TimeSeriesPolars.from_pandas(df)
+        ts = TimeSeries.from_pandas(df)
         _, shape = ts.validate_for_insert()
         assert shape is DataShape.VERSIONED
 
@@ -295,7 +295,7 @@ class TestValidateForInsert:
             "change_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
             "value": [1.0, 2.0, 3.0, 4.0, 5.0],
         })
-        ts = TimeSeriesPolars.from_polars(polars_df)
+        ts = TimeSeries.from_polars(polars_df)
         with pytest.raises(ValueError, match="cannot be inserted"):
             ts.validate_for_insert()
 
@@ -306,7 +306,7 @@ class TestValidateForInsert:
             "valid_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
             "value": [1.0, 2.0, 3.0, 4.0, 5.0],
         })
-        ts = TimeSeriesPolars.from_polars(polars_df)
+        ts = TimeSeries.from_polars(polars_df)
         with pytest.raises(ValueError, match="cannot be inserted"):
             ts.validate_for_insert()
 
@@ -331,7 +331,7 @@ class TestMetadataDict:
 
     def test_location_serialised(self, simple_df):
         loc = GeoLocation(latitude=59.9, longitude=10.7)
-        ts = TimeSeriesPolars.from_pandas(simple_df, location=loc)
+        ts = TimeSeries.from_pandas(simple_df, location=loc)
         d = ts.metadata_dict()
         assert d["location"]["latitude"] == pytest.approx(59.9)
         assert d["location"]["longitude"] == pytest.approx(10.7)
@@ -347,7 +347,7 @@ class TestMetadataDict:
 
 @pytest.fixture
 def simple_ts_with_nulls(missing_df):
-    return TimeSeriesPolars.from_pandas(missing_df, name="wind", unit="MW")
+    return TimeSeries.from_pandas(missing_df, name="wind", unit="MW")
 
 
 class TestConversionMethods:
@@ -406,3 +406,60 @@ class TestConversionMethods:
         monkeypatch.setattr(builtins, "__import__", mock_import)
         with pytest.raises(ImportError, match="pyarrow"):
             simple_ts.to_pyarrow()
+
+    def test_from_list_roundtrip(self, simple_ts):
+        ts2 = TimeSeries.from_list(simple_ts.to_list(), name=simple_ts.name, unit=simple_ts.unit)
+        assert ts2.df.equals(simple_ts.df)
+
+    def test_from_list_nulls_preserved(self, simple_ts_with_nulls):
+        ts2 = TimeSeries.from_list(simple_ts_with_nulls.to_list())
+        assert ts2.has_missing is True
+        assert ts2.df["value"].to_list() == simple_ts_with_nulls.df["value"].to_list()
+
+    def test_from_list_metadata(self, simple_ts):
+        ts2 = TimeSeries.from_list(simple_ts.to_list(), name="x", unit="kW", frequency=Frequency.PT1H)
+        assert ts2.name == "x"
+        assert ts2.unit == "kW"
+        assert ts2.frequency is Frequency.PT1H
+
+    def test_from_numpy_roundtrip(self, simple_ts):
+        ts2 = TimeSeries.from_numpy(simple_ts.to_numpy(), name=simple_ts.name, unit=simple_ts.unit)
+        assert ts2.df.equals(simple_ts.df)
+
+    def test_from_numpy_metadata(self, simple_ts):
+        ts2 = TimeSeries.from_numpy(simple_ts.to_numpy(), name="y", unit="MW", frequency=Frequency.PT1H)
+        assert ts2.name == "y"
+        assert ts2.unit == "MW"
+        assert ts2.frequency is Frequency.PT1H
+
+    def test_from_numpy_missing_dep(self, simple_ts, monkeypatch):
+        import builtins
+        real_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "numpy":
+                raise ImportError
+            return real_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+        with pytest.raises(ImportError, match="numpy"):
+            TimeSeries.from_numpy(simple_ts.to_numpy())
+
+    def test_from_pyarrow_roundtrip(self, simple_ts):
+        ts2 = TimeSeries.from_pyarrow(simple_ts.to_pyarrow(), name=simple_ts.name, unit=simple_ts.unit)
+        assert ts2.df.equals(simple_ts.df)
+
+    def test_from_pyarrow_metadata(self, simple_ts):
+        ts2 = TimeSeries.from_pyarrow(simple_ts.to_pyarrow(), name="z", unit="GW", frequency=Frequency.PT1H)
+        assert ts2.name == "z"
+        assert ts2.unit == "GW"
+        assert ts2.frequency is Frequency.PT1H
+
+    def test_from_pyarrow_missing_dep(self, simple_ts, monkeypatch):
+        import builtins
+        real_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "pyarrow":
+                raise ImportError
+            return real_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+        with pytest.raises(ImportError, match="pyarrow"):
+            TimeSeries.from_pyarrow(simple_ts.to_pyarrow())

@@ -6,8 +6,8 @@ import pandas as pd
 import polars as pl
 import pytest
 
-from timedatamodel.timeseries_polars import DataShape, TimeSeriesPolars
-from timedatamodel.timeseriestable_polars import TimeSeriesTablePolars
+from timedatamodel.timeseries import DataShape, TimeSeries
+from timedatamodel.timeseriestable import TimeSeriesTable
 from timedatamodel.enums import DataType, Frequency
 from timedatamodel.location import GeoLocation
 
@@ -34,7 +34,7 @@ def pandas_df(timestamps):
 
 @pytest.fixture
 def simple_table(pandas_df):
-    return TimeSeriesTablePolars.from_pandas(
+    return TimeSeriesTable.from_pandas(
         pandas_df,
         frequency=Frequency.PT1H,
         units=["MW", "MW"],
@@ -43,7 +43,7 @@ def simple_table(pandas_df):
 
 @pytest.fixture
 def ts_a(timestamps):
-    return TimeSeriesPolars.from_pandas(
+    return TimeSeries.from_pandas(
         pd.DataFrame({"valid_time": timestamps, "value": [1.0, 2.0, 3.0, 4.0]}),
         name="wind", unit="MW", frequency=Frequency.PT1H,
     )
@@ -51,7 +51,7 @@ def ts_a(timestamps):
 
 @pytest.fixture
 def ts_b(timestamps):
-    return TimeSeriesPolars.from_pandas(
+    return TimeSeries.from_pandas(
         pd.DataFrame({"valid_time": timestamps, "value": [5.0, 6.0, 7.0, 8.0]}),
         name="solar", unit="kW", frequency=Frequency.PT1H,
     )
@@ -79,18 +79,18 @@ class TestFromPandas:
             index=timestamps,
         )
         df.index.name = "valid_time"
-        table = TimeSeriesTablePolars.from_pandas(df, frequency=Frequency.PT1H)
+        table = TimeSeriesTable.from_pandas(df, frequency=Frequency.PT1H)
         assert table.num_rows == 4
 
     def test_broadcast_single_unit(self, pandas_df):
-        table = TimeSeriesTablePolars.from_pandas(
+        table = TimeSeriesTable.from_pandas(
             pandas_df, frequency=Frequency.PT1H, units=["MW"]
         )
         assert table.units == ["MW", "MW"]
 
     def test_per_column_metadata(self, pandas_df):
         locs = [GeoLocation(59.0, 10.0), GeoLocation(60.0, 11.0)]
-        table = TimeSeriesTablePolars.from_pandas(
+        table = TimeSeriesTable.from_pandas(
             pandas_df, frequency=Frequency.PT1H, locations=locs
         )
         assert table.locations[0] == locs[0]
@@ -109,7 +109,7 @@ class TestFromPolars:
             "wind":  [1.0, 2.0, 3.0, 4.0],
             "solar": [4.0, 5.0, 6.0, 7.0],
         })
-        table = TimeSeriesTablePolars.from_polars(df, frequency=Frequency.PT1H)
+        table = TimeSeriesTable.from_polars(df, frequency=Frequency.PT1H)
         assert table.n_columns == 2
         assert table.column_names == ["wind", "solar"]
 
@@ -121,17 +121,17 @@ class TestFromPolars:
 
 class TestFromTimeseries:
     def test_basic(self, ts_a, ts_b, timestamps):
-        table = TimeSeriesTablePolars.from_timeseries([ts_a, ts_b])
+        table = TimeSeriesTable.from_timeseries([ts_a, ts_b])
         assert table.column_names == ["wind", "solar"]
         assert table.num_rows == 4
 
     def test_derives_units(self, ts_a, ts_b):
-        table = TimeSeriesTablePolars.from_timeseries([ts_a, ts_b])
+        table = TimeSeriesTable.from_timeseries([ts_a, ts_b])
         assert table.units == ["MW", "kW"]
 
     def test_empty_list_raises(self):
         with pytest.raises(ValueError, match="empty"):
-            TimeSeriesTablePolars.from_timeseries([])
+            TimeSeriesTable.from_timeseries([])
 
     def test_non_simple_shape_raises(self, timestamps):
         df = pd.DataFrame({
@@ -139,31 +139,31 @@ class TestFromTimeseries:
             "valid_time": timestamps,
             "value": [1.0, 2.0, 3.0, 4.0],
         })
-        ts_versioned = TimeSeriesPolars.from_pandas(df, name="v")
+        ts_versioned = TimeSeries.from_pandas(df, name="v")
         with pytest.raises(ValueError, match="SIMPLE"):
-            TimeSeriesTablePolars.from_timeseries([ts_versioned])
+            TimeSeriesTable.from_timeseries([ts_versioned])
 
     def test_mismatched_timestamps_raises(self, ts_a, timestamps):
         other_times = [timestamps[0] + timedelta(hours=i + 1) for i in range(4)]
-        ts_shifted = TimeSeriesPolars.from_pandas(
+        ts_shifted = TimeSeries.from_pandas(
             pd.DataFrame({"valid_time": other_times, "value": [1.0, 2.0, 3.0, 4.0]}),
             name="shifted",
         )
         with pytest.raises(ValueError, match="identical timestamps"):
-            TimeSeriesTablePolars.from_timeseries([ts_a, ts_shifted])
+            TimeSeriesTable.from_timeseries([ts_a, ts_shifted])
 
     def test_derives_locations(self, timestamps):
         loc_a = GeoLocation(59.0, 10.0)
         loc_b = GeoLocation(60.0, 11.0)
-        ts1 = TimeSeriesPolars.from_pandas(
+        ts1 = TimeSeries.from_pandas(
             pd.DataFrame({"valid_time": timestamps, "value": [1.0, 2.0, 3.0, 4.0]}),
             name="a", location=loc_a, frequency=Frequency.PT1H,
         )
-        ts2 = TimeSeriesPolars.from_pandas(
+        ts2 = TimeSeries.from_pandas(
             pd.DataFrame({"valid_time": timestamps, "value": [5.0, 6.0, 7.0, 8.0]}),
             name="b", location=loc_b, frequency=Frequency.PT1H,
         )
-        table = TimeSeriesTablePolars.from_timeseries([ts1, ts2])
+        table = TimeSeriesTable.from_timeseries([ts1, ts2])
         assert table.locations == [loc_a, loc_b]
 
 
@@ -191,7 +191,7 @@ class TestProperties:
             "wind":  [1.0, None, 3.0, 4.0],
             "solar": [4.0, 5.0, 6.0, 7.0],
         })
-        table = TimeSeriesTablePolars.from_pandas(df, frequency=Frequency.PT1H)
+        table = TimeSeriesTable.from_pandas(df, frequency=Frequency.PT1H)
         assert table.has_missing is True
 
     def test_df_returns_polars(self, simple_table):
@@ -206,7 +206,7 @@ class TestProperties:
 class TestSelectColumn:
     def test_by_name(self, simple_table):
         ts = simple_table.select_column("wind")
-        assert isinstance(ts, TimeSeriesPolars)
+        assert isinstance(ts, TimeSeries)
         assert list(ts.df["value"]) == [1.0, 2.0, 3.0, 4.0]
 
     def test_by_index(self, simple_table):
@@ -286,7 +286,7 @@ def geo_table(timestamps):
         "bergen":     [5.0, 6.0, 7.0, 8.0],
         "trondheim":  [9.0, 10.0, 11.0, 12.0],
     })
-    return TimeSeriesTablePolars.from_pandas(
+    return TimeSeriesTable.from_pandas(
         df, frequency=Frequency.PT1H, locations=locs
     )
 
@@ -394,3 +394,50 @@ class TestConversionMethods:
         monkeypatch.setattr(builtins, "__import__", mock_import)
         with pytest.raises(ImportError, match="pyarrow"):
             simple_table.to_pyarrow()
+
+    def test_from_list_roundtrip(self, simple_table):
+        t2 = TimeSeriesTable.from_list(simple_table.to_list(), frequency=simple_table.frequency)
+        assert t2.df.equals(simple_table.df)
+
+    def test_from_list_metadata(self, simple_table):
+        t2 = TimeSeriesTable.from_list(simple_table.to_list(), frequency=Frequency.PT1H, units=["kW", "kW"])
+        assert t2.units == ["kW", "kW"]
+        assert t2.frequency is Frequency.PT1H
+
+    def test_from_numpy_roundtrip(self, simple_table):
+        t2 = TimeSeriesTable.from_numpy(simple_table.to_numpy(), frequency=simple_table.frequency)
+        assert t2.df.equals(simple_table.df)
+
+    def test_from_numpy_metadata(self, simple_table):
+        t2 = TimeSeriesTable.from_numpy(simple_table.to_numpy(), frequency=Frequency.PT1H, units=["MW", "kW"])
+        assert t2.units == ["MW", "kW"]
+
+    def test_from_numpy_missing_dep(self, simple_table, monkeypatch):
+        import builtins
+        real_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "numpy":
+                raise ImportError
+            return real_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+        with pytest.raises(ImportError, match="numpy"):
+            TimeSeriesTable.from_numpy(simple_table.to_numpy(), frequency=simple_table.frequency)
+
+    def test_from_pyarrow_roundtrip(self, simple_table):
+        t2 = TimeSeriesTable.from_pyarrow(simple_table.to_pyarrow(), frequency=simple_table.frequency)
+        assert t2.df.equals(simple_table.df)
+
+    def test_from_pyarrow_metadata(self, simple_table):
+        t2 = TimeSeriesTable.from_pyarrow(simple_table.to_pyarrow(), frequency=Frequency.PT1H, units=["GW", "GW"])
+        assert t2.units == ["GW", "GW"]
+
+    def test_from_pyarrow_missing_dep(self, simple_table, monkeypatch):
+        import builtins
+        real_import = builtins.__import__
+        def mock_import(name, *args, **kwargs):
+            if name == "pyarrow":
+                raise ImportError
+            return real_import(name, *args, **kwargs)
+        monkeypatch.setattr(builtins, "__import__", mock_import)
+        with pytest.raises(ImportError, match="pyarrow"):
+            TimeSeriesTable.from_pyarrow(simple_table.to_pyarrow(), frequency=simple_table.frequency)
