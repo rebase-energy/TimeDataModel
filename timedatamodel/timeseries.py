@@ -48,6 +48,7 @@ from .datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
 from ._repr import _TimeSeriesReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
+from .timeseriesdescriptor import TimeSeriesDescriptor
 
 def _get_pint_registry():
     import pint
@@ -140,6 +141,44 @@ class TimeSeries(_TimeSeriesReprMixin):
         self.data_type: Optional[DataType] = data_type
         self.location: Optional[GeoLocation] = location
         self.timeseries_type: TimeSeriesType = timeseries_type
+
+    # ------------------------------------------------------------------
+    # Descriptor conversion
+    # ------------------------------------------------------------------
+
+    def to_descriptor(self) -> TimeSeriesDescriptor:
+        """Extract metadata as a :class:`TimeSeriesDescriptor` (no data)."""
+        return TimeSeriesDescriptor(
+            name=self.name,
+            unit=self.unit,
+            data_type=self.data_type,
+            timeseries_type=self.timeseries_type,
+            description=self.description,
+            labels=dict(self.labels),
+            frequency=self.frequency,
+            location=self.location,
+            timezone=self.timezone,
+        )
+
+    @classmethod
+    def from_descriptor(
+        cls,
+        descriptor: TimeSeriesDescriptor,
+        df: pl.DataFrame,
+    ) -> TimeSeries:
+        """Create a :class:`TimeSeries` from a descriptor and a DataFrame."""
+        return cls(
+            df,
+            name=descriptor.name,
+            unit=descriptor.unit,
+            data_type=descriptor.data_type,
+            timeseries_type=descriptor.timeseries_type,
+            description=descriptor.description,
+            labels=dict(descriptor.labels),
+            frequency=descriptor.frequency,
+            location=descriptor.location,
+            timezone=descriptor.timezone,
+        )
 
     # ------------------------------------------------------------------
     # Properties
