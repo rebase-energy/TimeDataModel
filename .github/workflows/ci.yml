@@ -10,12 +10,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: astral-sh/setup-uv@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      - run: pip install -e ".[dev]" pytest-cov
-      - run: pytest tests/ --cov=timedatamodel --cov-report=term-missing
+          enable-cache: true
+      - run: uv sync --all-extras
+      - run: uv run pytest tests/ --cov=timedatamodel --cov-report=term-missing
