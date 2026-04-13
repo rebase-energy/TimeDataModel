@@ -66,10 +66,23 @@ class TestTimeSeriesDescriptor:
         assert a != b
 
     def test_not_hashable_with_labels(self):
-        """Labels dict makes it unhashable — this is expected."""
+        """Labels mapping makes it unhashable — this is expected."""
         desc = TimeSeriesDescriptor(name="power", unit="MW", labels={"a": "b"})
         with pytest.raises(TypeError, match="unhashable"):
             hash(desc)
+
+    def test_labels_immutable(self):
+        """Labels are wrapped in MappingProxyType; mutation must raise."""
+        desc = TimeSeriesDescriptor(labels={"a": "b"})
+        with pytest.raises(TypeError):
+            desc.labels["c"] = "d"  # type: ignore[index]
+
+    def test_labels_input_copied(self):
+        """Mutating the caller's dict after construction must not leak in."""
+        source = {"a": "b"}
+        desc = TimeSeriesDescriptor(labels=source)
+        source["c"] = "d"
+        assert "c" not in desc.labels
 
     def test_exported_from_package(self):
         assert hasattr(tdm, "TimeSeriesDescriptor")
@@ -97,6 +110,7 @@ class TestTimeSeriesDescriptorRoundTrip:
             description="Test series",
             labels={"site": "A"},
             frequency=Frequency.PT1H,
+            location=GeoLocation(latitude=55.0, longitude=3.0),
             timezone="Europe/Oslo",
         )
 
@@ -110,6 +124,7 @@ class TestTimeSeriesDescriptorRoundTrip:
         assert desc.description == "Test series"
         assert desc.labels == {"site": "A"}
         assert desc.frequency == Frequency.PT1H
+        assert desc.location == GeoLocation(latitude=55.0, longitude=3.0)
         assert desc.timezone == "Europe/Oslo"
 
     def test_to_descriptor_no_data(self, ts):
@@ -143,6 +158,7 @@ class TestTimeSeriesDescriptorRoundTrip:
         assert ts2.description == ts.description
         assert ts2.labels == ts.labels
         assert ts2.frequency == ts.frequency
+        assert ts2.location == ts.location
         assert ts2.timezone == ts.timezone
 
     def test_descriptor_labels_are_independent(self, ts):
@@ -150,3 +166,38 @@ class TestTimeSeriesDescriptorRoundTrip:
         desc = ts.to_descriptor()
         ts.labels["new_key"] = "new_value"
         assert "new_key" not in desc.labels
+
+    def test_all_descriptor_fields_round_trip(self, simple_df):
+        """Guard against future fields being added to TimeSeriesDescriptor
+        but forgotten in to_descriptor() / from_descriptor().
+
+        Builds a descriptor with a distinctive value for every field, goes
+        desc → TimeSeries → desc, and asserts asdict equality.
+        """
+        import dataclasses
+
+        desc1 = TimeSeriesDescriptor(
+            name="power",
+            unit="MW",
+            data_type=DataType.FORECAST,
+            timeseries_type=TimeSeriesType.OVERLAPPING,
+            description="Test series",
+            labels={"site": "A", "region": "NO1"},
+            frequency=Frequency.PT1H,
+            location=GeoLocation(latitude=55.0, longitude=3.0),
+            timezone="Europe/Oslo",
+        )
+        # Sanity check: every declared field was set to a non-default value.
+        defaults = TimeSeriesDescriptor()
+        for f in dataclasses.fields(TimeSeriesDescriptor):
+            assert getattr(desc1, f.name) != getattr(defaults, f.name), (
+                f"Test doesn't set a distinctive value for field {f.name!r} — "
+                "update this test to cover the new field."
+            )
+
+        ts = TimeSeries.from_descriptor(desc1, simple_df)
+        desc2 = ts.to_descriptor()
+        for f in dataclasses.fields(TimeSeriesDescriptor):
+            assert getattr(desc1, f.name) == getattr(desc2, f.name), (
+                f"Field {f.name!r} did not round-trip"
+            )
