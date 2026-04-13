@@ -27,13 +27,13 @@ Example usage
 ...     "value": [1.0, 2.0, 3.0, 4.0],
 ... })
 >>> ts = TimeSeries.from_pandas(df, name="wind_power", unit="MW")
->>> ts
-TimeSeries('wind_power', shape=SIMPLE, rows=4, unit='MW', type=flat)
->>> ts.to_pandas()
-                           value
-valid_time
-2024-01-01 00:00:00+00:00    1.0
-...
+>>> ts.name
+'wind_power'
+>>> ts.unit
+'MW'
+
+Printing a ``TimeSeries`` renders a formatted summary box with metadata
+and a head/tail preview of the data.
 """
 
 from __future__ import annotations
@@ -47,12 +47,9 @@ import polars as pl
 from .datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
 from ._repr import _TimeSeriesReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
-from .location import GeoLocation
 from .timeseriesdescriptor import TimeSeriesDescriptor
 
-def _get_pint_registry():
-    import pint
-    return pint.UnitRegistry()
+from .units import _get_registry as _get_pint_registry
 
 
 _TS_DTYPE = pl.Datetime("us", time_zone="UTC")
@@ -89,13 +86,11 @@ class TimeSeries(_TimeSeriesReprMixin):
         :class:`~timedatamodel.datashape.DataShape` patterns.  All
         timestamp columns must use ``pl.Datetime("us", time_zone="UTC")``.
     name:
-        Series name (e.g. ``"wind_power"``).
+        Series name (e.g. ``"wind_power"``, ``"electricity.supply"``).
     description:
         Human-readable description.
     unit:
         Canonical physical unit string (e.g. ``"MW"``, ``"dimensionless"``).
-    labels:
-        Arbitrary key-value labels for series differentiation.
     timezone:
         IANA timezone string for display purposes.  Internal data is always
         UTC; this is a metadata hint only.
@@ -103,8 +98,6 @@ class TimeSeries(_TimeSeriesReprMixin):
         Pandas offset alias describing the expected data cadence.
     data_type:
         Semantic nature of the observations (:class:`~timedatamodel.enums.DataType`).
-    location:
-        Optional geographic location (:class:`~timedatamodel.location.GeoLocation`).
     timeseries_type:
         Storage/versioning model (:class:`~timedatamodel.enums.TimeSeriesType`).
     """
@@ -113,14 +106,12 @@ class TimeSeries(_TimeSeriesReprMixin):
         self,
         df: pl.DataFrame,
         *,
-        name: Optional[str] = None,
+        name: str,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
-        location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> None:
         if not isinstance(df, pl.DataFrame):
@@ -132,14 +123,12 @@ class TimeSeries(_TimeSeriesReprMixin):
         self._df: pl.DataFrame = df
         self._shape: DataShape = shape
 
-        self.name: Optional[str] = name
+        self.name: str = name
         self.description: Optional[str] = description
         self.unit: str = unit
-        self.labels: dict[str, str] = labels or {}
         self.timezone: str = timezone
         self.frequency: Optional[Frequency] = frequency
         self.data_type: Optional[DataType] = data_type
-        self.location: Optional[GeoLocation] = location
         self.timeseries_type: TimeSeriesType = timeseries_type
 
     # ------------------------------------------------------------------
@@ -153,11 +142,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             unit=self.unit,
             data_type=self.data_type,
             timeseries_type=self.timeseries_type,
-            description=self.description,
-            labels=dict(self.labels),
             frequency=self.frequency,
-            location=self.location,
             timezone=self.timezone,
+            description=self.description,
         )
 
     @classmethod
@@ -181,9 +168,7 @@ class TimeSeries(_TimeSeriesReprMixin):
             data_type=descriptor.data_type,
             timeseries_type=descriptor.timeseries_type,
             description=descriptor.description,
-            labels=dict(descriptor.labels),
             frequency=descriptor.frequency,
-            location=descriptor.location,
             timezone=descriptor.timezone,
         )
 
@@ -225,14 +210,12 @@ class TimeSeries(_TimeSeriesReprMixin):
         cls,
         df: pl.DataFrame,
         *,
-        name: Optional[str] = None,
+        name: str,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
-        location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` directly from a ``polars.DataFrame``.
@@ -245,11 +228,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             name=name,
             description=description,
             unit=unit,
-            labels=labels,
             timezone=timezone,
             frequency=frequency,
             data_type=data_type,
-            location=location,
             timeseries_type=timeseries_type,
         )
 
@@ -258,14 +239,12 @@ class TimeSeries(_TimeSeriesReprMixin):
         cls,
         data: dict[str, list],
         *,
-        name: Optional[str] = None,
+        name: str,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
-        location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a column-oriented dict of lists.
@@ -278,11 +257,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             name=name,
             description=description,
             unit=unit,
-            labels=labels,
             timezone=timezone,
             frequency=frequency,
             data_type=data_type,
-            location=location,
             timeseries_type=timeseries_type,
         )
 
@@ -291,14 +268,12 @@ class TimeSeries(_TimeSeriesReprMixin):
         cls,
         data: "dict[str, np.ndarray]",
         *,
-        name: Optional[str] = None,
+        name: str,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
-        location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a column-oriented dict of NumPy arrays.
@@ -319,11 +294,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             name=name,
             description=description,
             unit=unit,
-            labels=labels,
             timezone=timezone,
             frequency=frequency,
             data_type=data_type,
-            location=location,
             timeseries_type=timeseries_type,
         )
 
@@ -332,14 +305,12 @@ class TimeSeries(_TimeSeriesReprMixin):
         cls,
         table: "pa.Table",
         *,
-        name: Optional[str] = None,
+        name: str,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
-        location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a PyArrow Table.
@@ -360,11 +331,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             name=name,
             description=description,
             unit=unit,
-            labels=labels,
             timezone=timezone,
             frequency=frequency,
             data_type=data_type,
-            location=location,
             timeseries_type=timeseries_type,
         )
 
@@ -373,14 +342,12 @@ class TimeSeries(_TimeSeriesReprMixin):
         cls,
         df: pd.DataFrame,
         *,
-        name: Optional[str] = None,
+        name: str,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
-        location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a ``pandas.DataFrame``.
@@ -410,11 +377,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             name=name,
             description=description,
             unit=unit,
-            labels=labels,
             timezone=timezone,
             frequency=frequency,
             data_type=data_type,
-            location=location,
             timeseries_type=timeseries_type,
         )
 
@@ -529,7 +494,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         mask = self._df["value"].is_not_null().to_list()
         begin = self._df["valid_time"][0] if self.num_rows > 0 else None
         end = self._df["valid_time"][-1] if self.num_rows > 0 else None
-        return CoverageBar([(self.name or "value", mask)], begin, end)
+        return CoverageBar([(self.name, mask)], begin, end)
 
     # ------------------------------------------------------------------
     # Data access helpers
@@ -590,11 +555,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             name=overrides.get("name", self.name),
             description=overrides.get("description", self.description),
             unit=overrides.get("unit", self.unit),
-            labels=overrides.get("labels", self.labels),
             timezone=overrides.get("timezone", self.timezone),
             frequency=overrides.get("frequency", self.frequency),
             data_type=overrides.get("data_type", self.data_type),
-            location=overrides.get("location", self.location),
             timeseries_type=overrides.get("timeseries_type", self.timeseries_type),
         )
 
@@ -605,17 +568,12 @@ class TimeSeries(_TimeSeriesReprMixin):
     def metadata_dict(self) -> dict:
         """Return all metadata fields as a plain dict."""
         return {
-            "name":            self.name,
+            "name":          self.name,
             "description":     self.description,
             "unit":            self.unit,
-            "labels":          self.labels,
             "timezone":        self.timezone,
             "frequency":       self.frequency,
             "data_type":       self.data_type.value if self.data_type else None,
-            "location":        {
-                "longitude": self.location.longitude,
-                "latitude":  self.location.latitude,
-            } if self.location else None,
             "timeseries_type": self.timeseries_type.value,
             "shape":           self._shape.value,
             "num_rows":        self.num_rows,

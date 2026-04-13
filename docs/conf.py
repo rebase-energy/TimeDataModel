@@ -72,8 +72,6 @@ autodoc_default_options = {
         # TimeSeries internals
         "_clone",
         "_validate_table",
-        # TimeSeriesTable internals
-        "_clone_df",
     ]),
 }
 

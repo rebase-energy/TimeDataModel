@@ -1,11 +1,5 @@
 # Examples
 
-Step-by-step guides that walk you through the features of timedatamodel.
-Each example is a Jupyter notebook that you can download and run interactively.
-
-```{toctree}
-:maxdepth: 1
-
-timeseries
-timeseriestable
-```
+Notebook examples are being rewritten. In the meantime, see the
+[Quick Start](../usage.md) page and the [Overview](../overview.md) for
+runnable snippets.

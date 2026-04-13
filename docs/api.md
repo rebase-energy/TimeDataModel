@@ -16,14 +16,6 @@
    :show-inheritance:
 ```
 
-## TimeSeriesTable
-
-```{eval-rst}
-.. autoclass:: timedatamodel.TimeSeriesTable
-   :members:
-   :show-inheritance:
-```
-
 ## DataShape
 
 ```{eval-rst}

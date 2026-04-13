@@ -40,7 +40,6 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 import polars as pl
 
-from ._repr import _TimeSeriesTableReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation
 from .datashape import DataShape
@@ -76,7 +75,7 @@ def _value_col_names(df: pl.DataFrame) -> List[str]:
 # ---------------------------------------------------------------------------
 
 
-class TimeSeriesTable(_TimeSeriesTableReprMixin):
+class TimeSeriesTable:
     """Polars-backed container for multivariate time series data.
 
     Parameters
@@ -403,8 +402,8 @@ class TimeSeriesTable(_TimeSeriesTableReprMixin):
         """Build a table from a list of SIMPLE-shape :class:`~timedatamodel.timeseries.TimeSeries`.
 
         Column names come from each series' ``name`` attribute.  Per-column
-        metadata (unit, data_type, location) is derived from each series
-        unless explicitly overridden.
+        metadata (unit, data_type) is derived from each series unless
+        explicitly overridden.
 
         All input series must share identical ``valid_time`` values; a
         :class:`ValueError` is raised if any series has different timestamps.
@@ -426,7 +425,8 @@ class TimeSeriesTable(_TimeSeriesTableReprMixin):
             if not ts.df["valid_time"].equals(ref_times):
                 raise ValueError(
                     f"All series must have identical timestamps. "
-                    f"Series '{ts.name}' has different valid_time values than '{series_list[0].name}'."
+                    f"Series '{ts.name}' has different valid_time values than "
+                    f"'{series_list[0].name}'."
                 )
 
         # Build merged DataFrame
@@ -448,12 +448,8 @@ class TimeSeriesTable(_TimeSeriesTableReprMixin):
             descriptions = [ts.description for ts in series_list]
         if data_types is None:
             data_types = [ts.data_type for ts in series_list]
-        if locations is None:
-            locations = [ts.location for ts in series_list]
         if timeseries_types is None:
             timeseries_types = [ts.timeseries_type for ts in series_list]
-        if labels is None:
-            labels = [dict(ts.labels) for ts in series_list]
         if frequency is None:
             freqs = [ts.frequency for ts in series_list if ts.frequency is not None]
             frequency = freqs[0] if freqs else None
@@ -505,9 +501,7 @@ class TimeSeriesTable(_TimeSeriesTableReprMixin):
             unit=self._units[idx] or "dimensionless",
             description=self._descriptions[idx],
             data_type=self._data_types[idx],
-            location=self._locations[idx],
             timeseries_type=self._timeseries_types[idx],
-            labels=self._labels[idx],
             frequency=self.frequency,
             timezone=self.timezone,
         )
