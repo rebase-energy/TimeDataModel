@@ -13,7 +13,7 @@
 
 <br/>
 
-**TimeDataModel** is a metadata-rich container for time series data. It lets you carry your data *and* its context — name, unit, frequency, timezone, location — as a single, self-describing object, fully interoperable with pandas, NumPy, Polars, and PyArrow.
+**TimeDataModel** is a metadata-rich container for time series data. It lets you carry your data *and* its context — name, unit, frequency, timezone — as a single, self-describing object, fully interoperable with pandas, NumPy, Polars, and PyArrow.
 
 **⬇️ [Installation](#installation)**
 &ensp;|&ensp;
@@ -28,7 +28,7 @@
 | Class | Description |
 | :---- | :---------- |
 | 📈&nbsp;`TimeSeries` | Univariate time series supporting four temporal shapes |
-| 📊&nbsp;`TimeSeriesTable` | Multivariate time series — multiple named columns sharing the same `valid_time` index |
+| 📋&nbsp;`TimeSeriesDescriptor` | Frozen, data-free metadata descriptor — register a series structure before any data exists |
 | 🔷&nbsp;`DataShape` | Enum that selects which timestamp columns are present: `SIMPLE`, `VERSIONED`, `CORRECTED`, or `AUDIT` |
 | ⏱️&nbsp;`Frequency` | ISO 8601 duration-based frequencies (`PT1H`, `P1D`, `P1M`, …) |
 | 🏷️&nbsp;`DataType` | Hierarchical taxonomy: `ACTUAL` → `OBSERVATION`, `DERIVED`; `CALCULATED` → `FORECAST`, `SIMULATION`, … |
@@ -54,7 +54,7 @@ data to fully bi-temporal audit trails:
 
 ```python
 import pandas as pd
-from timedatamodel import TimeSeries, TimeSeriesTable, Frequency
+from timedatamodel import TimeSeries, Frequency
 
 # --- Univariate series from a pandas DataFrame ---
 df = pd.DataFrame({
@@ -92,8 +92,6 @@ df_pl  = ts.to_polars()       # pl.DataFrame
 cols   = ts.to_list()         # dict[str, list] — column-oriented
 arr    = ts.to_numpy()        # dict[str, np.ndarray] — column-oriented (requires numpy)
 tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
-
-# --- Multivariate table — see examples/nb_02_timeseriestable.ipynb ---
 ```
 
 ---
@@ -101,12 +99,12 @@ tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
 ## ✨ Key Features
 
 - 🔷 **Four data shapes** — from `SIMPLE` point-in-time to `AUDIT` full bi-temporal history;
-- 🏷️ **Rich metadata** — name, unit, frequency, timezone, data type, location, labels, description on every series;
-- 📊 **Multivariate tables** — `TimeSeriesTable` groups co-indexed series with per-column metadata;
+- 🏷️ **Metadata** — name, unit, frequency, timezone, data type, description on every series;
+- 📋 **Descriptor** — `TimeSeriesDescriptor` carries the same metadata without a DataFrame, for catalog/registration use;
 - 🔄 **Format conversions** — `to_pandas`, `to_polars`, `to_list`, `to_numpy`, `to_pyarrow` with lazy optional-dependency checks;
 - 📊 **Coverage bar** — `coverage_bar()` renders null coverage as a binned SVG in Jupyter or Unicode blocks in terminal;
-- 🗺️ **Geospatial** — attach locations, filter by radius or area, find nearest columns;
-- 📏 **Units** — optional [pint](https://pint.readthedocs.io/) integration for dimensional unit conversion;
+- 🗺️ **Geospatial primitives** — `GeoLocation` and `GeoArea` for use by consumer layers;
+- 📏 **Units** — optional [pint](https://pint.readthedocs.io/) integration for dimensional unit conversion and validation;
 - ⚡ **Polars-powered** — backed by the Polars compute engine for high-performance in-memory processing;
 - 🐍 **Type-safe** — full type hints with PEP 561 support.
 
@@ -133,15 +131,6 @@ git clone https://github.com/rebase-energy/TimeDataModel.git
 cd TimeDataModel
 pip install -e .[dev]
 ```
-
----
-
-## 📓 Examples
-
-| # | Notebook | Topic |
-| :--- | :--- | :--- |
-| 01 | [TimeSeries](examples/nb_01_timeseries.ipynb) | Creating, inspecting, and operating on univariate time series |
-| 02 | [TimeSeriesTable](examples/nb_02_timeseriestable.ipynb) | Multivariate tables with per-column metadata and spatial filtering |
 
 ---
 

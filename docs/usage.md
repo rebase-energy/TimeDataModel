@@ -92,30 +92,6 @@ ts = TimeSeries.from_pandas(df, ...)    # requires pandas
 cb = ts.coverage_bar()   # CoverageBar — renders as SVG in Jupyter, Unicode blocks in terminal
 ```
 
-For `TimeSeriesTable`, one bar row is shown per value column.
-
-## Multivariate tables
-
-```python
-from timedatamodel import TimeSeriesTable, Frequency
-import pandas as pd
-
-table = TimeSeriesTable.from_pandas(
-    pd.DataFrame({
-        "valid_time":  pd.date_range("2024-01-01", periods=24, freq="h", tz="UTC"),
-        "wind_power":  [float(i) for i in range(24)],
-        "solar_power": [float(i) * 0.5 for i in range(24)],
-    }),
-    frequency=Frequency.PT1H,
-)
-
-# Select a single column back as a TimeSeries
-ts_wind = table.select_column("wind_power")
-
-# Round-trip to pandas (valid_time becomes the index)
-df = table.to_pandas()
-```
-
 ## Versioned (bi-temporal) series
 
 ```python
