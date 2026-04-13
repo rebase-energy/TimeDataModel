@@ -51,6 +51,36 @@ Supported metadata fields: `name`, `frequency`, `timezone`, `unit`, `data_type`,
 
 ---
 
+### TimeSeriesDescriptor
+
+A frozen, data-free companion to `TimeSeries`. It carries every metadata field a
+`TimeSeries` can have — `name`, `unit`, `data_type`, `timeseries_type`, `description`,
+`labels`, `frequency`, `location`, `timezone` — but no DataFrame. Use it to register or
+catalog the *structure* of a series before any data exists, then materialize a full
+`TimeSeries` once a DataFrame is in hand.
+
+```python
+from timedatamodel import TimeSeriesDescriptor, TimeSeries, DataType
+
+desc = TimeSeriesDescriptor(
+    name="wind_power",
+    unit="MW",
+    data_type=DataType.FORECAST,
+)
+
+# Later, once data arrives:
+ts = TimeSeries.from_descriptor(desc, df)
+
+# And back again, without the DataFrame:
+desc_again = ts.to_descriptor()
+```
+
+`DataShape` is **not** encoded in the descriptor — it is inferred from the DataFrame at
+`from_descriptor` time, so a single descriptor can be paired with any supported shape.
+The descriptor is immutable end-to-end: `labels` is wrapped in a read-only view.
+
+---
+
 ### TimeSeriesTable
 
 Multiple co-indexed time series stored as named columns in a single Polars DataFrame. All
