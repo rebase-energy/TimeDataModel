@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
+from types import MappingProxyType
+from typing import Mapping, Optional
 
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
@@ -27,7 +28,13 @@ class TimeSeriesDescriptor:
     data_type: Optional[DataType] = None
     timeseries_type: TimeSeriesType = TimeSeriesType.FLAT
     description: Optional[str] = None
-    labels: dict[str, str] = field(default_factory=dict)
+    labels: Mapping[str, str] = field(default_factory=dict)
     frequency: Optional[Frequency] = None
     location: Optional[GeoLocation] = None
     timezone: str = "UTC"
+
+    def __post_init__(self) -> None:
+        # Wrap labels in a read-only view so the frozen contract extends to
+        # the dict contents, and defensive-copy the input so external mutation
+        # of the caller's dict cannot leak in.
+        object.__setattr__(self, "labels", MappingProxyType(dict(self.labels)))

@@ -1,15 +1,74 @@
-# Python-generated files
+# --- Python ---
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
 build/
 dist/
 wheels/
-*.egg-info
+*.egg
+*.egg-info/
+.eggs/
+.installed.cfg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
 
-# Virtual environments
-.venv
+# --- Virtual environments ---
+.venv/
+.venv-*/
+venv/
+env/
+ENV/
 
+# --- Testing / coverage / type-checking caches ---
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.dmypy.json
+dmypy.json
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.cover
+*.py,cover
+.hypothesis/
+
+# --- Jupyter / IPython ---
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+profile_default/
+ipython_config.py
+
+# --- Sphinx / docs ---
+docs/_build/
+docs/_autosummary/
 # Generated tutorial notebooks (copied from examples/ by Sphinx hook)
 docs/tutorials/*.ipynb
 
+# --- Editors / IDEs ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.nvimlog
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Local secrets / config ---
+.env
+.env.*
+!.env.example
+
+# --- Project-specific ---
 CLAUDE.md

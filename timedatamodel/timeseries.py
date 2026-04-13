@@ -39,7 +39,7 @@ valid_time
 from __future__ import annotations
 
 import warnings
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import pandas as pd
 import polars as pl
@@ -116,7 +116,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
@@ -135,7 +135,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         self.name: Optional[str] = name
         self.description: Optional[str] = description
         self.unit: str = unit
-        self.labels: Dict[str, str] = labels or {}
+        self.labels: dict[str, str] = labels or {}
         self.timezone: str = timezone
         self.frequency: Optional[Frequency] = frequency
         self.data_type: Optional[DataType] = data_type
@@ -166,7 +166,14 @@ class TimeSeries(_TimeSeriesReprMixin):
         descriptor: TimeSeriesDescriptor,
         df: pl.DataFrame,
     ) -> TimeSeries:
-        """Create a :class:`TimeSeries` from a descriptor and a DataFrame."""
+        """Create a :class:`TimeSeries` from a descriptor and a DataFrame.
+
+        Note that :class:`TimeSeriesDescriptor` does not encode
+        :class:`~timedatamodel.datashape.DataShape` — the shape is inferred
+        from *df* at construction time.  A single descriptor can therefore be
+        paired with DataFrames of any supported shape (SIMPLE, VERSIONED,
+        CORRECTED, AUDIT).
+        """
         return cls(
             df,
             name=descriptor.name,
@@ -221,7 +228,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
@@ -254,7 +261,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
@@ -287,7 +294,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
@@ -328,7 +335,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
@@ -369,7 +376,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
