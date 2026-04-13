@@ -1,9 +1,0 @@
-/* Consistent monospace for code and parameter tables */
-.sig, .sig-name, .sig-param {
-    font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
-}
-
-/* Spacing for parameter description lists */
-dl.field-list > dt {
-    margin-top: 0.5em;
-}

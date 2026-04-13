@@ -39,7 +39,7 @@ valid_time
 from __future__ import annotations
 
 import warnings
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import pandas as pd
 import polars as pl
@@ -48,6 +48,7 @@ from .datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
 from ._repr import _TimeSeriesReprMixin
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoLocation
+from .timeseriesdescriptor import TimeSeriesDescriptor
 
 def _get_pint_registry():
     import pint
@@ -115,7 +116,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
@@ -134,12 +135,57 @@ class TimeSeries(_TimeSeriesReprMixin):
         self.name: Optional[str] = name
         self.description: Optional[str] = description
         self.unit: str = unit
-        self.labels: Dict[str, str] = labels or {}
+        self.labels: dict[str, str] = labels or {}
         self.timezone: str = timezone
         self.frequency: Optional[Frequency] = frequency
         self.data_type: Optional[DataType] = data_type
         self.location: Optional[GeoLocation] = location
         self.timeseries_type: TimeSeriesType = timeseries_type
+
+    # ------------------------------------------------------------------
+    # Descriptor conversion
+    # ------------------------------------------------------------------
+
+    def to_descriptor(self) -> TimeSeriesDescriptor:
+        """Extract metadata as a :class:`TimeSeriesDescriptor` (no data)."""
+        return TimeSeriesDescriptor(
+            name=self.name,
+            unit=self.unit,
+            data_type=self.data_type,
+            timeseries_type=self.timeseries_type,
+            description=self.description,
+            labels=dict(self.labels),
+            frequency=self.frequency,
+            location=self.location,
+            timezone=self.timezone,
+        )
+
+    @classmethod
+    def from_descriptor(
+        cls,
+        descriptor: TimeSeriesDescriptor,
+        df: pl.DataFrame,
+    ) -> TimeSeries:
+        """Create a :class:`TimeSeries` from a descriptor and a DataFrame.
+
+        Note that :class:`TimeSeriesDescriptor` does not encode
+        :class:`~timedatamodel.datashape.DataShape` — the shape is inferred
+        from *df* at construction time.  A single descriptor can therefore be
+        paired with DataFrames of any supported shape (SIMPLE, VERSIONED,
+        CORRECTED, AUDIT).
+        """
+        return cls(
+            df,
+            name=descriptor.name,
+            unit=descriptor.unit,
+            data_type=descriptor.data_type,
+            timeseries_type=descriptor.timeseries_type,
+            description=descriptor.description,
+            labels=dict(descriptor.labels),
+            frequency=descriptor.frequency,
+            location=descriptor.location,
+            timezone=descriptor.timezone,
+        )
 
     # ------------------------------------------------------------------
     # Properties
@@ -182,13 +228,13 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
-    ) -> "TimeSeries":
+    ) -> TimeSeries:
         """Create a :class:`TimeSeries` directly from a ``polars.DataFrame``.
 
         All timestamp columns must already use
@@ -210,18 +256,18 @@ class TimeSeries(_TimeSeriesReprMixin):
     @classmethod
     def from_list(
         cls,
-        data: "dict[str, list]",
+        data: dict[str, list],
         *,
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
-    ) -> "TimeSeries":
+    ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a column-oriented dict of lists.
 
         Accepts the format returned by :meth:`to_list`.  Timestamp columns are
@@ -248,13 +294,13 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
-    ) -> "TimeSeries":
+    ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a column-oriented dict of NumPy arrays.
 
         Accepts the format returned by :meth:`to_numpy`.  Timestamp columns
@@ -289,13 +335,13 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
-    ) -> "TimeSeries":
+    ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a PyArrow Table.
 
         Accepts the format returned by :meth:`to_pyarrow`.  Arrow
@@ -330,13 +376,13 @@ class TimeSeries(_TimeSeriesReprMixin):
         name: Optional[str] = None,
         description: Optional[str] = None,
         unit: str = "dimensionless",
-        labels: Optional[Dict[str, str]] = None,
+        labels: Optional[dict[str, str]] = None,
         timezone: str = "UTC",
         frequency: Optional[Frequency] = None,
         data_type: Optional[DataType] = None,
         location: Optional[GeoLocation] = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
-    ) -> "TimeSeries":
+    ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a ``pandas.DataFrame``.
 
         Only ``SIMPLE`` and ``VERSIONED`` shapes can be constructed via
@@ -376,7 +422,7 @@ class TimeSeries(_TimeSeriesReprMixin):
     # Conversion
     # ------------------------------------------------------------------
 
-    def validate_for_insert(self) -> "Tuple[pl.DataFrame, DataShape]":
+    def validate_for_insert(self) -> Tuple[pl.DataFrame, DataShape]:
         """Validate that this TimeSeries can be inserted and return the underlying
         DataFrame with its shape.
 
@@ -489,11 +535,11 @@ class TimeSeries(_TimeSeriesReprMixin):
     # Data access helpers
     # ------------------------------------------------------------------
 
-    def head(self, n: int = 5) -> "TimeSeries":
+    def head(self, n: int = 5) -> TimeSeries:
         """Return the first *n* rows as a new :class:`TimeSeries`."""
         return self._clone(self._df.head(n))
 
-    def tail(self, n: int = 5) -> "TimeSeries":
+    def tail(self, n: int = 5) -> TimeSeries:
         """Return the last *n* rows as a new :class:`TimeSeries`."""
         return self._clone(self._df.tail(n))
 
@@ -501,7 +547,7 @@ class TimeSeries(_TimeSeriesReprMixin):
     # Unit conversion
     # ------------------------------------------------------------------
 
-    def convert_unit(self, target_unit: str) -> "TimeSeries":
+    def convert_unit(self, target_unit: str) -> TimeSeries:
         """Return a new :class:`TimeSeries` with values converted to *target_unit*.
 
         Uses the pint library for unit conversion.  The ``unit`` metadata field
@@ -534,7 +580,7 @@ class TimeSeries(_TimeSeriesReprMixin):
     # Internal clone helper
     # ------------------------------------------------------------------
 
-    def _clone(self, new_df: pl.DataFrame, **overrides) -> "TimeSeries":
+    def _clone(self, new_df: pl.DataFrame, **overrides) -> TimeSeries:
         """Create a new :class:`TimeSeries` with *new_df* and the same metadata.
 
         Any keyword in *overrides* replaces the corresponding metadata field.
