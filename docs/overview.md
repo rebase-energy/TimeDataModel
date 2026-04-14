@@ -1,9 +1,9 @@
 # Overview
 
 **TimeDataModel** is a lightweight Python library for working with time series data. It provides
-two structured, metadata-rich containers — backed by [Polars](https://pola.rs) internally, and
-fully interoperable with pandas, NumPy, Polars, and PyArrow — together with enums and geographic
-types for annotating your data.
+a metadata-rich container and a matching pure-metadata descriptor — backed by
+[Polars](https://pola.rs) internally, and fully interoperable with pandas, NumPy, Polars, and
+PyArrow — together with enums and geographic types for annotating your data.
 
 The library is designed for energy, weather, and forecasting workflows where data arrives from
 many sources at different times — but it is general enough for any domain that works with
@@ -36,8 +36,8 @@ ts = TimeSeries.from_pandas(
 )
 ```
 
-Supported metadata fields: `name`, `frequency`, `timezone`, `unit`, `data_type`, `location`,
-`description`, `timeseries_type`, `labels`.
+Supported metadata fields: `name`, `unit`, `data_type`, `timeseries_type`, `frequency`,
+`timezone`, `description`.
 
 **Key operations:**
 
@@ -54,10 +54,10 @@ Supported metadata fields: `name`, `frequency`, `timezone`, `unit`, `data_type`,
 ### TimeSeriesDescriptor
 
 A frozen, data-free companion to `TimeSeries`. It carries every metadata field a
-`TimeSeries` can have — `name`, `unit`, `data_type`, `timeseries_type`, `description`,
-`labels`, `frequency`, `location`, `timezone` — but no DataFrame. Use it to register or
-catalog the *structure* of a series before any data exists, then materialize a full
-`TimeSeries` once a DataFrame is in hand.
+`TimeSeries` can have — `name`, `unit`, `data_type`, `timeseries_type`, `frequency`,
+`timezone`, `description` — but no DataFrame. Use it to register or catalog the
+*structure* of a series before any data exists, then materialize a full `TimeSeries`
+once a DataFrame is in hand.
 
 ```python
 from timedatamodel import TimeSeriesDescriptor, TimeSeries, DataType
@@ -77,35 +77,10 @@ desc_again = ts.to_descriptor()
 
 `DataShape` is **not** encoded in the descriptor — it is inferred from the DataFrame at
 `from_descriptor` time, so a single descriptor can be paired with any supported shape.
-The descriptor is immutable end-to-end: `labels` is wrapped in a read-only view.
 
----
-
-### TimeSeriesTable
-
-Multiple co-indexed time series stored as named columns in a single Polars DataFrame. All
-columns share the same `valid_time` index. Each column carries independent metadata — unit,
-data type, and geographic location.
-
-```python
-from timedatamodel import TimeSeriesTable
-
-# Build from a list of TimeSeries (all must have identical valid_time values)
-table = TimeSeriesTable.from_timeseries(
-    [ts_wind, ts_solar, ts_load],
-    frequency=Frequency.PT1H,
-)
-
-# Select a single column back as a TimeSeries
-ts_wind = table.select_column("wind_power")
-
-# Spatial filtering (requires [geo] extra)
-nearby = table.filter_columns_by_location(center, radius_km=50)
-nearest_col = table.nearest_columns(center)
-```
-
-**Key operations:** `select_column`, `filter_columns_by_location`, `nearest_columns`,
-`from_timeseries`, `from_pandas`, `to_pandas`, `head`, `tail`.
+The descriptor is metadata-only. Identity-shaped concepts (labels, tags) and spatial
+context (locations) belong to consumer layers (e.g. `energydatamodel`, `energydb`),
+not to time-series metadata itself.
 
 ---
 
@@ -176,10 +151,11 @@ Each `DataType` member exposes `.parent`, `.children`, `.is_leaf`, and `.root` p
 
 ---
 
-## Geographic support
+## Geographic types
 
-Time series can carry geographic metadata via the `location` field, which accepts either a
-`GeoLocation` or `GeoArea`.
+Geographic primitives are exported from the package for consumer layers (e.g.
+`energydatamodel`) that need to attach spatial context to entities. They are no longer
+attached to `TimeSeries` itself.
 
 **GeoLocation** — a single point defined by `latitude` and `longitude`:
 
@@ -200,8 +176,6 @@ area = GeoArea.from_coordinates([(59.0, 17.5), (59.0, 18.5), (59.5, 18.5), (59.5
 ```
 
 Provides `contains_point()`, `overlaps()`, `centroid`, and `bounding_box()`.
-
-`TimeSeriesTable` supports spatial queries: `filter_columns_by_location()` and `nearest_columns()`.
 
 ---
 

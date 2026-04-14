@@ -15,7 +15,6 @@ from typing import Callable
 import math
 
 from ._theme import THEME, get_theme_version
-from .location import GeoArea, GeoLocation
 
 
 # ---------------------------------------------------------------------------
@@ -102,16 +101,6 @@ def _fmt_value(v: float | None) -> str:
     return f"{v:g}"
 
 
-def _fmt_location(loc: GeoLocation | GeoArea | None) -> str:
-    if loc is None:
-        return ""
-    if isinstance(loc, GeoLocation):
-        return f"{loc.latitude}\u00b0N, {loc.longitude}\u00b0E"
-    name = loc.name or "unnamed"
-    c = loc.centroid
-    return f"{name} (centroid {c.latitude}\u00b0N, {c.longitude}\u00b0E)"
-
-
 # ---------------------------------------------------------------------------
 # CoverageBar
 # ---------------------------------------------------------------------------
@@ -124,8 +113,7 @@ class CoverageBar:
     present, ``False`` = null/missing.  *begin* and *end* are Python
     ``datetime`` objects used for the date axis labels.
 
-    Produced by :meth:`TimeSeries.coverage_bar` and
-    :meth:`TimeSeriesTable.coverage_bar`.
+    Produced by :meth:`TimeSeries.coverage_bar`.
     """
 
     _TERM_BINS = 60
@@ -308,7 +296,7 @@ def _build_repr_html(
     html_row_fn: Callable[[int], str],
     max_preview: int = _MAX_PREVIEW,
 ) -> str:
-    """Build a shared HTML repr for TimeSeriesList and TimeSeriesTable."""
+    """Build a shared HTML repr for TimeSeries-style displays."""
     total_cols = len(index_names) + len(column_names)
 
     html = [_get_repr_css(), '<div class="ts-repr">']
@@ -465,9 +453,9 @@ class _TimeSeriesReprMixin:
 
     def _repr_meta_pairs(self) -> list[tuple[str, str]]:
         pairs: list[tuple[str, str]] = [
-            ("Name",  self.name or "unnamed"),
-            ("Shape", self.shape.value),
-            ("Rows",  str(self.num_rows)),
+            ("Name", self.name),
+            ("Shape",  self.shape.value),
+            ("Rows",   str(self.num_rows)),
         ]
         if self.frequency:
             pairs.append(("Frequency", str(self.frequency)))
@@ -476,14 +464,10 @@ class _TimeSeriesReprMixin:
             pairs.append(("Unit", self.unit))
         if self.data_type:
             pairs.append(("Data type", str(self.data_type)))
-        if self.location:
-            pairs.append(("Location", _fmt_location(self.location)))
         if self.description:
             pairs.append(("Description", self.description))
         if self.timeseries_type and str(self.timeseries_type) != "FLAT":
             pairs.append(("Timeseries type", str(self.timeseries_type)))
-        if self.labels:
-            pairs.append(("Labels", str(self.labels)))
         return pairs
 
     def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
@@ -502,7 +486,7 @@ class _TimeSeriesReprMixin:
     def __repr__(self) -> str:
         meta_lines = _format_meta_lines(self._repr_meta_pairs())
         n = self.num_rows
-        col_names = [self.name or "value"]
+        col_names = [self.name]
 
         if n == 0:
             indices: list[int] = []
@@ -561,7 +545,7 @@ class _TimeSeriesReprMixin:
 
     def _repr_html_(self) -> str:
         idx_cols = _SHAPE_INDEX_COLS[self.shape.value]
-        col_names = (self.name or "value",)
+        col_names = (self.name,)
 
         def _html_row(i: int) -> str:
             idx_cells = "".join(
@@ -580,129 +564,3 @@ class _TimeSeriesReprMixin:
             html_row_fn=_html_row,
         )
 
-
-# ---------------------------------------------------------------------------
-# Mixin: _TimeSeriesTableReprMixin
-# ---------------------------------------------------------------------------
-
-
-class _TimeSeriesTableReprMixin:
-    """Repr mixin for the Polars-backed TimeSeriesTable class (timeseriestable.py)."""
-
-    __slots__ = ()
-
-    def _repr_meta_pairs(self) -> list[tuple[str, str]]:
-        col_names = self.column_names
-        n = self.n_columns
-        pairs: list[tuple[str, str]] = [
-            ("Columns",   ", ".join(col_names)),
-            ("Shape",     f"{self.num_rows} \u00d7 {n}"),
-            ("Frequency", str(self.frequency)),
-            ("Timezone",  self.timezone),
-        ]
-
-        if any(u is not None for u in self._units):
-            pairs.append(("Unit", ", ".join(u or "-" for u in self._units)))
-
-        if any(d is not None for d in self._data_types):
-            pairs.append(("Data type", ", ".join(str(d) if d else "-" for d in self._data_types)))
-
-        if any(loc is not None for loc in self._locations):
-            pairs.append(("Location", ", ".join(_fmt_location(loc) or "-" for loc in self._locations)))
-
-        if any(str(t) != "FLAT" for t in self._timeseries_types):
-            pairs.append(("Timeseries type", ", ".join(str(t) for t in self._timeseries_types)))
-
-        if any(lbl for lbl in self._labels):
-            pairs.append(("Labels", ", ".join(str(lbl) for lbl in self._labels)))
-
-        return pairs
-
-    def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
-        col_names = self.column_names
-        rows: list[list[str]] = []
-        for i in indices:
-            ts = _fmt_short_date(self._df["valid_time"][i])
-            vals = [_fmt_value(self._df[col][i]) for col in col_names]
-            rows.append([ts] + vals)
-        return rows
-
-    def __repr__(self) -> str:
-        meta_lines = _format_meta_lines(self._repr_meta_pairs())
-        n = self.num_rows
-        col_names = self.column_names
-
-        if n == 0:
-            indices: list[int] = []
-            truncated = False
-        elif n <= _MAX_PREVIEW * 2 + 1:
-            indices = list(range(n))
-            truncated = False
-        else:
-            indices = list(range(_MAX_PREVIEW)) + list(range(n - _MAX_PREVIEW, n))
-            truncated = True
-
-        data_rows = self._repr_data_rows(indices) if indices else []
-
-        content_lines: list[str | None] = []
-        for ml in meta_lines:
-            content_lines.append(ml)
-
-        if n == 0:
-            content_lines.append(None)
-            content_lines.append("(empty)")
-        else:
-            all_rows: list[list[str]] = [[""] + col_names] + data_rows
-            ncols_data = len(all_rows[0])
-            col_widths = [0] * ncols_data
-            for row in all_rows:
-                for j, cell in enumerate(row):
-                    col_widths[j] = max(col_widths[j], len(cell))
-            if truncated:
-                for j in range(ncols_data):
-                    col_widths[j] = max(col_widths[j], 3)
-
-            def _format_row(row: list[str]) -> str:
-                parts: list[str] = []
-                for j, cell in enumerate(row):
-                    if j == 0:
-                        parts.append(f"{cell:<{col_widths[j]}}")
-                    else:
-                        parts.append(f"{cell:>{col_widths[j]}}")
-                return "  ".join(parts)
-
-            content_lines.append(None)
-            content_lines.append(_format_row([""] + col_names))
-
-            head_data = data_rows[:_MAX_PREVIEW] if truncated else data_rows
-            tail_data = data_rows[_MAX_PREVIEW:] if truncated else []
-
-            for row in head_data:
-                content_lines.append(_format_row(row))
-            if truncated:
-                ellipsis_row = ["..."] * ncols_data
-                content_lines.append(_format_row(ellipsis_row))
-                for row in tail_data:
-                    content_lines.append(_format_row(row))
-
-        return _render_box("TimeSeriesTable", content_lines)
-
-    def _repr_html_(self) -> str:
-        col_names = self.column_names
-
-        def _html_row(i: int) -> str:
-            ts_cell = f"<td>{escape(_fmt_short_date(self._df['valid_time'][i]))}</td>"
-            val_cells = "".join(
-                f"<td>{escape(_fmt_value(self._df[col][i]))}</td>"
-                for col in col_names
-            )
-            return f"<tr>{ts_cell}{val_cells}</tr>"
-
-        return _build_repr_html(
-            class_name="TimeSeriesTable",
-            meta_rows=self._repr_meta_pairs(),
-            index_names=("valid_time",),
-            column_names=tuple(col_names),
-            n_rows=self.num_rows,
-            html_row_fn=_html_row,
-        )

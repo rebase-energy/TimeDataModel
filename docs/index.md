@@ -4,12 +4,12 @@ A lightweight Pythonic data model for time series data, interoperable with NumPy
 
 ## Features
 
-- **TimeSeries** — univariate time series with rich metadata (name, unit, frequency, timezone, location, …)
-- **TimeSeriesTable** — multivariate time series sharing the same `valid_time` index, with per-column metadata
+- **TimeSeries** — univariate time series with metadata (name, unit, frequency, timezone, …)
+- **TimeSeriesDescriptor** — pure metadata descriptor, decoupled from any DataFrame
 - **Four data shapes** — `SIMPLE`, `VERSIONED`, `CORRECTED`, `AUDIT` — model everything from standard point-in-time data to full bi-temporal audit trails
 - Full interoperability with **pandas**, **NumPy**, **Polars**, and **PyArrow** via `from_*` / `to_*` methods
 - Enum-based **Frequency** (ISO 8601 durations) and **DataType** annotations
-- Optional **pint** unit support and **shapely** geo-location metadata
+- Optional **pint** unit support and unit-string validation
 
 ```{toctree}
 :maxdepth: 1
