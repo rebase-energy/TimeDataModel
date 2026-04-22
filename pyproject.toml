@@ -8,7 +8,7 @@ license = { text = "MIT" }
 authors = [
   { name = "Rebase Energy", email = "sebastian@rebase.energy" }
 ]
-keywords = ["time series", "data model", "pandas", "polars", "energy"]
+keywords = ["time series", "data model", "pandas", "numpy", "polars", "energy"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
