@@ -8,14 +8,12 @@ This module contains:
 
 from __future__ import annotations
 
+import math
+from collections.abc import Callable
 from datetime import datetime
 from html import escape
-from typing import Callable
-
-import math
 
 from ._theme import THEME, get_theme_version
-
 
 # ---------------------------------------------------------------------------
 # Module-level state
@@ -121,16 +119,16 @@ class CoverageBar:
 
     def __init__(
         self,
-        masks: "list[tuple[str, list[bool]]]",
-        begin: "datetime | None",
-        end: "datetime | None",
+        masks: list[tuple[str, list[bool]]],
+        begin: datetime | None,
+        end: datetime | None,
     ) -> None:
         self._masks = masks
         self._begin = begin
         self._end = end
 
     @staticmethod
-    def _bin_coverage(mask: "list[bool]", n_bins: int) -> "list[bool]":
+    def _bin_coverage(mask: list[bool], n_bins: int) -> list[bool]:
         n = len(mask)
         if n == 0:
             return [False] * n_bins

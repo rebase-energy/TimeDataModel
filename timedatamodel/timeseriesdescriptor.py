@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 from .enums import DataType, Frequency, TimeSeriesType
 
@@ -26,8 +25,8 @@ class TimeSeriesDescriptor:
 
     name: str
     unit: str = "dimensionless"
-    data_type: Optional[DataType] = None
+    data_type: DataType | None = None
     timeseries_type: TimeSeriesType = TimeSeriesType.FLAT
-    frequency: Optional[Frequency] = None
+    frequency: Frequency | None = None
     timezone: str = "UTC"
-    description: Optional[str] = None
+    description: str | None = None

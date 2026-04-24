@@ -39,18 +39,15 @@ and a head/tail preview of the data.
 from __future__ import annotations
 
 import warnings
-from typing import List, Optional, Tuple
 
 import pandas as pd
 import polars as pl
 
-from .datashape import DataShape, _REQUIRED_COLUMNS, _TIME_COLS  # noqa: F401
 from ._repr import _TimeSeriesReprMixin
+from .datashape import _REQUIRED_COLUMNS, _TIME_COLS, DataShape  # noqa: F401
 from .enums import DataType, Frequency, TimeSeriesType
 from .timeseriesdescriptor import TimeSeriesDescriptor
-
 from .units import _get_registry as _get_pint_registry
-
 
 _TS_DTYPE = pl.Datetime("us", time_zone="UTC")
 
@@ -107,11 +104,11 @@ class TimeSeries(_TimeSeriesReprMixin):
         df: pl.DataFrame,
         *,
         name: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         unit: str = "dimensionless",
         timezone: str = "UTC",
-        frequency: Optional[Frequency] = None,
-        data_type: Optional[DataType] = None,
+        frequency: Frequency | None = None,
+        data_type: DataType | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> None:
         if not isinstance(df, pl.DataFrame):
@@ -124,11 +121,11 @@ class TimeSeries(_TimeSeriesReprMixin):
         self._shape: DataShape = shape
 
         self.name: str = name
-        self.description: Optional[str] = description
+        self.description: str | None = description
         self.unit: str = unit
         self.timezone: str = timezone
-        self.frequency: Optional[Frequency] = frequency
-        self.data_type: Optional[DataType] = data_type
+        self.frequency: Frequency | None = frequency
+        self.data_type: DataType | None = data_type
         self.timeseries_type: TimeSeriesType = timeseries_type
 
     # ------------------------------------------------------------------
@@ -187,7 +184,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         return self._df.height
 
     @property
-    def columns(self) -> List[str]:
+    def columns(self) -> list[str]:
         """Column names present in the underlying Polars DataFrame."""
         return self._df.columns
 
@@ -211,11 +208,11 @@ class TimeSeries(_TimeSeriesReprMixin):
         df: pl.DataFrame,
         *,
         name: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         unit: str = "dimensionless",
         timezone: str = "UTC",
-        frequency: Optional[Frequency] = None,
-        data_type: Optional[DataType] = None,
+        frequency: Frequency | None = None,
+        data_type: DataType | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` directly from a ``polars.DataFrame``.
@@ -240,11 +237,11 @@ class TimeSeries(_TimeSeriesReprMixin):
         data: dict[str, list],
         *,
         name: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         unit: str = "dimensionless",
         timezone: str = "UTC",
-        frequency: Optional[Frequency] = None,
-        data_type: Optional[DataType] = None,
+        frequency: Frequency | None = None,
+        data_type: DataType | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a column-oriented dict of lists.
@@ -266,14 +263,14 @@ class TimeSeries(_TimeSeriesReprMixin):
     @classmethod
     def from_numpy(
         cls,
-        data: "dict[str, np.ndarray]",
+        data: dict[str, np.ndarray],
         *,
         name: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         unit: str = "dimensionless",
         timezone: str = "UTC",
-        frequency: Optional[Frequency] = None,
-        data_type: Optional[DataType] = None,
+        frequency: Frequency | None = None,
+        data_type: DataType | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a column-oriented dict of NumPy arrays.
@@ -303,14 +300,14 @@ class TimeSeries(_TimeSeriesReprMixin):
     @classmethod
     def from_pyarrow(
         cls,
-        table: "pa.Table",
+        table: pa.Table,
         *,
         name: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         unit: str = "dimensionless",
         timezone: str = "UTC",
-        frequency: Optional[Frequency] = None,
-        data_type: Optional[DataType] = None,
+        frequency: Frequency | None = None,
+        data_type: DataType | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a PyArrow Table.
@@ -343,11 +340,11 @@ class TimeSeries(_TimeSeriesReprMixin):
         df: pd.DataFrame,
         *,
         name: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         unit: str = "dimensionless",
         timezone: str = "UTC",
-        frequency: Optional[Frequency] = None,
-        data_type: Optional[DataType] = None,
+        frequency: Frequency | None = None,
+        data_type: DataType | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> TimeSeries:
         """Create a :class:`TimeSeries` from a ``pandas.DataFrame``.
@@ -387,7 +384,7 @@ class TimeSeries(_TimeSeriesReprMixin):
     # Conversion
     # ------------------------------------------------------------------
 
-    def validate_for_insert(self) -> Tuple[pl.DataFrame, DataShape]:
+    def validate_for_insert(self) -> tuple[pl.DataFrame, DataShape]:
         """Validate that this TimeSeries can be inserted and return the underlying
         DataFrame with its shape.
 
@@ -453,7 +450,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         """
         return self._df.to_dict(as_series=False)
 
-    def to_numpy(self) -> "dict[str, np.ndarray]":
+    def to_numpy(self) -> dict[str, np.ndarray]:
         """Return the series as a dictionary of NumPy arrays.
 
         Each column maps to a 1-D ``numpy.ndarray``. Timestamp columns become
@@ -469,7 +466,7 @@ class TimeSeries(_TimeSeriesReprMixin):
             ) from e
         return {col: self._df[col].to_numpy(allow_copy=True) for col in self._df.columns}
 
-    def to_pyarrow(self) -> "pa.Table":
+    def to_pyarrow(self) -> pa.Table:
         """Return the series as a ``pyarrow.Table``.
 
         All timestamp columns are Arrow ``timestamp[us, UTC]``.
@@ -484,7 +481,7 @@ class TimeSeries(_TimeSeriesReprMixin):
             ) from e
         return self._df.to_arrow()
 
-    def coverage_bar(self) -> "CoverageBar":
+    def coverage_bar(self) -> CoverageBar:
         """Return a :class:`~timedatamodel.CoverageBar` showing value coverage.
 
         ``True`` = value present, ``False`` = null/missing.

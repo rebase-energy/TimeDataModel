@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import datetime
 
 import pytest
-
 from timedatamodel.datapoint import DataPoint
 
 TS = datetime(2024, 1, 1, 12, 0, 0)

@@ -5,15 +5,11 @@ from datetime import UTC, datetime, timedelta
 import pandas as pd
 import polars as pl
 import pytest
-
+from timedatamodel.enums import DataType, Frequency, TimeSeriesType
 from timedatamodel.timeseries import (
     DataShape,
     TimeSeries,
-    _infer_shape,
-    _validate_table,
 )
-from timedatamodel.enums import DataType, Frequency, TimeSeriesType
-
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
