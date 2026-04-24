@@ -1,6 +1,5 @@
-import pytest
 import polars as pl
-
+import pytest
 import timedatamodel as tdm
 from timedatamodel import (
     DataType,

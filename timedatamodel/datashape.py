@@ -8,7 +8,6 @@ backend (which must work without polars) and the Polars backend.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, List
 
 
 class DataShape(str, Enum):
@@ -21,7 +20,7 @@ class DataShape(str, Enum):
 
 
 #: Required columns per shape.
-_REQUIRED_COLUMNS: Dict[DataShape, List[str]] = {
+_REQUIRED_COLUMNS: dict[DataShape, list[str]] = {
     DataShape.SIMPLE:     ["valid_time", "value"],
     DataShape.VERSIONED:  ["knowledge_time", "valid_time", "value"],
     DataShape.AUDIT:      ["knowledge_time", "change_time", "valid_time", "value"],

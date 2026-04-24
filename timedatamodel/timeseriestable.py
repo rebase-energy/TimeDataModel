@@ -35,16 +35,13 @@ Example usage
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Union
-
 import pandas as pd
 import polars as pl
 
+from .datashape import DataShape
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation
-from .datashape import DataShape
 from .timeseries import TimeSeries, _ingest_pandas_to_polars, _normalize_time_cols
-
 
 # ---------------------------------------------------------------------------
 # Internal helpers
@@ -54,7 +51,7 @@ from .timeseries import TimeSeries, _ingest_pandas_to_polars, _normalize_time_co
 _NON_VALUE_COLS: frozenset = frozenset({"valid_time", "valid_time_end"})
 
 
-def _broadcast_meta(lst: Optional[List], n: int, default) -> List:
+def _broadcast_meta(lst: list | None, n: int, default) -> list:
     """Broadcast a length-1 list to *n* elements, or validate length == *n*."""
     if lst is None:
         return [default() if callable(default) else default for _ in range(n)]
@@ -65,7 +62,7 @@ def _broadcast_meta(lst: Optional[List], n: int, default) -> List:
     raise ValueError(f"metadata list has length {len(lst)}, expected 1 or {n}")
 
 
-def _value_col_names(df: pl.DataFrame) -> List[str]:
+def _value_col_names(df: pl.DataFrame) -> list[str]:
     """Return column names that are not temporal metadata columns."""
     return [c for c in df.columns if c not in _NON_VALUE_COLS]
 
@@ -107,12 +104,12 @@ class TimeSeriesTable:
         *,
         frequency: Frequency,
         timezone: str = "UTC",
-        units: Optional[List[Optional[str]]] = None,
-        descriptions: Optional[List[Optional[str]]] = None,
-        data_types: Optional[List[Optional[DataType]]] = None,
-        locations: Optional[List[Optional[GeoLocation]]] = None,
-        timeseries_types: Optional[List[TimeSeriesType]] = None,
-        labels: Optional[List[Dict[str, str]]] = None,
+        units: list[str | None] | None = None,
+        descriptions: list[str | None] | None = None,
+        data_types: list[DataType | None] | None = None,
+        locations: list[GeoLocation | None] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
+        labels: list[dict[str, str]] | None = None,
     ) -> None:
         if not isinstance(df, pl.DataFrame):
             raise TypeError(f"df must be a polars.DataFrame, got {type(df)!r}")
@@ -158,14 +155,14 @@ class TimeSeriesTable:
         self.timezone: str = timezone
 
         n = len(_value_col_names(df))
-        self._units: List[Optional[str]] = _broadcast_meta(units, n, lambda: None)
-        self._descriptions: List[Optional[str]] = _broadcast_meta(descriptions, n, lambda: None)
-        self._data_types: List[Optional[DataType]] = _broadcast_meta(data_types, n, lambda: None)
-        self._locations: List[Optional[GeoLocation]] = _broadcast_meta(locations, n, lambda: None)
-        self._timeseries_types: List[TimeSeriesType] = _broadcast_meta(
+        self._units: list[str | None] = _broadcast_meta(units, n, lambda: None)
+        self._descriptions: list[str | None] = _broadcast_meta(descriptions, n, lambda: None)
+        self._data_types: list[DataType | None] = _broadcast_meta(data_types, n, lambda: None)
+        self._locations: list[GeoLocation | None] = _broadcast_meta(locations, n, lambda: None)
+        self._timeseries_types: list[TimeSeriesType] = _broadcast_meta(
             timeseries_types, n, lambda: TimeSeriesType.FLAT
         )
-        self._labels: List[Dict[str, str]] = _broadcast_meta(labels, n, dict)
+        self._labels: list[dict[str, str]] = _broadcast_meta(labels, n, dict)
 
     # ------------------------------------------------------------------
     # Properties
@@ -177,7 +174,7 @@ class TimeSeriesTable:
         return self._df
 
     @property
-    def column_names(self) -> List[str]:
+    def column_names(self) -> list[str]:
         """Names of the value columns (excludes ``valid_time``)."""
         return _value_col_names(self._df)
 
@@ -200,12 +197,12 @@ class TimeSeriesTable:
         return False
 
     @property
-    def units(self) -> List[Optional[str]]:
+    def units(self) -> list[str | None]:
         """Per-column unit strings."""
         return list(self._units)
 
     @property
-    def locations(self) -> List[Optional[GeoLocation]]:
+    def locations(self) -> list[GeoLocation | None]:
         """Per-column geographic locations."""
         return list(self._locations)
 
@@ -220,13 +217,13 @@ class TimeSeriesTable:
         *,
         frequency: Frequency,
         timezone: str = "UTC",
-        units: Optional[List[Optional[str]]] = None,
-        descriptions: Optional[List[Optional[str]]] = None,
-        data_types: Optional[List[Optional[DataType]]] = None,
-        locations: Optional[List[Optional[GeoLocation]]] = None,
-        timeseries_types: Optional[List[TimeSeriesType]] = None,
-        labels: Optional[List[Dict[str, str]]] = None,
-    ) -> "TimeSeriesTable":
+        units: list[str | None] | None = None,
+        descriptions: list[str | None] | None = None,
+        data_types: list[DataType | None] | None = None,
+        locations: list[GeoLocation | None] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
+        labels: list[dict[str, str]] | None = None,
+    ) -> TimeSeriesTable:
         """Create a :class:`TimeSeriesTable` directly from a ``polars.DataFrame``.
 
         The DataFrame must have a ``valid_time`` column with dtype
@@ -247,17 +244,17 @@ class TimeSeriesTable:
     @classmethod
     def from_list(
         cls,
-        data: "dict[str, list]",
+        data: dict[str, list],
         *,
         frequency: Frequency,
         timezone: str = "UTC",
-        units: Optional[List[Optional[str]]] = None,
-        descriptions: Optional[List[Optional[str]]] = None,
-        data_types: Optional[List[Optional[DataType]]] = None,
-        locations: Optional[List[Optional[GeoLocation]]] = None,
-        timeseries_types: Optional[List[TimeSeriesType]] = None,
-        labels: Optional[List[Dict[str, str]]] = None,
-    ) -> "TimeSeriesTable":
+        units: list[str | None] | None = None,
+        descriptions: list[str | None] | None = None,
+        data_types: list[DataType | None] | None = None,
+        locations: list[GeoLocation | None] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
+        labels: list[dict[str, str]] | None = None,
+    ) -> TimeSeriesTable:
         """Create a :class:`TimeSeriesTable` from a column-oriented dict of lists.
 
         Accepts the format returned by :meth:`to_list`.  Timestamp columns are
@@ -278,17 +275,17 @@ class TimeSeriesTable:
     @classmethod
     def from_numpy(
         cls,
-        data: "dict[str, np.ndarray]",
+        data: dict[str, np.ndarray],
         *,
         frequency: Frequency,
         timezone: str = "UTC",
-        units: Optional[List[Optional[str]]] = None,
-        descriptions: Optional[List[Optional[str]]] = None,
-        data_types: Optional[List[Optional[DataType]]] = None,
-        locations: Optional[List[Optional[GeoLocation]]] = None,
-        timeseries_types: Optional[List[TimeSeriesType]] = None,
-        labels: Optional[List[Dict[str, str]]] = None,
-    ) -> "TimeSeriesTable":
+        units: list[str | None] | None = None,
+        descriptions: list[str | None] | None = None,
+        data_types: list[DataType | None] | None = None,
+        locations: list[GeoLocation | None] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
+        labels: list[dict[str, str]] | None = None,
+    ) -> TimeSeriesTable:
         """Create a :class:`TimeSeriesTable` from a column-oriented dict of NumPy arrays.
 
         Accepts the format returned by :meth:`to_numpy`.  Timestamp columns
@@ -317,17 +314,17 @@ class TimeSeriesTable:
     @classmethod
     def from_pyarrow(
         cls,
-        table: "pa.Table",
+        table: pa.Table,
         *,
         frequency: Frequency,
         timezone: str = "UTC",
-        units: Optional[List[Optional[str]]] = None,
-        descriptions: Optional[List[Optional[str]]] = None,
-        data_types: Optional[List[Optional[DataType]]] = None,
-        locations: Optional[List[Optional[GeoLocation]]] = None,
-        timeseries_types: Optional[List[TimeSeriesType]] = None,
-        labels: Optional[List[Dict[str, str]]] = None,
-    ) -> "TimeSeriesTable":
+        units: list[str | None] | None = None,
+        descriptions: list[str | None] | None = None,
+        data_types: list[DataType | None] | None = None,
+        locations: list[GeoLocation | None] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
+        labels: list[dict[str, str]] | None = None,
+    ) -> TimeSeriesTable:
         """Create a :class:`TimeSeriesTable` from a PyArrow Table.
 
         Accepts the format returned by :meth:`to_pyarrow`.  Arrow
@@ -360,13 +357,13 @@ class TimeSeriesTable:
         *,
         frequency: Frequency,
         timezone: str = "UTC",
-        units: Optional[List[Optional[str]]] = None,
-        descriptions: Optional[List[Optional[str]]] = None,
-        data_types: Optional[List[Optional[DataType]]] = None,
-        locations: Optional[List[Optional[GeoLocation]]] = None,
-        timeseries_types: Optional[List[TimeSeriesType]] = None,
-        labels: Optional[List[Dict[str, str]]] = None,
-    ) -> "TimeSeriesTable":
+        units: list[str | None] | None = None,
+        descriptions: list[str | None] | None = None,
+        data_types: list[DataType | None] | None = None,
+        locations: list[GeoLocation | None] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
+        labels: list[dict[str, str]] | None = None,
+    ) -> TimeSeriesTable:
         """Create a :class:`TimeSeriesTable` from a ``pandas.DataFrame``.
 
         The DataFrame must have a ``valid_time`` column (or as index) and one
@@ -388,17 +385,17 @@ class TimeSeriesTable:
     @classmethod
     def from_timeseries(
         cls,
-        series_list: List[TimeSeries],
+        series_list: list[TimeSeries],
         *,
-        frequency: Optional[Frequency] = None,
+        frequency: Frequency | None = None,
         timezone: str = "UTC",
-        units: Optional[List[Optional[str]]] = None,
-        descriptions: Optional[List[Optional[str]]] = None,
-        data_types: Optional[List[Optional[DataType]]] = None,
-        locations: Optional[List[Optional[GeoLocation]]] = None,
-        timeseries_types: Optional[List[TimeSeriesType]] = None,
-        labels: Optional[List[Dict[str, str]]] = None,
-    ) -> "TimeSeriesTable":
+        units: list[str | None] | None = None,
+        descriptions: list[str | None] | None = None,
+        data_types: list[DataType | None] | None = None,
+        locations: list[GeoLocation | None] | None = None,
+        timeseries_types: list[TimeSeriesType] | None = None,
+        labels: list[dict[str, str]] | None = None,
+    ) -> TimeSeriesTable:
         """Build a table from a list of SIMPLE-shape :class:`~timedatamodel.timeseries.TimeSeries`.
 
         Column names come from each series' ``name`` attribute.  Per-column
@@ -430,7 +427,7 @@ class TimeSeriesTable:
                 )
 
         # Build merged DataFrame
-        merged: Optional[pl.DataFrame] = None
+        merged: pl.DataFrame | None = None
         for ts in series_list:
             col_name = ts.name or "value"
             renamed = ts.df.rename({"value": col_name})
@@ -474,7 +471,7 @@ class TimeSeriesTable:
     # Column selection
     # ------------------------------------------------------------------
 
-    def select_column(self, col: Union[int, str]) -> TimeSeries:
+    def select_column(self, col: int | str) -> TimeSeries:
         """Extract one value column as a :class:`~timedatamodel.timeseries.TimeSeries`.
 
         Parameters
@@ -506,7 +503,7 @@ class TimeSeriesTable:
             timezone=self.timezone,
         )
 
-    def _select_columns(self, indices: List[int]) -> "TimeSeriesTable":
+    def _select_columns(self, indices: list[int]) -> TimeSeriesTable:
         """Return a new table keeping only the given column indices."""
         names = self.column_names
         keep_cols = ["valid_time"] + [names[i] for i in indices]
@@ -529,7 +526,7 @@ class TimeSeriesTable:
 
     def filter_columns_by_location(
         self, center: GeoLocation, radius_km: float
-    ) -> "TimeSeriesTable":
+    ) -> TimeSeriesTable:
         """Keep only columns whose location is within *radius_km* of *center*."""
         keep = [
             i for i, loc in enumerate(self._locations)
@@ -537,7 +534,7 @@ class TimeSeriesTable:
         ]
         return self._select_columns(keep)
 
-    def filter_columns_by_area(self, area: GeoArea) -> "TimeSeriesTable":
+    def filter_columns_by_area(self, area: GeoArea) -> TimeSeriesTable:
         """Keep only columns whose location falls inside *area*."""
         keep = [
             i for i, loc in enumerate(self._locations)
@@ -547,7 +544,7 @@ class TimeSeriesTable:
 
     def nearest_columns(
         self, target: GeoLocation, n: int = 1
-    ) -> "TimeSeriesTable":
+    ) -> TimeSeriesTable:
         """Keep the *n* nearest columns to *target* by Haversine distance."""
         dists = [
             (loc.distance_to(target), i)
@@ -562,15 +559,15 @@ class TimeSeriesTable:
     # Data access
     # ------------------------------------------------------------------
 
-    def head(self, n: int = 5) -> "TimeSeriesTable":
+    def head(self, n: int = 5) -> TimeSeriesTable:
         """Return the first *n* rows as a new :class:`TimeSeriesTable`."""
         return self._clone_df(self._df.head(n))
 
-    def tail(self, n: int = 5) -> "TimeSeriesTable":
+    def tail(self, n: int = 5) -> TimeSeriesTable:
         """Return the last *n* rows as a new :class:`TimeSeriesTable`."""
         return self._clone_df(self._df.tail(n))
 
-    def _clone_df(self, new_df: pl.DataFrame) -> "TimeSeriesTable":
+    def _clone_df(self, new_df: pl.DataFrame) -> TimeSeriesTable:
         return TimeSeriesTable(
             new_df,
             frequency=self.frequency,
@@ -608,7 +605,7 @@ class TimeSeriesTable:
         """
         return self._df.to_dict(as_series=False)
 
-    def to_numpy(self) -> "dict[str, np.ndarray]":
+    def to_numpy(self) -> dict[str, np.ndarray]:
         """Return the table as a dictionary of NumPy arrays.
 
         Each column maps to a 1-D ``numpy.ndarray``. Timestamp columns become
@@ -624,7 +621,7 @@ class TimeSeriesTable:
             ) from e
         return {col: self._df[col].to_numpy(allow_copy=True) for col in self._df.columns}
 
-    def to_pyarrow(self) -> "pa.Table":
+    def to_pyarrow(self) -> pa.Table:
         """Return the table as a ``pyarrow.Table``.
 
         All timestamp columns are Arrow ``timestamp[us, UTC]``.
@@ -639,7 +636,7 @@ class TimeSeriesTable:
             ) from e
         return self._df.to_arrow()
 
-    def coverage_bar(self) -> "CoverageBar":
+    def coverage_bar(self) -> CoverageBar:
         """Return a :class:`~timedatamodel.CoverageBar` showing coverage per column.
 
         One bar row per value column. ``True`` = value present, ``False`` = null/missing.
@@ -654,7 +651,7 @@ class TimeSeriesTable:
         end = self._df["valid_time"][-1] if len(self._df) > 0 else None
         return CoverageBar(masks, begin, end)
 
-    def validate_for_insert(self) -> "tuple[pl.DataFrame, DataShape]":
+    def validate_for_insert(self) -> tuple[pl.DataFrame, DataShape]:
         """Return ``(pl.DataFrame, DataShape.SIMPLE)`` for database write paths."""
         return self._df, DataShape.SIMPLE
 

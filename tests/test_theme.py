@@ -3,7 +3,6 @@ from __future__ import annotations
 import warnings
 
 import pytest
-
 from timedatamodel._repr import _get_repr_css
 from timedatamodel._theme import (
     _DEFAULT_THEME,

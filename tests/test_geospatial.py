@@ -1,7 +1,5 @@
-from datetime import datetime
 
 import pytest
-
 import timedatamodel as tdm
 
 # ---- GeoLocation methods --------------------------------------------------

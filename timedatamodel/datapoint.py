@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from datetime import datetime
-from typing import Iterator
 
 from ._repr import _datapoint_repr, _datapoint_repr_html, _fmt_value
 
