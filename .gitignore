@@ -23,6 +23,10 @@ venv/
 env/
 ENV/
 
+# --- uv ---
+# Workspace lock lives at backend/uv.lock — per-lib locks are not used.
+uv.lock
+
 # --- Testing / coverage / type-checking caches ---
 .pytest_cache/
 .ruff_cache/
