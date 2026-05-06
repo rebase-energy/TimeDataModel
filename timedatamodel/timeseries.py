@@ -46,7 +46,6 @@ import polars as pl
 from ._repr import _TimeSeriesReprMixin
 from .datashape import _REQUIRED_COLUMNS, _TIME_COLS, DataShape  # noqa: F401
 from .enums import DataType, Frequency, TimeSeriesType
-from .timeseriesdescriptor import TimeSeriesDescriptor
 from .units import _get_registry as _get_pint_registry
 
 _TS_DTYPE = pl.Datetime("us", time_zone="UTC")
@@ -73,15 +72,23 @@ def _normalize_time_cols(df: pl.DataFrame) -> pl.DataFrame:
 # TimeSeries
 # ---------------------------------------------------------------------------
 
+
 class TimeSeries(_TimeSeriesReprMixin):
     """Polars-backed container for time series data with rich metadata.
+
+    The underlying ``df`` is optional. Construct with ``df=None`` to declare
+    a series structure (name, unit, data type, …) before any data exists —
+    useful for registering series in a catalog. Methods that need data
+    (converters, ``head``/``tail``, ``convert_unit``, …) raise
+    :class:`ValueError` when no df is attached. Use :attr:`has_df` to check.
 
     Parameters
     ----------
     df:
         A ``polars.DataFrame`` whose columns conform to one of the recognised
-        :class:`~timedatamodel.datashape.DataShape` patterns.  All
-        timestamp columns must use ``pl.Datetime("us", time_zone="UTC")``.
+        :class:`~timedatamodel.datashape.DataShape` patterns, or ``None`` for
+        a metadata-only instance. All timestamp columns must use
+        ``pl.Datetime("us", time_zone="UTC")``.
     name:
         Series name (e.g. ``"wind_power"``, ``"electricity.supply"``).
     description:
@@ -101,7 +108,7 @@ class TimeSeries(_TimeSeriesReprMixin):
 
     def __init__(
         self,
-        df: pl.DataFrame,
+        df: pl.DataFrame | None = None,
         *,
         name: str,
         description: str | None = None,
@@ -111,14 +118,16 @@ class TimeSeries(_TimeSeriesReprMixin):
         data_type: DataType | None = None,
         timeseries_type: TimeSeriesType = TimeSeriesType.FLAT,
     ) -> None:
-        if not isinstance(df, pl.DataFrame):
-            raise TypeError(f"df must be a polars.DataFrame, got {type(df)!r}")
-
-        shape = _infer_shape(df)
-        _validate_table(df, shape)
-
-        self._df: pl.DataFrame = df
-        self._shape: DataShape = shape
+        if df is None:
+            self._df: pl.DataFrame | None = None
+            self._shape: DataShape | None = None
+        else:
+            if not isinstance(df, pl.DataFrame):
+                raise TypeError(f"df must be a polars.DataFrame or None, got {type(df)!r}")
+            shape = _infer_shape(df)
+            _validate_table(df, shape)
+            self._df = df
+            self._shape = shape
 
         self.name: str = name
         self.description: str | None = description
@@ -129,74 +138,65 @@ class TimeSeries(_TimeSeriesReprMixin):
         self.timeseries_type: TimeSeriesType = timeseries_type
 
     # ------------------------------------------------------------------
-    # Descriptor conversion
-    # ------------------------------------------------------------------
-
-    def to_descriptor(self) -> TimeSeriesDescriptor:
-        """Extract metadata as a :class:`TimeSeriesDescriptor` (no data)."""
-        return TimeSeriesDescriptor(
-            name=self.name,
-            unit=self.unit,
-            data_type=self.data_type,
-            timeseries_type=self.timeseries_type,
-            frequency=self.frequency,
-            timezone=self.timezone,
-            description=self.description,
-        )
-
-    @classmethod
-    def from_descriptor(
-        cls,
-        descriptor: TimeSeriesDescriptor,
-        df: pl.DataFrame,
-    ) -> TimeSeries:
-        """Create a :class:`TimeSeries` from a descriptor and a DataFrame.
-
-        Note that :class:`TimeSeriesDescriptor` does not encode
-        :class:`~timedatamodel.datashape.DataShape` — the shape is inferred
-        from *df* at construction time.  A single descriptor can therefore be
-        paired with DataFrames of any supported shape (SIMPLE, VERSIONED,
-        CORRECTED, AUDIT).
-        """
-        return cls(
-            df,
-            name=descriptor.name,
-            unit=descriptor.unit,
-            data_type=descriptor.data_type,
-            timeseries_type=descriptor.timeseries_type,
-            description=descriptor.description,
-            frequency=descriptor.frequency,
-            timezone=descriptor.timezone,
-        )
-
-    # ------------------------------------------------------------------
     # Properties
     # ------------------------------------------------------------------
 
     @property
-    def shape(self) -> DataShape:
-        """Which temporal columns are present (inferred from the DataFrame)."""
+    def shape(self) -> DataShape | None:
+        """Which temporal columns are present (inferred from the DataFrame).
+
+        ``None`` for metadata-only instances.
+        """
         return self._shape
 
     @property
     def num_rows(self) -> int:
-        """Number of data rows."""
-        return self._df.height
+        """Number of data rows. ``0`` for metadata-only instances."""
+        return self._df.height if self._df is not None else 0
 
     @property
     def columns(self) -> list[str]:
-        """Column names present in the underlying Polars DataFrame."""
-        return self._df.columns
+        """Column names present in the underlying Polars DataFrame.
+
+        Empty list for metadata-only instances.
+        """
+        return self._df.columns if self._df is not None else []
 
     @property
-    def df(self) -> pl.DataFrame:
-        """The underlying ``polars.DataFrame`` (read-only by convention)."""
+    def df(self) -> pl.DataFrame | None:
+        """The underlying ``polars.DataFrame`` (read-only by convention).
+
+        ``None`` for metadata-only instances.
+        """
         return self._df
 
     @property
+    def has_df(self) -> bool:
+        """True when a DataFrame is attached."""
+        return self._df is not None
+
+    @property
     def has_missing(self) -> bool:
-        """True if the ``value`` column contains any null values."""
+        """True if the ``value`` column contains any null values.
+
+        ``False`` for metadata-only instances.
+        """
+        if self._df is None:
+            return False
         return self._df["value"].is_null().any()
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _require_df(self) -> pl.DataFrame:
+        """Return the attached DataFrame or raise if none.
+
+        Used by methods that cannot operate on a metadata-only instance.
+        """
+        if self._df is None:
+            raise ValueError(f"TimeSeries {self.name!r} has no data attached (df=None)")
+        return self._df
 
     # ------------------------------------------------------------------
     # Constructors
@@ -283,9 +283,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         try:
             import numpy as np  # noqa: F401
         except ImportError as e:
-            raise ImportError(
-                "numpy is required for from_numpy(). Install with: pip install numpy"
-            ) from e
+            raise ImportError("numpy is required for from_numpy(). Install with: pip install numpy") from e
         return cls(
             _normalize_time_cols(pl.DataFrame(data)),
             name=name,
@@ -320,9 +318,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         try:
             import pyarrow as pa  # noqa: F401
         except ImportError as e:
-            raise ImportError(
-                "pyarrow is required for from_pyarrow(). Install with: pip install pyarrow"
-            ) from e
+            raise ImportError("pyarrow is required for from_pyarrow(). Install with: pip install pyarrow") from e
         return cls(
             pl.from_arrow(table),
             name=name,
@@ -401,12 +397,14 @@ class TimeSeries(_TimeSeriesReprMixin):
             If :attr:`shape` is :attr:`DataShape.AUDIT` or
             :attr:`DataShape.CORRECTED`.
         """
+        df = self._require_df()
         if self._shape in (DataShape.AUDIT, DataShape.CORRECTED):
             raise ValueError(
                 f"TimeSeries with shape {self._shape.value} cannot be inserted. "
                 f"Only SIMPLE and VERSIONED shapes are supported for insert."
             )
-        return self._df, self._shape
+        assert self._shape is not None  # df present implies shape present
+        return df, self._shape
 
     def to_pandas(self) -> pd.DataFrame:
         """Convert to a ``pandas.DataFrame``.
@@ -418,7 +416,7 @@ class TimeSeries(_TimeSeriesReprMixin):
         * ``AUDIT``     — ``(knowledge_time, change_time, valid_time)`` MultiIndex.
         * ``CORRECTED`` — ``(valid_time, change_time)`` MultiIndex.
         """
-        df = self._df.to_pandas()
+        df = self._require_df().to_pandas()
 
         # Polars converts Datetime("us", tz="UTC") to pandas datetime64[us, UTC]
         # which is exactly what we want.
@@ -435,7 +433,7 @@ class TimeSeries(_TimeSeriesReprMixin):
 
     def to_polars(self) -> pl.DataFrame:
         """Return the underlying ``polars.DataFrame``."""
-        return self._df
+        return self._require_df()
 
     def to_list(self) -> dict:
         """Return the series as a column-oriented dict of lists.
@@ -448,7 +446,7 @@ class TimeSeries(_TimeSeriesReprMixin):
 
             {"valid_time": [datetime(...), ...], "value": [1.0, None, 3.0, ...]}
         """
-        return self._df.to_dict(as_series=False)
+        return self._require_df().to_dict(as_series=False)
 
     def to_numpy(self) -> dict[str, np.ndarray]:
         """Return the series as a dictionary of NumPy arrays.
@@ -461,10 +459,9 @@ class TimeSeries(_TimeSeriesReprMixin):
         try:
             import numpy as np  # noqa: F401
         except ImportError as e:
-            raise ImportError(
-                "numpy is required for to_numpy(). Install it with: pip install numpy"
-            ) from e
-        return {col: self._df[col].to_numpy(allow_copy=True) for col in self._df.columns}
+            raise ImportError("numpy is required for to_numpy(). Install it with: pip install numpy") from e
+        df = self._require_df()
+        return {col: df[col].to_numpy(allow_copy=True) for col in df.columns}
 
     def to_pyarrow(self) -> pa.Table:
         """Return the series as a ``pyarrow.Table``.
@@ -476,10 +473,8 @@ class TimeSeries(_TimeSeriesReprMixin):
         try:
             import pyarrow  # noqa: F401
         except ImportError as e:
-            raise ImportError(
-                "pyarrow is required for to_pyarrow(). Install it with: pip install pyarrow"
-            ) from e
-        return self._df.to_arrow()
+            raise ImportError("pyarrow is required for to_pyarrow(). Install it with: pip install pyarrow") from e
+        return self._require_df().to_arrow()
 
     def coverage_bar(self) -> CoverageBar:
         """Return a :class:`~timedatamodel.CoverageBar` showing value coverage.
@@ -488,9 +483,11 @@ class TimeSeries(_TimeSeriesReprMixin):
         In Jupyter the coverage bar renders as an SVG.
         """
         from ._repr import CoverageBar
-        mask = self._df["value"].is_not_null().to_list()
-        begin = self._df["valid_time"][0] if self.num_rows > 0 else None
-        end = self._df["valid_time"][-1] if self.num_rows > 0 else None
+
+        df = self._require_df()
+        mask = df["value"].is_not_null().to_list()
+        begin = df["valid_time"][0] if self.num_rows > 0 else None
+        end = df["valid_time"][-1] if self.num_rows > 0 else None
         return CoverageBar([(self.name, mask)], begin, end)
 
     # ------------------------------------------------------------------
@@ -499,11 +496,11 @@ class TimeSeries(_TimeSeriesReprMixin):
 
     def head(self, n: int = 5) -> TimeSeries:
         """Return the first *n* rows as a new :class:`TimeSeries`."""
-        return self._clone(self._df.head(n))
+        return self._clone(self._require_df().head(n))
 
     def tail(self, n: int = 5) -> TimeSeries:
         """Return the last *n* rows as a new :class:`TimeSeries`."""
-        return self._clone(self._df.tail(n))
+        return self._clone(self._require_df().tail(n))
 
     # ------------------------------------------------------------------
     # Unit conversion
@@ -535,17 +532,18 @@ class TimeSeries(_TimeSeriesReprMixin):
                 "Install it with: pip install timedatamodel[pint]"
             ) from exc
         factor = float(ureg.Quantity(1.0, self.unit).to(target_unit).magnitude)
-        new_df = self._df.with_columns(pl.col("value") * factor)
+        new_df = self._require_df().with_columns(pl.col("value") * factor)
         return self._clone(new_df, unit=target_unit)
 
     # ------------------------------------------------------------------
     # Internal clone helper
     # ------------------------------------------------------------------
 
-    def _clone(self, new_df: pl.DataFrame, **overrides) -> TimeSeries:
+    def _clone(self, new_df: pl.DataFrame | None = None, **overrides) -> TimeSeries:
         """Create a new :class:`TimeSeries` with *new_df* and the same metadata.
 
         Any keyword in *overrides* replaces the corresponding metadata field.
+        Pass ``new_df=None`` to clone as a metadata-only instance.
         """
         return TimeSeries(
             new_df,
@@ -565,15 +563,15 @@ class TimeSeries(_TimeSeriesReprMixin):
     def metadata_dict(self) -> dict:
         """Return all metadata fields as a plain dict."""
         return {
-            "name":          self.name,
-            "description":     self.description,
-            "unit":            self.unit,
-            "timezone":        self.timezone,
-            "frequency":       self.frequency,
-            "data_type":       self.data_type.value if self.data_type else None,
+            "name": self.name,
+            "description": self.description,
+            "unit": self.unit,
+            "timezone": self.timezone,
+            "frequency": self.frequency,
+            "data_type": self.data_type.value if self.data_type else None,
             "timeseries_type": self.timeseries_type.value,
-            "shape":           self._shape.value,
-            "num_rows":        self.num_rows,
+            "shape": self._shape.value if self._shape is not None else None,
+            "num_rows": self.num_rows,
         }
 
     # ------------------------------------------------------------------
@@ -581,7 +579,7 @@ class TimeSeries(_TimeSeriesReprMixin):
     # ------------------------------------------------------------------
 
     def __len__(self) -> int:
-        return self._df.height
+        return self._df.height if self._df is not None else 0
 
 
 # ---------------------------------------------------------------------------
@@ -639,11 +637,7 @@ def _ingest_pandas_to_polars(df: pd.DataFrame) -> pl.DataFrame:
     # ── 3. Convert to Polars and cast timestamp columns ─────────────────────
     polars_df = pl.from_pandas(df)
 
-    cast_exprs = [
-        pl.col(c).cast(_TS_DTYPE)
-        for c in _TIME_COLS
-        if c in polars_df.columns
-    ]
+    cast_exprs = [pl.col(c).cast(_TS_DTYPE) for c in _TIME_COLS if c in polars_df.columns]
     if cast_exprs:
         polars_df = polars_df.with_columns(cast_exprs)
 
@@ -670,9 +664,7 @@ def _validate_table(df: pl.DataFrame, shape: DataShape) -> None:
     required = _REQUIRED_COLUMNS[shape]
     missing = [c for c in required if c not in names]
     if missing:
-        raise ValueError(
-            f"DataFrame is missing required columns for shape {shape.value}: {missing}"
-        )
+        raise ValueError(f"DataFrame is missing required columns for shape {shape.value}: {missing}")
 
     # Check timestamp columns have the right dtype
     for col in _TIME_COLS:
@@ -680,16 +672,8 @@ def _validate_table(df: pl.DataFrame, shape: DataShape) -> None:
             continue
         dtype = df[col].dtype
         if not isinstance(dtype, pl.Datetime):
-            raise TypeError(
-                f"Column '{col}' must be a Polars Datetime type, got {dtype!r}"
-            )
+            raise TypeError(f"Column '{col}' must be a Polars Datetime type, got {dtype!r}")
         if dtype.time_zone is None:
-            raise TypeError(
-                f"Column '{col}' must be timezone-aware with time_zone='UTC', "
-                f"got time_zone=None"
-            )
+            raise TypeError(f"Column '{col}' must be timezone-aware with time_zone='UTC', got time_zone=None")
         if dtype.time_zone != "UTC":
-            raise TypeError(
-                f"Column '{col}' must have time_zone='UTC', "
-                f"got time_zone={dtype.time_zone!r}"
-            )
+            raise TypeError(f"Column '{col}' must have time_zone='UTC', got time_zone={dtype.time_zone!r}")

@@ -1,4 +1,3 @@
-
 import pytest
 import timedatamodel as tdm
 
@@ -91,9 +90,14 @@ class TestGeoLocationOffset:
 class TestGeoLocationIsWithin:
     @pytest.fixture
     def square_area(self):
-        return tdm.GeoArea.from_coordinates([
-            (59.0, 9.0), (59.0, 12.0), (61.0, 12.0), (61.0, 9.0),
-        ])
+        return tdm.GeoArea.from_coordinates(
+            [
+                (59.0, 9.0),
+                (59.0, 12.0),
+                (61.0, 12.0),
+                (61.0, 9.0),
+            ]
+        )
 
     def test_inside(self, square_area):
         loc = tdm.GeoLocation(latitude=60.0, longitude=10.0)
@@ -110,15 +114,25 @@ class TestGeoLocationIsWithin:
 class TestGeoAreaContains:
     @pytest.fixture
     def large_area(self):
-        return tdm.GeoArea.from_coordinates([
-            (58.0, 4.0), (58.0, 12.0), (62.0, 12.0), (62.0, 4.0),
-        ])
+        return tdm.GeoArea.from_coordinates(
+            [
+                (58.0, 4.0),
+                (58.0, 12.0),
+                (62.0, 12.0),
+                (62.0, 4.0),
+            ]
+        )
 
     @pytest.fixture
     def small_area(self):
-        return tdm.GeoArea.from_coordinates([
-            (59.0, 5.0), (59.0, 6.0), (60.0, 6.0), (60.0, 5.0),
-        ])
+        return tdm.GeoArea.from_coordinates(
+            [
+                (59.0, 5.0),
+                (59.0, 6.0),
+                (60.0, 6.0),
+                (60.0, 5.0),
+            ]
+        )
 
     def test_contains_point(self, large_area):
         loc = tdm.GeoLocation(latitude=60.0, longitude=8.0)
@@ -137,34 +151,59 @@ class TestGeoAreaContains:
         assert small_area.overlaps(large_area) is True
 
     def test_no_overlap(self, large_area):
-        far = tdm.GeoArea.from_coordinates([
-            (0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0),
-        ])
+        far = tdm.GeoArea.from_coordinates(
+            [
+                (0.0, 0.0),
+                (0.0, 1.0),
+                (1.0, 1.0),
+                (1.0, 0.0),
+            ]
+        )
         assert large_area.overlaps(far) is False
 
 
 class TestGeoAreaDistance:
     def test_contained_point(self):
-        area = tdm.GeoArea.from_coordinates([
-            (59.0, 9.0), (59.0, 12.0), (61.0, 12.0), (61.0, 9.0),
-        ])
+        area = tdm.GeoArea.from_coordinates(
+            [
+                (59.0, 9.0),
+                (59.0, 12.0),
+                (61.0, 12.0),
+                (61.0, 9.0),
+            ]
+        )
         loc = tdm.GeoLocation(latitude=60.0, longitude=10.0)
         assert area.distance_to(loc) == 0.0
 
     def test_outside_point(self):
-        area = tdm.GeoArea.from_coordinates([
-            (59.0, 9.0), (59.0, 12.0), (61.0, 12.0), (61.0, 9.0),
-        ])
+        area = tdm.GeoArea.from_coordinates(
+            [
+                (59.0, 9.0),
+                (59.0, 12.0),
+                (61.0, 12.0),
+                (61.0, 9.0),
+            ]
+        )
         loc = tdm.GeoLocation(latitude=70.0, longitude=10.0)
         assert area.distance_to(loc) > 0.0
 
     def test_overlapping_areas(self):
-        a = tdm.GeoArea.from_coordinates([
-            (59.0, 9.0), (59.0, 12.0), (61.0, 12.0), (61.0, 9.0),
-        ])
-        b = tdm.GeoArea.from_coordinates([
-            (60.0, 10.0), (60.0, 13.0), (62.0, 13.0), (62.0, 10.0),
-        ])
+        a = tdm.GeoArea.from_coordinates(
+            [
+                (59.0, 9.0),
+                (59.0, 12.0),
+                (61.0, 12.0),
+                (61.0, 9.0),
+            ]
+        )
+        b = tdm.GeoArea.from_coordinates(
+            [
+                (60.0, 10.0),
+                (60.0, 13.0),
+                (62.0, 13.0),
+                (62.0, 10.0),
+            ]
+        )
         assert a.distance_to(b) == 0.0
 
 
@@ -183,4 +222,3 @@ class TestGeoAreaBoundingBox:
         c = bbox.centroid
         assert abs(c.latitude - center.latitude) < 0.5
         assert abs(c.longitude - center.longitude) < 0.5
-

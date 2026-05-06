@@ -9,8 +9,18 @@ class TestFrequency:
 
     def test_all_values(self):
         expected = {
-            "P1Y", "P3M", "P1M", "P1W", "P1D",
-            "PT1H", "PT30M", "PT15M", "PT10M", "PT5M", "PT1M", "PT1S",
+            "P1Y",
+            "P3M",
+            "P1M",
+            "P1W",
+            "P1D",
+            "PT1H",
+            "PT30M",
+            "PT15M",
+            "PT10M",
+            "PT5M",
+            "PT1M",
+            "PT1S",
             "NONE",
         }
         assert {f.value for f in tdm.Frequency} == expected
@@ -27,10 +37,20 @@ class TestDataType:
 
     def test_all_values(self):
         expected = {
-            "ACTUAL", "OBSERVATION", "DERIVED",
-            "CALCULATED", "ESTIMATION", "FORECAST", "PREDICTION",
-            "SCENARIO", "SIMULATION", "RECONSTRUCTION",
-            "REFERENCE", "BASELINE", "BENCHMARK", "IDEAL",
+            "ACTUAL",
+            "OBSERVATION",
+            "DERIVED",
+            "CALCULATED",
+            "ESTIMATION",
+            "FORECAST",
+            "PREDICTION",
+            "SCENARIO",
+            "SIMULATION",
+            "RECONSTRUCTION",
+            "REFERENCE",
+            "BASELINE",
+            "BENCHMARK",
+            "IDEAL",
         }
         assert {dt.value for dt in tdm.DataType} == expected
 

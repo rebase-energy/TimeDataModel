@@ -81,10 +81,10 @@ def _fmt_tz_with_offset(tz_str: str, timestamps: list) -> str:
         first = timestamps[0]
         if isinstance(first, tuple):
             first = first[0]
-        if hasattr(first, 'utcoffset') and first.utcoffset() is not None:
+        if hasattr(first, "utcoffset") and first.utcoffset() is not None:
             offset = first.utcoffset()
             total_seconds = int(offset.total_seconds())
-            sign = '+' if total_seconds >= 0 else '-'
+            sign = "+" if total_seconds >= 0 else "-"
             hours, remainder = divmod(abs(total_seconds), 3600)
             minutes = remainder // 60
             return f"{tz_str} ({sign}{hours:02d}:{minutes:02d})"
@@ -194,9 +194,7 @@ class CoverageBar:
                 color = lt["coverage_present"] if b else lt["coverage_absent"]
                 x = label_w + i * seg_w
                 parts.append(
-                    f'<rect x="{x:.1f}" y="{y + 2}" '
-                    f'width="{seg_w:.2f}" height="{row_h - 4}" '
-                    f'fill="{color}" />'
+                    f'<rect x="{x:.1f}" y="{y + 2}" width="{seg_w:.2f}" height="{row_h - 4}" fill="{color}" />'
                 )
 
         date_y = n_rows * row_h + date_h
@@ -204,13 +202,13 @@ class CoverageBar:
             parts.append(
                 f'<text x="{label_w}" y="{date_y}" '
                 f'text-anchor="start" fill="{lt["coverage_date"]}">'
-                f'{escape(_fmt_short_date(self._begin))}</text>'
+                f"{escape(_fmt_short_date(self._begin))}</text>"
             )
         if self._end:
             parts.append(
                 f'<text x="{label_w + bar_w}" y="{date_y}" '
                 f'text-anchor="end" fill="{lt["coverage_date"]}">'
-                f'{escape(_fmt_short_date(self._end))}</text>'
+                f"{escape(_fmt_short_date(self._end))}</text>"
             )
         parts.append("</svg>")
         return "\n".join(parts)
@@ -313,27 +311,17 @@ def _build_repr_html(
     html.append(f"<tr>{header_cells}</tr>")
 
     if n_rows == 0:
-        html.append(
-            f'<tr><td colspan="{total_cols}" class="ts-ellipsis">'
-            f"(empty)</td></tr>"
-        )
+        html.append(f'<tr><td colspan="{total_cols}" class="ts-ellipsis">(empty)</td></tr>')
     else:
         show_all = n_rows <= max_preview * 2 + 1
         head_rows = range(min(max_preview, n_rows))
-        tail_rows = (
-            range(max(n_rows - max_preview, max_preview), n_rows)
-            if not show_all
-            else range(0)
-        )
+        tail_rows = range(max(n_rows - max_preview, max_preview), n_rows) if not show_all else range(0)
 
         for i in head_rows:
             html.append(html_row_fn(i))
 
         if not show_all:
-            ellipsis_cells = "".join(
-                '<td class="ts-ellipsis">&hellip;</td>'
-                for _ in range(total_cols)
-            )
+            ellipsis_cells = "".join('<td class="ts-ellipsis">&hellip;</td>' for _ in range(total_cols))
             html.append(f"<tr>{ellipsis_cells}</tr>")
             for i in tail_rows:
                 html.append(html_row_fn(i))
@@ -379,9 +367,7 @@ def _render_box(
         else:
             if max_width is not None and len(cl) > max_w:
                 cl = _truncate(cl, max_w)
-            lines.append(
-                "\u2502" + " " * padding + cl.ljust(max_w) + " " * padding + "\u2502"
-            )
+            lines.append("\u2502" + " " * padding + cl.ljust(max_w) + " " * padding + "\u2502")
     lines.append(bot)
     return "\n".join(lines)
 
@@ -432,10 +418,10 @@ def _datapoint_repr_html(self) -> str:
 
 #: Maps DataShape.value → ordered index column names for that shape.
 _SHAPE_INDEX_COLS: dict[str, tuple[str, ...]] = {
-    "SIMPLE":    ("valid_time",),
+    "SIMPLE": ("valid_time",),
     "VERSIONED": ("knowledge_time", "valid_time"),
     "CORRECTED": ("valid_time", "change_time"),
-    "AUDIT":     ("knowledge_time", "change_time", "valid_time"),
+    "AUDIT": ("knowledge_time", "change_time", "valid_time"),
 }
 
 
@@ -450,11 +436,10 @@ class _TimeSeriesReprMixin:
     __slots__ = ()
 
     def _repr_meta_pairs(self) -> list[tuple[str, str]]:
-        pairs: list[tuple[str, str]] = [
-            ("Name", self.name),
-            ("Shape",  self.shape.value),
-            ("Rows",   str(self.num_rows)),
-        ]
+        pairs: list[tuple[str, str]] = [("Name", self.name)]
+        if self.shape is not None:
+            pairs.append(("Shape", self.shape.value))
+            pairs.append(("Rows", str(self.num_rows)))
         if self.frequency:
             pairs.append(("Frequency", str(self.frequency)))
         pairs.append(("Timezone", self.timezone))
@@ -470,19 +455,21 @@ class _TimeSeriesReprMixin:
 
     def _repr_data_rows(self, indices: list[int]) -> list[list[str]]:
         """Return one [timestamp_str, value_str] row per index, reading from Polars."""
+        assert self.shape is not None  # caller guards against metadata-only
         idx_cols = _SHAPE_INDEX_COLS[self.shape.value]
         rows: list[list[str]] = []
         for i in indices:
-            ts_parts = [
-                _fmt_short_date(self._df[col][i])
-                for col in idx_cols
-            ]
+            ts_parts = [_fmt_short_date(self._df[col][i]) for col in idx_cols]
             val = self._df["value"][i]
             rows.append([", ".join(ts_parts), _fmt_value(val)])
         return rows
 
     def __repr__(self) -> str:
         meta_lines = _format_meta_lines(self._repr_meta_pairs())
+
+        if self.shape is None:
+            return _render_box("TimeSeries", list(meta_lines))
+
         n = self.num_rows
         col_names = [self.name]
 
@@ -542,14 +529,21 @@ class _TimeSeriesReprMixin:
         return _render_box("TimeSeries", content_lines)
 
     def _repr_html_(self) -> str:
+        if self.shape is None:
+            html = [_get_repr_css(), '<div class="ts-repr">']
+            html.append('<div class="ts-header">TimeSeries</div>')
+            html.append('<div class="ts-meta"><table>')
+            for label, value in self._repr_meta_pairs():
+                html.append(f"<tr><td>{escape(label)}</td><td>{escape(value)}</td></tr>")
+            html.append("</table></div>")
+            html.append("</div>")
+            return "\n".join(html)
+
         idx_cols = _SHAPE_INDEX_COLS[self.shape.value]
         col_names = (self.name,)
 
         def _html_row(i: int) -> str:
-            idx_cells = "".join(
-                f"<td>{escape(_fmt_short_date(self._df[col][i]))}</td>"
-                for col in idx_cols
-            )
+            idx_cells = "".join(f"<td>{escape(_fmt_short_date(self._df[col][i]))}</td>" for col in idx_cols)
             val = self._df["value"][i]
             return f"<tr>{idx_cells}<td>{escape(_fmt_value(val))}</td></tr>"
 
@@ -561,4 +555,3 @@ class _TimeSeriesReprMixin:
             n_rows=self.num_rows,
             html_row_fn=_html_row,
         )
-

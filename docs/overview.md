@@ -1,9 +1,10 @@
 # Overview
 
 **TimeDataModel** is a lightweight Python library for working with time series data. It provides
-a metadata-rich container and a matching pure-metadata descriptor — backed by
-[Polars](https://pola.rs) internally, and fully interoperable with pandas, NumPy, Polars, and
-PyArrow — together with enums and geographic types for annotating your data.
+a metadata-rich container whose underlying DataFrame is optional — the same `TimeSeries` class
+covers both data-bearing series and metadata-only declarations. Backed by [Polars](https://pola.rs)
+internally and fully interoperable with pandas, NumPy, Polars, and PyArrow — together with enums
+and geographic types for annotating your data.
 
 The library is designed for energy, weather, and forecasting workflows where data arrives from
 many sources at different times — but it is general enough for any domain that works with
@@ -51,36 +52,36 @@ Supported metadata fields: `name`, `unit`, `data_type`, `timeseries_type`, `freq
 
 ---
 
-### TimeSeriesDescriptor
+### Metadata-only TimeSeries
 
-A frozen, data-free companion to `TimeSeries`. It carries every metadata field a
-`TimeSeries` can have — `name`, `unit`, `data_type`, `timeseries_type`, `frequency`,
-`timezone`, `description` — but no DataFrame. Use it to register or catalog the
-*structure* of a series before any data exists, then materialize a full `TimeSeries`
-once a DataFrame is in hand.
+Construct a `TimeSeries` with `df=None` to declare the *structure* of a series before
+any data exists — useful for cataloging or registering series in advance. All metadata
+fields (`name`, `unit`, `data_type`, `timeseries_type`, `frequency`, `timezone`,
+`description`) are available; data-bearing methods (`to_pandas`, `head`, `convert_unit`,
+…) raise `ValueError`. Use `ts.has_df` to check.
 
 ```python
-from timedatamodel import TimeSeriesDescriptor, TimeSeries, DataType
+from timedatamodel import TimeSeries, DataType
 
-desc = TimeSeriesDescriptor(
+# Metadata-only — no DataFrame yet.
+ts = TimeSeries(
     name="wind_power",
     unit="MW",
     data_type=DataType.FORECAST,
 )
+assert ts.has_df is False
+assert ts.shape is None
 
-# Later, once data arrives:
-ts = TimeSeries.from_descriptor(desc, df)
-
-# And back again, without the DataFrame:
-desc_again = ts.to_descriptor()
+# Later, once data arrives, build a fresh data-bearing instance.
+ts_with_data = TimeSeries(df, name=ts.name, unit=ts.unit, data_type=ts.data_type)
 ```
 
-`DataShape` is **not** encoded in the descriptor — it is inferred from the DataFrame at
-`from_descriptor` time, so a single descriptor can be paired with any supported shape.
+`DataShape` is inferred from the DataFrame at construction time; metadata-only
+instances have `shape is None`.
 
-The descriptor is metadata-only. Identity-shaped concepts (labels, tags) and spatial
-context (locations) belong to consumer layers (e.g. `energydatamodel`, `energydb`),
-not to time-series metadata itself.
+Identity-shaped concepts (labels, tags) and spatial context (locations) belong to
+consumer layers (e.g. `energydatamodel`, `energydb`), not to time-series metadata
+itself.
 
 ---
 

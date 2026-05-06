@@ -13,20 +13,18 @@ from enum import Enum
 class DataShape(str, Enum):
     """Which temporal columns are present in the underlying data store."""
 
-    SIMPLE     = "SIMPLE"     # valid_time + value
-    VERSIONED  = "VERSIONED"  # knowledge_time + valid_time + value
-    AUDIT      = "AUDIT"      # knowledge_time + change_time + valid_time + value
-    CORRECTED  = "CORRECTED"  # valid_time + change_time + value
+    SIMPLE = "SIMPLE"  # valid_time + value
+    VERSIONED = "VERSIONED"  # knowledge_time + valid_time + value
+    AUDIT = "AUDIT"  # knowledge_time + change_time + valid_time + value
+    CORRECTED = "CORRECTED"  # valid_time + change_time + value
 
 
 #: Required columns per shape.
 _REQUIRED_COLUMNS: dict[DataShape, list[str]] = {
-    DataShape.SIMPLE:     ["valid_time", "value"],
-    DataShape.VERSIONED:  ["knowledge_time", "valid_time", "value"],
-    DataShape.AUDIT:      ["knowledge_time", "change_time", "valid_time", "value"],
-    DataShape.CORRECTED:  ["valid_time", "change_time", "value"],
+    DataShape.SIMPLE: ["valid_time", "value"],
+    DataShape.VERSIONED: ["knowledge_time", "valid_time", "value"],
+    DataShape.AUDIT: ["knowledge_time", "change_time", "valid_time", "value"],
+    DataShape.CORRECTED: ["valid_time", "change_time", "value"],
 }
 
-_TIME_COLS: frozenset = frozenset(
-    {"valid_time", "valid_time_end", "knowledge_time", "change_time"}
-)
+_TIME_COLS: frozenset = frozenset({"valid_time", "valid_time_end", "knowledge_time", "change_time"})
