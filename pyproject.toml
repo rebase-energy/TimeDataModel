@@ -3,7 +3,7 @@ name = "timedatamodel"
 version = "0.2.1"
 description = "A lightweight data model for time series data with pandas, numpy, and polars support"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
   { name = "Rebase Energy", email = "sebastian@rebase.energy" }
@@ -15,7 +15,6 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering",
