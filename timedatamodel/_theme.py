@@ -25,9 +25,7 @@ with open(_THEME_PATH) as _f:
     _DEFAULT_THEME: dict[str, dict[str, str]] = json.load(_f)
 
 _VALID_MODES = frozenset(_DEFAULT_THEME.keys())
-_VALID_KEYS: dict[str, frozenset[str]] = {
-    mode: frozenset(keys) for mode, keys in _DEFAULT_THEME.items()
-}
+_VALID_KEYS: dict[str, frozenset[str]] = {mode: frozenset(keys) for mode, keys in _DEFAULT_THEME.items()}
 _HEX_RE = re.compile(r"^#[0-9a-fA-F]{3,8}$")
 
 # ---------------------------------------------------------------------------

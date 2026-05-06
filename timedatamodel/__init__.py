@@ -7,7 +7,6 @@ from .datashape import DataShape
 from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation, Location
 from .timeseries import TimeSeries
-from .timeseriesdescriptor import TimeSeriesDescriptor
 
 __version__ = version("timedatamodel")
 
@@ -21,7 +20,6 @@ __all__ = [
     "GeoLocation",
     "Location",
     "TimeSeries",
-    "TimeSeriesDescriptor",
     "TimeSeriesType",
     "get_repr_width",
     "get_theme",

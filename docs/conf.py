@@ -37,6 +37,7 @@ def _copy_notebooks(app) -> None:
 def setup(app) -> None:
     app.connect("builder-inited", _copy_notebooks)
 
+
 project = "timedatamodel"
 author = "Rebase Energy"
 release = tdm.__version__
@@ -64,15 +65,17 @@ autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 autodoc_default_options = {
     "undoc-members": False,
-    "exclude-members": ", ".join([
-        # repr internals
-        "_repr_html_",
-        "_repr_meta_lines",
-        "_repr_data_rows",
-        # TimeSeries internals
-        "_clone",
-        "_validate_table",
-    ]),
+    "exclude-members": ", ".join(
+        [
+            # repr internals
+            "_repr_html_",
+            "_repr_meta_lines",
+            "_repr_data_rows",
+            # TimeSeries internals
+            "_clone",
+            "_validate_table",
+        ]
+    ),
 }
 
 # -- sphinx-autodoc-typehints ------------------------------------------------

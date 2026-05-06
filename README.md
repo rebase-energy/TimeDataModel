@@ -27,8 +27,7 @@
 
 | Class | Description |
 | :---- | :---------- |
-| 📈&nbsp;`TimeSeries` | Univariate time series supporting four temporal shapes |
-| 📋&nbsp;`TimeSeriesDescriptor` | Frozen, data-free metadata descriptor — register a series structure before any data exists |
+| 📈&nbsp;`TimeSeries` | Univariate time series supporting four temporal shapes; the underlying DataFrame is optional, so the same class also serves as a metadata-only descriptor for catalog/registration use |
 | 🔷&nbsp;`DataShape` | Enum that selects which timestamp columns are present: `SIMPLE`, `VERSIONED`, `CORRECTED`, or `AUDIT` |
 | ⏱️&nbsp;`Frequency` | ISO 8601 duration-based frequencies (`PT1H`, `P1D`, `P1M`, …) |
 | 🏷️&nbsp;`DataType` | Hierarchical taxonomy: `ACTUAL` → `OBSERVATION`, `DERIVED`; `CALCULATED` → `FORECAST`, `SIMULATION`, … |
@@ -100,7 +99,7 @@ tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
 
 - 🔷 **Four data shapes** — from `SIMPLE` point-in-time to `AUDIT` full bi-temporal history;
 - 🏷️ **Metadata** — name, unit, frequency, timezone, data type, description on every series;
-- 📋 **Descriptor** — `TimeSeriesDescriptor` carries the same metadata without a DataFrame, for catalog/registration use;
+- 📋 **Metadata-only mode** — construct `TimeSeries(df=None, …)` to declare a series' structure before any data exists, for catalog/registration use;
 - 🔄 **Format conversions** — `to_pandas`, `to_polars`, `to_list`, `to_numpy`, `to_pyarrow` with lazy optional-dependency checks;
 - 📊 **Coverage bar** — `coverage_bar()` renders null coverage as a binned SVG in Jupyter or Unicode blocks in terminal;
 - 🗺️ **Geospatial primitives** — `GeoLocation` and `GeoArea` for use by consumer layers;

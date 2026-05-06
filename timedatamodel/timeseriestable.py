@@ -116,26 +116,12 @@ class TimeSeriesTable:
         if "valid_time" not in df.columns:
             raise ValueError("df must have a 'valid_time' column")
         vt_dtype = df["valid_time"].dtype
-        if (
-            not isinstance(vt_dtype, pl.Datetime)
-            or vt_dtype.time_zone is None
-            or vt_dtype.time_zone != "UTC"
-        ):
-            raise TypeError(
-                "valid_time must be pl.Datetime with timezone 'UTC', "
-                f"got {vt_dtype!r}"
-            )
+        if not isinstance(vt_dtype, pl.Datetime) or vt_dtype.time_zone is None or vt_dtype.time_zone != "UTC":
+            raise TypeError(f"valid_time must be pl.Datetime with timezone 'UTC', got {vt_dtype!r}")
         if "valid_time_end" in df.columns:
             vte_dtype = df["valid_time_end"].dtype
-            if (
-                not isinstance(vte_dtype, pl.Datetime)
-                or vte_dtype.time_zone is None
-                or vte_dtype.time_zone != "UTC"
-            ):
-                raise TypeError(
-                    "valid_time_end must be pl.Datetime with timezone 'UTC', "
-                    f"got {vte_dtype!r}"
-                )
+            if not isinstance(vte_dtype, pl.Datetime) or vte_dtype.time_zone is None or vte_dtype.time_zone != "UTC":
+                raise TypeError(f"valid_time_end must be pl.Datetime with timezone 'UTC', got {vte_dtype!r}")
 
         # Reject extra time-like columns that are not currently modeled as
         # dedicated time axes by TimeSeriesTable. If present, they would
@@ -159,9 +145,7 @@ class TimeSeriesTable:
         self._descriptions: list[str | None] = _broadcast_meta(descriptions, n, lambda: None)
         self._data_types: list[DataType | None] = _broadcast_meta(data_types, n, lambda: None)
         self._locations: list[GeoLocation | None] = _broadcast_meta(locations, n, lambda: None)
-        self._timeseries_types: list[TimeSeriesType] = _broadcast_meta(
-            timeseries_types, n, lambda: TimeSeriesType.FLAT
-        )
+        self._timeseries_types: list[TimeSeriesType] = _broadcast_meta(timeseries_types, n, lambda: TimeSeriesType.FLAT)
         self._labels: list[dict[str, str]] = _broadcast_meta(labels, n, dict)
 
     # ------------------------------------------------------------------
@@ -296,9 +280,7 @@ class TimeSeriesTable:
         try:
             import numpy as np  # noqa: F401
         except ImportError as e:
-            raise ImportError(
-                "numpy is required for from_numpy(). Install with: pip install numpy"
-            ) from e
+            raise ImportError("numpy is required for from_numpy(). Install with: pip install numpy") from e
         return cls(
             _normalize_time_cols(pl.DataFrame(data)),
             frequency=frequency,
@@ -335,9 +317,7 @@ class TimeSeriesTable:
         try:
             import pyarrow as pa  # noqa: F401
         except ImportError as e:
-            raise ImportError(
-                "pyarrow is required for from_pyarrow(). Install with: pip install pyarrow"
-            ) from e
+            raise ImportError("pyarrow is required for from_pyarrow(). Install with: pip install pyarrow") from e
         return cls(
             pl.from_arrow(table),
             frequency=frequency,
@@ -410,16 +390,19 @@ class TimeSeriesTable:
         if not series_list:
             raise ValueError("series_list must not be empty")
         for ts in series_list:
-            if ts.shape is not DataShape.SIMPLE:
+            if ts.df is None:
+                raise ValueError(f"from_timeseries requires data on every series; '{ts.name}' has df=None")
+            shape = ts.shape
+            if shape is not DataShape.SIMPLE:
+                shape_value = shape.value if shape is not None else None
                 raise ValueError(
-                    f"from_timeseries only accepts SIMPLE-shape TimeSeries, "
-                    f"got {ts.shape.value} for '{ts.name}'"
+                    f"from_timeseries only accepts SIMPLE-shape TimeSeries, got {shape_value} for '{ts.name}'"
                 )
 
         # Validate all series share identical timestamps
-        ref_times = series_list[0].df["valid_time"]
+        ref_times = series_list[0].to_polars()["valid_time"]
         for ts in series_list[1:]:
-            if not ts.df["valid_time"].equals(ref_times):
+            if not ts.to_polars()["valid_time"].equals(ref_times):
                 raise ValueError(
                     f"All series must have identical timestamps. "
                     f"Series '{ts.name}' has different valid_time values than "
@@ -430,12 +413,13 @@ class TimeSeriesTable:
         merged: pl.DataFrame | None = None
         for ts in series_list:
             col_name = ts.name or "value"
-            renamed = ts.df.rename({"value": col_name})
+            renamed = ts.to_polars().rename({"value": col_name})
             if merged is None:
                 merged = renamed
             else:
                 merged = merged.join(renamed, on="valid_time", how="full", coalesce=True)
 
+        assert merged is not None  # series_list is non-empty
         merged = merged.sort("valid_time")
 
         # Derive per-column metadata from individual TimeSeries if not overridden
@@ -451,9 +435,7 @@ class TimeSeriesTable:
             freqs = [ts.frequency for ts in series_list if ts.frequency is not None]
             frequency = freqs[0] if freqs else None
         if frequency is None:
-            raise ValueError(
-                "frequency could not be inferred from series; pass it explicitly"
-            )
+            raise ValueError("frequency could not be inferred from series; pass it explicitly")
 
         return cls(
             merged,
@@ -524,33 +506,23 @@ class TimeSeriesTable:
     # Spatial filtering
     # ------------------------------------------------------------------
 
-    def filter_columns_by_location(
-        self, center: GeoLocation, radius_km: float
-    ) -> TimeSeriesTable:
+    def filter_columns_by_location(self, center: GeoLocation, radius_km: float) -> TimeSeriesTable:
         """Keep only columns whose location is within *radius_km* of *center*."""
         keep = [
-            i for i, loc in enumerate(self._locations)
+            i
+            for i, loc in enumerate(self._locations)
             if isinstance(loc, GeoLocation) and loc.distance_to(center) <= radius_km
         ]
         return self._select_columns(keep)
 
     def filter_columns_by_area(self, area: GeoArea) -> TimeSeriesTable:
         """Keep only columns whose location falls inside *area*."""
-        keep = [
-            i for i, loc in enumerate(self._locations)
-            if isinstance(loc, GeoLocation) and loc.is_within(area)
-        ]
+        keep = [i for i, loc in enumerate(self._locations) if isinstance(loc, GeoLocation) and loc.is_within(area)]
         return self._select_columns(keep)
 
-    def nearest_columns(
-        self, target: GeoLocation, n: int = 1
-    ) -> TimeSeriesTable:
+    def nearest_columns(self, target: GeoLocation, n: int = 1) -> TimeSeriesTable:
         """Keep the *n* nearest columns to *target* by Haversine distance."""
-        dists = [
-            (loc.distance_to(target), i)
-            for i, loc in enumerate(self._locations)
-            if isinstance(loc, GeoLocation)
-        ]
+        dists = [(loc.distance_to(target), i) for i, loc in enumerate(self._locations) if isinstance(loc, GeoLocation)]
         dists.sort(key=lambda x: x[0])
         keep = [idx for _, idx in dists[:n]]
         return self._select_columns(keep)
@@ -616,9 +588,7 @@ class TimeSeriesTable:
         try:
             import numpy as np  # noqa: F401
         except ImportError as e:
-            raise ImportError(
-                "numpy is required for to_numpy(). Install it with: pip install numpy"
-            ) from e
+            raise ImportError("numpy is required for to_numpy(). Install it with: pip install numpy") from e
         return {col: self._df[col].to_numpy(allow_copy=True) for col in self._df.columns}
 
     def to_pyarrow(self) -> pa.Table:
@@ -631,9 +601,7 @@ class TimeSeriesTable:
         try:
             import pyarrow  # noqa: F401
         except ImportError as e:
-            raise ImportError(
-                "pyarrow is required for to_pyarrow(). Install it with: pip install pyarrow"
-            ) from e
+            raise ImportError("pyarrow is required for to_pyarrow(). Install it with: pip install pyarrow") from e
         return self._df.to_arrow()
 
     def coverage_bar(self) -> CoverageBar:
@@ -643,10 +611,8 @@ class TimeSeriesTable:
         In Jupyter the coverage bar renders as an SVG.
         """
         from ._repr import CoverageBar
-        masks = [
-            (col, self._df[col].is_not_null().to_list())
-            for col in self.column_names
-        ]
+
+        masks = [(col, self._df[col].is_not_null().to_list()) for col in self.column_names]
         begin = self._df["valid_time"][0] if len(self._df) > 0 else None
         end = self._df["valid_time"][-1] if len(self._df) > 0 else None
         return CoverageBar(masks, begin, end)
@@ -674,7 +640,9 @@ class TimeSeriesTable:
                     "location": {
                         "latitude": self._locations[i].latitude,
                         "longitude": self._locations[i].longitude,
-                    } if self._locations[i] else None,
+                    }
+                    if self._locations[i]
+                    else None,
                     "timeseries_type": self._timeseries_types[i].value,
                     "labels": self._labels[i],
                 }

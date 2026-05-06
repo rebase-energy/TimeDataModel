@@ -8,14 +8,6 @@
    :show-inheritance:
 ```
 
-## TimeSeriesDescriptor
-
-```{eval-rst}
-.. autoclass:: timedatamodel.TimeSeriesDescriptor
-   :members:
-   :show-inheritance:
-```
-
 ## DataShape
 
 ```{eval-rst}

@@ -24,10 +24,12 @@ def timestamps():
 
 @pytest.fixture
 def simple_df(timestamps):
-    return pd.DataFrame({
-        "valid_time": timestamps,
-        "value": [1.0, 2.0, 3.0, 4.0, 5.0],
-    })
+    return pd.DataFrame(
+        {
+            "valid_time": timestamps,
+            "value": [1.0, 2.0, 3.0, 4.0, 5.0],
+        }
+    )
 
 
 @pytest.fixture
@@ -37,10 +39,12 @@ def simple_ts(simple_df):
 
 @pytest.fixture
 def missing_df(timestamps):
-    return pd.DataFrame({
-        "valid_time": timestamps,
-        "value": [1.0, None, 3.0, None, 5.0],
-    })
+    return pd.DataFrame(
+        {
+            "valid_time": timestamps,
+            "value": [1.0, None, 3.0, None, 5.0],
+        }
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -67,20 +71,24 @@ class TestFromPandas:
         assert ts.shape is DataShape.SIMPLE
 
     def test_versioned_shape(self, timestamps):
-        df = pd.DataFrame({
-            "knowledge_time": timestamps,
-            "valid_time": timestamps,
-            "value": [1.0, 2.0, 3.0, 4.0, 5.0],
-        })
+        df = pd.DataFrame(
+            {
+                "knowledge_time": timestamps,
+                "valid_time": timestamps,
+                "value": [1.0, 2.0, 3.0, 4.0, 5.0],
+            }
+        )
         ts = TimeSeries.from_pandas(df, name="x")
         assert ts.shape is DataShape.VERSIONED
 
     def test_change_time_raises(self, timestamps):
-        df = pd.DataFrame({
-            "valid_time": timestamps,
-            "change_time": timestamps,
-            "value": [1.0, 2.0, 3.0, 4.0, 5.0],
-        })
+        df = pd.DataFrame(
+            {
+                "valid_time": timestamps,
+                "change_time": timestamps,
+                "value": [1.0, 2.0, 3.0, 4.0, 5.0],
+            }
+        )
         with pytest.raises(ValueError, match="change_time"):
             TimeSeries.from_pandas(df, name="x")
 
@@ -119,10 +127,12 @@ class TestFromPandas:
 
 class TestFromPolars:
     def test_basic(self, timestamps):
-        df = pl.DataFrame({
-            "valid_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
-            "value": [1.0, 2.0, 3.0, 4.0, 5.0],
-        })
+        df = pl.DataFrame(
+            {
+                "valid_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
+                "value": [1.0, 2.0, 3.0, 4.0, 5.0],
+            }
+        )
         ts = TimeSeries.from_polars(df, name="wind", unit="kW")
         assert ts.name == "wind"
         assert ts.shape is DataShape.SIMPLE
@@ -185,19 +195,19 @@ class TestToPandas:
         assert str(df.index.tz) == "UTC"
 
     def test_versioned_multiindex(self, timestamps):
-        df = pd.DataFrame({
-            "knowledge_time": timestamps,
-            "valid_time": timestamps,
-            "value": [1.0, 2.0, 3.0, 4.0, 5.0],
-        })
+        df = pd.DataFrame(
+            {
+                "knowledge_time": timestamps,
+                "valid_time": timestamps,
+                "value": [1.0, 2.0, 3.0, 4.0, 5.0],
+            }
+        )
         ts = TimeSeries.from_pandas(df, name="x")
         result = ts.to_pandas()
         assert result.index.names == ["knowledge_time", "valid_time"]
 
     def test_round_trip(self, simple_ts):
-        ts2 = TimeSeries.from_pandas(
-            simple_ts.to_pandas(), name=simple_ts.name, unit=simple_ts.unit
-        )
+        ts2 = TimeSeries.from_pandas(simple_ts.to_pandas(), name=simple_ts.name, unit=simple_ts.unit)
         assert ts2.num_rows == simple_ts.num_rows
 
 
@@ -272,32 +282,38 @@ class TestValidateForInsert:
         assert shape is DataShape.SIMPLE
 
     def test_versioned_allowed(self, timestamps):
-        df = pd.DataFrame({
-            "knowledge_time": timestamps,
-            "valid_time": timestamps,
-            "value": [1.0, 2.0, 3.0, 4.0, 5.0],
-        })
+        df = pd.DataFrame(
+            {
+                "knowledge_time": timestamps,
+                "valid_time": timestamps,
+                "value": [1.0, 2.0, 3.0, 4.0, 5.0],
+            }
+        )
         ts = TimeSeries.from_pandas(df, name="x")
         _, shape = ts.validate_for_insert()
         assert shape is DataShape.VERSIONED
 
     def test_corrected_raises(self, timestamps):
-        polars_df = pl.DataFrame({
-            "valid_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
-            "change_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
-            "value": [1.0, 2.0, 3.0, 4.0, 5.0],
-        })
+        polars_df = pl.DataFrame(
+            {
+                "valid_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
+                "change_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
+                "value": [1.0, 2.0, 3.0, 4.0, 5.0],
+            }
+        )
         ts = TimeSeries.from_polars(polars_df, name="x")
         with pytest.raises(ValueError, match="cannot be inserted"):
             ts.validate_for_insert()
 
     def test_audit_raises(self, timestamps):
-        polars_df = pl.DataFrame({
-            "knowledge_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
-            "change_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
-            "valid_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
-            "value": [1.0, 2.0, 3.0, 4.0, 5.0],
-        })
+        polars_df = pl.DataFrame(
+            {
+                "knowledge_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
+                "change_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
+                "valid_time": pl.Series(timestamps).cast(pl.Datetime("us", "UTC")),
+                "value": [1.0, 2.0, 3.0, 4.0, 5.0],
+            }
+        )
         ts = TimeSeries.from_polars(polars_df, name="x")
         with pytest.raises(ValueError, match="cannot be inserted"):
             ts.validate_for_insert()
@@ -352,6 +368,7 @@ class TestConversionMethods:
 
     def test_to_numpy(self, simple_ts):
         import numpy as np
+
         result = simple_ts.to_numpy()
         assert isinstance(result, dict)
         assert "value" in result
@@ -361,17 +378,21 @@ class TestConversionMethods:
 
     def test_to_numpy_missing_dep(self, simple_ts, monkeypatch):
         import builtins
+
         real_import = builtins.__import__
+
         def mock_import(name, *args, **kwargs):
             if name == "numpy":
                 raise ImportError
             return real_import(name, *args, **kwargs)
+
         monkeypatch.setattr(builtins, "__import__", mock_import)
         with pytest.raises(ImportError, match="numpy"):
             simple_ts.to_numpy()
 
     def test_to_pyarrow(self, simple_ts):
         import pyarrow as pa
+
         result = simple_ts.to_pyarrow()
         assert isinstance(result, pa.Table)
         assert "valid_time" in result.column_names
@@ -380,23 +401,26 @@ class TestConversionMethods:
 
     def test_to_pyarrow_missing_dep(self, simple_ts, monkeypatch):
         import builtins
+
         real_import = builtins.__import__
+
         def mock_import(name, *args, **kwargs):
             if name == "pyarrow":
                 raise ImportError
             return real_import(name, *args, **kwargs)
+
         monkeypatch.setattr(builtins, "__import__", mock_import)
         with pytest.raises(ImportError, match="pyarrow"):
             simple_ts.to_pyarrow()
 
     def test_from_list_roundtrip(self, simple_ts):
         ts2 = TimeSeries.from_list(simple_ts.to_list(), name=simple_ts.name, unit=simple_ts.unit)
-        assert ts2.df.equals(simple_ts.df)
+        assert ts2.to_polars().equals(simple_ts.to_polars())
 
     def test_from_list_nulls_preserved(self, simple_ts_with_nulls):
         ts2 = TimeSeries.from_list(simple_ts_with_nulls.to_list(), name="x")
         assert ts2.has_missing is True
-        assert ts2.df["value"].to_list() == simple_ts_with_nulls.df["value"].to_list()
+        assert ts2.to_polars()["value"].to_list() == simple_ts_with_nulls.to_polars()["value"].to_list()
 
     def test_from_list_metadata(self, simple_ts):
         ts2 = TimeSeries.from_list(simple_ts.to_list(), name="x", unit="kW", frequency=Frequency.PT1H)
@@ -406,7 +430,7 @@ class TestConversionMethods:
 
     def test_from_numpy_roundtrip(self, simple_ts):
         ts2 = TimeSeries.from_numpy(simple_ts.to_numpy(), name=simple_ts.name, unit=simple_ts.unit)
-        assert ts2.df.equals(simple_ts.df)
+        assert ts2.to_polars().equals(simple_ts.to_polars())
 
     def test_from_numpy_metadata(self, simple_ts):
         ts2 = TimeSeries.from_numpy(simple_ts.to_numpy(), name="y", unit="MW", frequency=Frequency.PT1H)
@@ -416,18 +440,21 @@ class TestConversionMethods:
 
     def test_from_numpy_missing_dep(self, simple_ts, monkeypatch):
         import builtins
+
         real_import = builtins.__import__
+
         def mock_import(name, *args, **kwargs):
             if name == "numpy":
                 raise ImportError
             return real_import(name, *args, **kwargs)
+
         monkeypatch.setattr(builtins, "__import__", mock_import)
         with pytest.raises(ImportError, match="numpy"):
             TimeSeries.from_numpy(simple_ts.to_numpy(), name="x")
 
     def test_from_pyarrow_roundtrip(self, simple_ts):
         ts2 = TimeSeries.from_pyarrow(simple_ts.to_pyarrow(), name=simple_ts.name, unit=simple_ts.unit)
-        assert ts2.df.equals(simple_ts.df)
+        assert ts2.to_polars().equals(simple_ts.to_polars())
 
     def test_from_pyarrow_metadata(self, simple_ts):
         ts2 = TimeSeries.from_pyarrow(simple_ts.to_pyarrow(), name="z", unit="GW", frequency=Frequency.PT1H)
@@ -437,11 +464,14 @@ class TestConversionMethods:
 
     def test_from_pyarrow_missing_dep(self, simple_ts, monkeypatch):
         import builtins
+
         real_import = builtins.__import__
+
         def mock_import(name, *args, **kwargs):
             if name == "pyarrow":
                 raise ImportError
             return real_import(name, *args, **kwargs)
+
         monkeypatch.setattr(builtins, "__import__", mock_import)
         with pytest.raises(ImportError, match="pyarrow"):
             TimeSeries.from_pyarrow(simple_ts.to_pyarrow(), name="x")

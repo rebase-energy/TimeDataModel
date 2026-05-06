@@ -144,15 +144,18 @@ class TestCSSCaching:
 class TestThemeProxy:
     def test_getitem(self):
         from timedatamodel._theme import THEME
+
         assert THEME["light"]["header_bg"] == _DEFAULT_THEME["light"]["header_bg"]
 
     def test_contains(self):
         from timedatamodel._theme import THEME
+
         assert "light" in THEME
         assert "dark" in THEME
         assert "sepia" not in THEME
 
     def test_reflects_set_theme(self):
         from timedatamodel._theme import THEME
+
         set_theme({"light": {"header_bg": "#123456"}})
         assert THEME["light"]["header_bg"] == "#123456"

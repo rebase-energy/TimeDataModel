@@ -20,9 +20,7 @@ class GeoLocation:
         if not -90 <= self.latitude <= 90:
             raise ValueError(f"latitude must be between -90 and 90, got {self.latitude}")
         if not -180 <= self.longitude <= 180:
-            raise ValueError(
-                f"longitude must be between -180 and 180, got {self.longitude}"
-            )
+            raise ValueError(f"longitude must be between -180 and 180, got {self.longitude}")
 
     def distance_to(self, other: GeoLocation, unit: str = "km") -> float:
         """Haversine great-circle distance to *other*."""
@@ -56,7 +54,7 @@ class GeoLocation:
         by = math.cos(lat2) * math.sin(lon2 - lon1)
         lat3 = math.atan2(
             math.sin(lat1) + math.sin(lat2),
-            math.sqrt((math.cos(lat1) + bx) ** 2 + by ** 2),
+            math.sqrt((math.cos(lat1) + bx) ** 2 + by**2),
         )
         lon3 = lon1 + math.atan2(by, math.cos(lat1) + bx)
         return GeoLocation(
@@ -70,9 +68,7 @@ class GeoLocation:
         lon1 = math.radians(self.longitude)
         brng = math.radians(bearing_deg)
         d = distance_km / _EARTH_RADIUS_KM
-        lat2 = math.asin(
-            math.sin(lat1) * math.cos(d) + math.cos(lat1) * math.sin(d) * math.cos(brng)
-        )
+        lat2 = math.asin(math.sin(lat1) * math.cos(d) + math.cos(lat1) * math.sin(d) * math.cos(brng))
         lon2 = lon1 + math.atan2(
             math.sin(brng) * math.sin(d) * math.cos(lat1),
             math.cos(d) - math.sin(lat1) * math.sin(lat2),
@@ -108,8 +104,7 @@ class GeoArea:
             from shapely.geometry import Polygon
         except ImportError:
             raise ImportError(
-                "shapely is required for GeoArea. "
-                "Install it with: pip install timedatamodel[geo]"
+                "shapely is required for GeoArea. Install it with: pip install timedatamodel[geo]"
             ) from None
         # Shapely uses (x, y) = (lon, lat), so we swap
         xy_coords = [(lon, lat) for lat, lon in coords]
@@ -121,8 +116,7 @@ class GeoArea:
             from shapely.geometry import Point
         except ImportError:
             raise ImportError(
-                "shapely is required for contains_point(). "
-                "Install it with: pip install timedatamodel[geo]"
+                "shapely is required for contains_point(). Install it with: pip install timedatamodel[geo]"
             ) from None
         return self.polygon.contains(Point(location.longitude, location.latitude))
 
@@ -184,9 +178,7 @@ def _location_to_json(location: Location | None) -> dict | None:
         }
 
     if isinstance(location, GeoArea):
-        coords = [
-            [lat, lon] for lon, lat in list(location.polygon.exterior.coords)
-        ]
+        coords = [[lat, lon] for lon, lat in list(location.polygon.exterior.coords)]
         return {
             "type": "GeoArea",
             "name": location.name,
@@ -202,9 +194,7 @@ def _location_from_json(payload: dict | None) -> Location | None:
         return None
 
     if not isinstance(payload, dict):
-        raise TypeError(
-            f"location payload must be a dict or None, got {type(payload).__name__}"
-        )
+        raise TypeError(f"location payload must be a dict or None, got {type(payload).__name__}")
 
     kind = payload.get("type")
     if kind == "GeoLocation":
@@ -216,9 +206,7 @@ def _location_from_json(payload: dict | None) -> Location | None:
     if kind == "GeoArea":
         raw_coords = payload.get("coordinates")
         if not isinstance(raw_coords, list) or len(raw_coords) < 3:
-            raise ValueError(
-                "GeoArea payload must contain at least 3 coordinate pairs"
-            )
+            raise ValueError("GeoArea payload must contain at least 3 coordinate pairs")
         coords = [(float(lat), float(lon)) for lat, lon in raw_coords]
         name = payload.get("name")
         return GeoArea.from_coordinates(coords, name=name)
