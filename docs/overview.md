@@ -88,13 +88,13 @@ itself.
 ## Data shapes
 
 The `DataShape` enum controls which timestamp columns are present in the underlying DataFrame.
-This lets a single class cover standard time series as well as bi-temporal and audit-trail
+This lets a single class cover standard time series as well as versioned and audit-trail
 patterns:
 
 | Shape | Columns | Use case |
 |-------|---------|----------|
 | `SIMPLE` | `valid_time`, `value` | Standard time series |
-| `VERSIONED` | `knowledge_time`, `valid_time`, `value` | Bi-temporal: record *when* each value was produced |
+| `VERSIONED` | `knowledge_time`, `valid_time`, `value` | Record *when* each value was produced |
 | `CORRECTED` | `valid_time`, `change_time`, `value` | Track *when* a value was revised |
 | `AUDIT` | `knowledge_time`, `change_time`, `valid_time`, `value` | Full audit trail |
 

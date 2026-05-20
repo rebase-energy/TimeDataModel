@@ -38,12 +38,12 @@
 ## 📐 Data Shapes
 
 `TimeSeries` supports four **temporal shapes** to model everything from simple point-in-time
-data to fully bi-temporal audit trails:
+data to full audit trails:
 
 | Shape | Columns | Use case |
 | :---- | :------ | :------- |
 | `SIMPLE` | `valid_time`, `value` | Standard time series |
-| `VERSIONED` | `knowledge_time`, `valid_time`, `value` | Bi-temporal: track *when* each value was produced |
+| `VERSIONED` | `knowledge_time`, `valid_time`, `value` | Track *when* each value was produced |
 | `CORRECTED` | `valid_time`, `change_time`, `value` | Corrections: track *when* a value was revised |
 | `AUDIT` | `knowledge_time`, `change_time`, `valid_time`, `value` | Full audit trail |
 
@@ -97,7 +97,7 @@ tbl    = ts.to_pyarrow()      # pa.Table (requires pyarrow)
 
 ## ✨ Key Features
 
-- 🔷 **Four data shapes** — from `SIMPLE` point-in-time to `AUDIT` full bi-temporal history;
+- 🔷 **Four data shapes** — from `SIMPLE` point-in-time to `AUDIT` full audit history;
 - 🏷️ **Metadata** — name, unit, frequency, timezone, data type, description on every series;
 - 📋 **Metadata-only mode** — construct `TimeSeries(df=None, …)` to declare a series' structure before any data exists, for catalog/registration use;
 - 🔄 **Format conversions** — `to_pandas`, `to_polars`, `to_list`, `to_numpy`, `to_pyarrow` with lazy optional-dependency checks;

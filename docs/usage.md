@@ -92,7 +92,7 @@ ts = TimeSeries.from_pandas(df, ...)    # requires pandas
 cb = ts.coverage_bar()   # CoverageBar — renders as SVG in Jupyter, Unicode blocks in terminal
 ```
 
-## Versioned (bi-temporal) series
+## Versioned series
 
 ```python
 import pandas as pd
