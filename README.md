@@ -7,7 +7,7 @@
 <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg?style=flat-square"></a>
 <a href="https://pypi.org/project/timedatamodel/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/timedatamodel?color=blue&style=flat-square"></a>
 <a href="https://pypi.org/project/timedatamodel/"><img alt="Python Versions" src="https://img.shields.io/pypi/pyversions/timedatamodel?style=flat-square"></a>
-<a href="https://github.com/rebase-energy/TimeDataModel"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rebase-energy/TimeDataModel?style=social"></a>
+<a href="https://github.com/rebase-energy/timedatamodel"><img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/rebase-energy/timedatamodel?style=social"></a>
 
 </div>
 
@@ -126,7 +126,7 @@ pip install timedatamodel[all]       # all optional extras
 
 Install in editable mode for **development**:
 ```bash
-git clone https://github.com/rebase-energy/TimeDataModel.git
+git clone https://github.com/rebase-energy/timedatamodel.git
 cd TimeDataModel
 pip install -e .[dev]
 ```
@@ -139,7 +139,7 @@ Contributions are welcome! Here are some ways to contribute to **TimeDataModel**
 
 * Propose new features or extend existing classes;
 * Improve documentation or add example notebooks;
-* Report bugs or suggest features via [GitHub Issues](https://github.com/rebase-energy/TimeDataModel/issues).
+* Report bugs or suggest features via [GitHub Issues](https://github.com/rebase-energy/timedatamodel/issues).
 
 ---
 

@@ -20,7 +20,7 @@ pip install timedatamodel
 ## Development install
 
 ```bash
-git clone https://github.com/rebase-energy/TimeDataModel.git
+git clone https://github.com/rebase-energy/timedatamodel.git
 cd TimeDataModel
 pip install -e .[dev]
 ```
