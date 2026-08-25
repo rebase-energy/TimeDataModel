@@ -1,7 +1,9 @@
 import pytest
 import timedatamodel as tdm
 
-# ---- GeoLocation methods --------------------------------------------------
+# ---------------------------------------------------------------------------
+# GeoLocation methods
+# ---------------------------------------------------------------------------
 
 
 class TestGeoLocationDistance:
@@ -108,7 +110,9 @@ class TestGeoLocationIsWithin:
         assert loc.is_within(square_area) is False
 
 
-# ---- GeoArea methods ------------------------------------------------------
+# ---------------------------------------------------------------------------
+# GeoArea methods
+# ---------------------------------------------------------------------------
 
 
 class TestGeoAreaContains:

@@ -22,7 +22,7 @@ class TestInit:
 
 
 class TestTupleCompat:
-    """Unpacking, indexing, and length — tuple-style API."""
+    """Unpacking, indexing, and length: tuple-style API."""
 
     def test_iter_unpacking(self):
         dp = DataPoint(TS, 3.14)

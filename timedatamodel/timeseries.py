@@ -1,5 +1,5 @@
 """
-TimeSeries — a Polars-backed container for time series data.
+TimeSeries: a Polars-backed container for time series data.
 
 Uses a ``polars.DataFrame`` as the internal storage backend.
 
@@ -61,7 +61,7 @@ def _normalize_time_cols(df: pl.DataFrame) -> pl.DataFrame:
         if dtype == _TS_DTYPE:
             pass  # already correct
         elif isinstance(dtype, pl.Datetime) and dtype.time_zone is None:
-            # numpy datetime64 arrives as naive — localize to UTC
+            # numpy datetime64 arrives as naive: localize to UTC
             exprs.append(pl.col(col).dt.replace_time_zone("UTC").cast(_TS_DTYPE))
         else:
             exprs.append(pl.col(col).cast(_TS_DTYPE))
@@ -77,7 +77,7 @@ class TimeSeries(_TimeSeriesReprMixin):
     """Polars-backed container for time series data with rich metadata.
 
     The underlying ``df`` is optional. Construct with ``df=None`` to declare
-    a series structure (name, unit, data type, …) before any data exists —
+    a series structure (name, unit, data type, …) before any data exists,
     useful for registering series in a catalog. Methods that need data
     (converters, ``head``/``tail``, ``convert_unit``, …) raise
     :class:`ValueError` when no df is attached. Use :attr:`has_df` to check.
@@ -137,9 +137,9 @@ class TimeSeries(_TimeSeriesReprMixin):
         self.data_type: DataType | None = data_type
         self.timeseries_type: TimeSeriesType = timeseries_type
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Properties
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     @property
     def shape(self) -> DataShape | None:
@@ -185,9 +185,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             return False
         return self._df["value"].is_null().any()
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Internal helpers
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def _require_df(self) -> pl.DataFrame:
         """Return the attached DataFrame or raise if none.
@@ -198,9 +198,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             raise ValueError(f"TimeSeries {self.name!r} has no data attached (df=None)")
         return self._df
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Constructors
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     @classmethod
     def from_polars(
@@ -376,9 +376,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             timeseries_type=timeseries_type,
         )
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Conversion
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def validate_for_insert(self) -> tuple[pl.DataFrame, DataShape]:
         """Validate that this TimeSeries can be inserted and return the underlying
@@ -411,10 +411,10 @@ class TimeSeries(_TimeSeriesReprMixin):
 
         Restores the conventional index:
 
-        * ``SIMPLE``    — ``valid_time`` as index.
-        * ``VERSIONED`` — ``(knowledge_time, valid_time)`` MultiIndex.
-        * ``AUDIT``     — ``(knowledge_time, change_time, valid_time)`` MultiIndex.
-        * ``CORRECTED`` — ``(valid_time, change_time)`` MultiIndex.
+        * ``SIMPLE``: ``valid_time`` as index.
+        * ``VERSIONED``: ``(knowledge_time, valid_time)`` MultiIndex.
+        * ``AUDIT``: ``(knowledge_time, change_time, valid_time)`` MultiIndex.
+        * ``CORRECTED``: ``(valid_time, change_time)`` MultiIndex.
         """
         df = self._require_df().to_pandas()
 
@@ -490,9 +490,9 @@ class TimeSeries(_TimeSeriesReprMixin):
         end = df["valid_time"][-1] if self.num_rows > 0 else None
         return CoverageBar([(self.name, mask)], begin, end)
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Data access helpers
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def head(self, n: int = 5) -> TimeSeries:
         """Return the first *n* rows as a new :class:`TimeSeries`."""
@@ -502,9 +502,9 @@ class TimeSeries(_TimeSeriesReprMixin):
         """Return the last *n* rows as a new :class:`TimeSeries`."""
         return self._clone(self._require_df().tail(n))
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Unit conversion
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def convert_unit(self, target_unit: str) -> TimeSeries:
         """Return a new :class:`TimeSeries` with values converted to *target_unit*.
@@ -535,9 +535,9 @@ class TimeSeries(_TimeSeriesReprMixin):
         new_df = self._require_df().with_columns(pl.col("value") * factor)
         return self._clone(new_df, unit=target_unit)
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Internal clone helper
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def _clone(self, new_df: pl.DataFrame | None = None, **overrides) -> TimeSeries:
         """Create a new :class:`TimeSeries` with *new_df* and the same metadata.
@@ -556,9 +556,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             timeseries_type=overrides.get("timeseries_type", self.timeseries_type),
         )
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Metadata helpers
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def metadata_dict(self) -> dict:
         """Return all metadata fields as a plain dict."""
@@ -574,9 +574,9 @@ class TimeSeries(_TimeSeriesReprMixin):
             "num_rows": self.num_rows,
         }
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Dunder
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def __len__(self) -> int:
         return self._df.height if self._df is not None else 0
@@ -595,7 +595,7 @@ def _ingest_pandas_to_polars(df: pd.DataFrame) -> pl.DataFrame:
     3. Convert to Polars and cast timestamp columns to
        ``pl.Datetime("us", time_zone="UTC")``.
     """
-    # ── 1. Flatten index ────────────────────────────────────────────────────
+    # 1. Flatten index
     if isinstance(df.index, pd.MultiIndex):
         levels_to_reset = [n for n in df.index.names if n in _TIME_COLS]
     else:
@@ -606,7 +606,7 @@ def _ingest_pandas_to_polars(df: pd.DataFrame) -> pl.DataFrame:
     else:
         df = df.copy(deep=False)
 
-    # ── 2. Ensure every timestamp column is UTC-aware ───────────────────────
+    # 2. Ensure every timestamp column is UTC-aware
     for col in _TIME_COLS:
         if col not in df.columns:
             continue
@@ -632,9 +632,9 @@ def _ingest_pandas_to_polars(df: pd.DataFrame) -> pl.DataFrame:
             df[col] = s.dt.tz_localize("UTC")
         elif str(tz) != "UTC":
             df[col] = s.dt.tz_convert("UTC")
-        # else: already UTC — no allocation
+        # else: already UTC, no allocation
 
-    # ── 3. Convert to Polars and cast timestamp columns ─────────────────────
+    # 3. Convert to Polars and cast timestamp columns
     polars_df = pl.from_pandas(df)
 
     cast_exprs = [pl.col(c).cast(_TS_DTYPE) for c in _TIME_COLS if c in polars_df.columns]

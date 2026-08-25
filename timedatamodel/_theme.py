@@ -2,9 +2,9 @@
 
 Provides three public functions:
 
-- ``set_theme(overrides)`` — partial deep-merge on top of defaults + config file
-- ``get_theme()`` — returns a deep copy of the resolved theme
-- ``reset_theme()`` — restores defaults and re-enables config file discovery
+- ``set_theme(overrides)``: partial deep-merge on top of defaults + config file
+- ``get_theme()``: returns a deep copy of the resolved theme
+- ``reset_theme()``: restores defaults and re-enables config file discovery
 """
 
 from __future__ import annotations
@@ -157,7 +157,7 @@ def _resolve_theme() -> dict[str, dict[str, str]]:
 
 
 # ---------------------------------------------------------------------------
-# ThemeProxy — backward-compatible dict-like access
+# ThemeProxy: backward-compatible dict-like access
 # ---------------------------------------------------------------------------
 
 

@@ -54,13 +54,19 @@ extensions = [
     "nbsphinx",
 ]
 
-# -- nbsphinx settings -----------------------------------------------------
+# ---------------------------------------------------------------------------
+# nbsphinx settings
+# ---------------------------------------------------------------------------
 nbsphinx_execute = "auto"
 
-# -- MyST settings ----------------------------------------------------------
+# ---------------------------------------------------------------------------
+# MyST settings
+# ---------------------------------------------------------------------------
 myst_enable_extensions = ["colon_fence"]
 
-# -- Autodoc settings -------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Autodoc settings
+# ---------------------------------------------------------------------------
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
 autodoc_default_options = {
@@ -78,19 +84,25 @@ autodoc_default_options = {
     ),
 }
 
-# -- sphinx-autodoc-typehints ------------------------------------------------
+# ---------------------------------------------------------------------------
+# sphinx-autodoc-typehints
+# ---------------------------------------------------------------------------
 # Suppress warnings for forward-ref strings like "pd.DataFrame" that cannot
 # be resolved at import time (pandas/polars are optional dependencies).
 suppress_warnings = ["sphinx_autodoc_typehints.forward_reference"]
 
-# -- Intersphinx ------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Intersphinx
+# ---------------------------------------------------------------------------
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "pandas": ("https://pandas.pydata.org/docs/", None),
 }
 
-# -- Theme -------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Theme
+# ---------------------------------------------------------------------------
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]

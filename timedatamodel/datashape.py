@@ -1,7 +1,7 @@
 """
 Shared DataShape enum and column constants.
 
-Pure-Python, no third-party dependencies — safe to import from both the NumPy
+Pure-Python with no third-party dependencies, so it is safe to import from both the NumPy
 backend (which must work without polars) and the Polars backend.
 """
 

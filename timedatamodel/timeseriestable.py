@@ -1,9 +1,9 @@
 """
-TimeSeriesTable — a Polars-backed container for multivariate time series.
+TimeSeriesTable: a Polars-backed container for multivariate time series.
 
 Stores multiple co-indexed time series as named columns in a single
 ``polars.DataFrame``.  Each value column represents one signal (wind speed,
-temperature, solar power output, …) with its own metadata — unit, data type,
+temperature, solar power output, …) with its own metadata, unit, data type,
 and geographic location.
 
 Key characteristics
@@ -148,9 +148,9 @@ class TimeSeriesTable:
         self._timeseries_types: list[TimeSeriesType] = _broadcast_meta(timeseries_types, n, lambda: TimeSeriesType.FLAT)
         self._labels: list[dict[str, str]] = _broadcast_meta(labels, n, dict)
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Properties
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     @property
     def df(self) -> pl.DataFrame:
@@ -190,9 +190,9 @@ class TimeSeriesTable:
         """Per-column geographic locations."""
         return list(self._locations)
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Constructors
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     @classmethod
     def from_polars(
@@ -449,9 +449,9 @@ class TimeSeriesTable:
             labels=labels,
         )
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Column selection
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def select_column(self, col: int | str) -> TimeSeries:
         """Extract one value column as a :class:`~timedatamodel.timeseries.TimeSeries`.
@@ -502,9 +502,9 @@ class TimeSeriesTable:
             labels=[self._labels[i] for i in indices] or None,
         )
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Spatial filtering
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def filter_columns_by_location(self, center: GeoLocation, radius_km: float) -> TimeSeriesTable:
         """Keep only columns whose location is within *radius_km* of *center*."""
@@ -527,9 +527,9 @@ class TimeSeriesTable:
         keep = [idx for _, idx in dists[:n]]
         return self._select_columns(keep)
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Data access
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def head(self, n: int = 5) -> TimeSeriesTable:
         """Return the first *n* rows as a new :class:`TimeSeriesTable`."""
@@ -552,9 +552,9 @@ class TimeSeriesTable:
             labels=list(self._labels),
         )
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Conversion
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def to_pandas(self) -> pd.DataFrame:
         """Convert to a ``pandas.DataFrame`` with ``valid_time`` as index."""
@@ -621,12 +621,12 @@ class TimeSeriesTable:
         """Return ``(pl.DataFrame, DataShape.SIMPLE)`` for database write paths."""
         return self._df, DataShape.SIMPLE
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Metadata
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def metadata_dict(self) -> dict:
-        """Return all metadata as a plain dict — useful for serialisation."""
+        """Return all metadata as a plain dict, useful for serialisation."""
         names = self.column_names
         return {
             "frequency": self.frequency,
@@ -650,9 +650,9 @@ class TimeSeriesTable:
             },
         }
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
     # Dunder
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
     def __len__(self) -> int:
         return self._df.height
