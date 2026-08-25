@@ -15,10 +15,6 @@ import re
 import warnings
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Defaults (immutable, loaded once from theme.json)
-# ---------------------------------------------------------------------------
-
 _THEME_PATH = Path(__file__).parent / "theme.json"
 
 with open(_THEME_PATH) as _f:
@@ -27,10 +23,6 @@ with open(_THEME_PATH) as _f:
 _VALID_MODES = frozenset(_DEFAULT_THEME.keys())
 _VALID_KEYS: dict[str, frozenset[str]] = {mode: frozenset(keys) for mode, keys in _DEFAULT_THEME.items()}
 _HEX_RE = re.compile(r"^#[0-9a-fA-F]{3,8}$")
-
-# ---------------------------------------------------------------------------
-# Mutable state
-# ---------------------------------------------------------------------------
 
 _programmatic_overrides: dict[str, dict[str, str]] = {}
 _config_file_overrides: dict[str, dict[str, str]] | None = None  # None = not yet discovered
@@ -43,10 +35,6 @@ def get_theme_version() -> int:
     """Return the current theme version counter (for CSS caching)."""
     return _theme_version
 
-
-# ---------------------------------------------------------------------------
-# Config file discovery
-# ---------------------------------------------------------------------------
 
 _CONFIG_FILENAME = "timedatamodel_theme.json"
 
@@ -76,11 +64,6 @@ def _discover_config_file() -> dict[str, dict[str, str]]:
                 return {}
             return _validate_overrides(raw, source=str(candidate), strict=False)
     return {}
-
-
-# ---------------------------------------------------------------------------
-# Validation
-# ---------------------------------------------------------------------------
 
 
 def _validate_overrides(
@@ -128,16 +111,10 @@ def _validate_overrides(
     return cleaned
 
 
-# ---------------------------------------------------------------------------
-# Resolution
-# ---------------------------------------------------------------------------
-
-
 def _resolve_theme() -> dict[str, dict[str, str]]:
     """Merge: defaults ← config file ← programmatic overrides."""
     global _config_file_overrides, _resolved_cache, _resolved_cache_version
 
-    # Lazy config file discovery
     if _config_file_overrides is None:
         _config_file_overrides = _discover_config_file()
 
@@ -154,11 +131,6 @@ def _resolve_theme() -> dict[str, dict[str, str]]:
     _resolved_cache = merged
     _resolved_cache_version = _theme_version
     return merged
-
-
-# ---------------------------------------------------------------------------
-# ThemeProxy: backward-compatible dict-like access
-# ---------------------------------------------------------------------------
 
 
 class _ThemeProxy:
@@ -188,10 +160,6 @@ class _ThemeProxy:
 
 
 THEME: _ThemeProxy = _ThemeProxy()
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 
 
 def set_theme(overrides: dict[str, dict[str, str]]) -> None:

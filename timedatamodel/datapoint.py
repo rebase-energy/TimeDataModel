@@ -19,10 +19,6 @@ class DataPoint:
         self.timestamp = timestamp
         self.value = value
 
-    # -----------------------------------------------------------------------
-    # tuple compatibility
-    # -----------------------------------------------------------------------
-
     def __iter__(self) -> Iterator[datetime | float | None]:
         yield self.timestamp
         yield self.value
@@ -46,10 +42,6 @@ class DataPoint:
 
     def __hash__(self) -> int:
         return hash((self.timestamp, self.value))
-
-    # -----------------------------------------------------------------------
-    # repr
-    # -----------------------------------------------------------------------
 
     __repr__ = _datapoint_repr
     _repr_html_ = _datapoint_repr_html

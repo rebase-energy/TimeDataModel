@@ -15,10 +15,6 @@ from html import escape
 
 from ._theme import THEME, get_theme_version
 
-# ---------------------------------------------------------------------------
-# Module-level state
-# ---------------------------------------------------------------------------
-
 _default_repr_width: int | None = None  # None = no limit
 
 
@@ -37,10 +33,6 @@ def get_repr_width() -> int | None:
 
 _MAX_PREVIEW = 3  # rows shown at head/tail in repr
 _MAX_COL_PREVIEW = 4  # leaf columns shown at head/tail in array repr
-
-# ---------------------------------------------------------------------------
-# Pure formatting helpers
-# ---------------------------------------------------------------------------
 
 
 def _truncate(s: str, max_len: int) -> str:
@@ -97,11 +89,6 @@ def _fmt_value(v: float | None) -> str:
     if v == int(v):
         return f"{v:.1f}"
     return f"{v:g}"
-
-
-# ---------------------------------------------------------------------------
-# CoverageBar
-# ---------------------------------------------------------------------------
 
 
 class CoverageBar:
@@ -214,10 +201,6 @@ class CoverageBar:
         return "\n".join(parts)
 
 
-# ---------------------------------------------------------------------------
-# CSS infrastructure
-# ---------------------------------------------------------------------------
-
 _css_cache: str | None = None
 _css_cache_version: int = -1
 
@@ -278,11 +261,6 @@ def _get_repr_css() -> str:
     return _css_cache
 
 
-# ---------------------------------------------------------------------------
-# Builders
-# ---------------------------------------------------------------------------
-
-
 def _build_repr_html(
     class_name: str,
     meta_rows: list[tuple[str, str]],
@@ -298,13 +276,11 @@ def _build_repr_html(
     html = [_get_repr_css(), '<div class="ts-repr">']
     html.append(f'<div class="ts-header">{escape(class_name)}</div>')
 
-    # Meta section
     html.append('<div class="ts-meta"><table>')
     for label, value in meta_rows:
         html.append(f"<tr><td>{escape(label)}</td><td>{escape(value)}</td></tr>")
     html.append("</table></div>")
 
-    # Data section
     html.append('<div class="ts-data"><table>')
     header_cells = "".join(f'<th class="ts-idx">{escape(c)}</th>' for c in index_names)
     header_cells += "".join(f"<th>{escape(c)}</th>" for c in column_names)
@@ -348,8 +324,7 @@ def _render_box(
 
     max_w = max((len(line) for line in content_lines if line is not None), default=0)
 
-    # Cap content width when a max_width is active
-    # Total width = 2 (borders) + 2*padding + content
+    # Total width is 2 borders + 2 padding + content.
     if max_width is not None:
         max_content = max_width - 2 * padding - 2
         if max_content < 1:
@@ -370,11 +345,6 @@ def _render_box(
             lines.append("\u2502" + " " * padding + cl.ljust(max_w) + " " * padding + "\u2502")
     lines.append(bot)
     return "\n".join(lines)
-
-
-# ---------------------------------------------------------------------------
-# DataPoint repr functions (standalone, monkey-patched onto NamedTuple)
-# ---------------------------------------------------------------------------
 
 
 def _datapoint_repr(self) -> str:
@@ -423,11 +393,6 @@ _SHAPE_INDEX_COLS: dict[str, tuple[str, ...]] = {
     "CORRECTED": ("valid_time", "change_time"),
     "AUDIT": ("knowledge_time", "change_time", "valid_time"),
 }
-
-
-# ---------------------------------------------------------------------------
-# Mixin: _TimeSeriesReprMixin
-# ---------------------------------------------------------------------------
 
 
 class _TimeSeriesReprMixin:

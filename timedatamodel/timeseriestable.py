@@ -43,11 +43,6 @@ from .enums import DataType, Frequency, TimeSeriesType
 from .location import GeoArea, GeoLocation
 from .timeseries import TimeSeries, _ingest_pandas_to_polars, _normalize_time_cols
 
-# ---------------------------------------------------------------------------
-# Internal helpers
-# ---------------------------------------------------------------------------
-
-# Columns that are NOT value columns
 _NON_VALUE_COLS: frozenset = frozenset({"valid_time", "valid_time_end"})
 
 
@@ -65,11 +60,6 @@ def _broadcast_meta(lst: list | None, n: int, default) -> list:
 def _value_col_names(df: pl.DataFrame) -> list[str]:
     """Return column names that are not temporal metadata columns."""
     return [c for c in df.columns if c not in _NON_VALUE_COLS]
-
-
-# ---------------------------------------------------------------------------
-# TimeSeriesTable
-# ---------------------------------------------------------------------------
 
 
 class TimeSeriesTable:
@@ -123,9 +113,8 @@ class TimeSeriesTable:
             if not isinstance(vte_dtype, pl.Datetime) or vte_dtype.time_zone is None or vte_dtype.time_zone != "UTC":
                 raise TypeError(f"valid_time_end must be pl.Datetime with timezone 'UTC', got {vte_dtype!r}")
 
-        # Reject extra time-like columns that are not currently modeled as
-        # dedicated time axes by TimeSeriesTable. If present, they would
-        # be incorrectly treated as value columns and break metadata broadcasting.
+        # Unmodeled time columns would be taken for value columns, which breaks
+        # metadata broadcasting.
         _unsupported_time_cols = {"knowledge_time", "change_time"}
         present_unsupported = _unsupported_time_cols.intersection(df.columns)
         if present_unsupported:
@@ -147,10 +136,6 @@ class TimeSeriesTable:
         self._locations: list[GeoLocation | None] = _broadcast_meta(locations, n, lambda: None)
         self._timeseries_types: list[TimeSeriesType] = _broadcast_meta(timeseries_types, n, lambda: TimeSeriesType.FLAT)
         self._labels: list[dict[str, str]] = _broadcast_meta(labels, n, dict)
-
-    # -----------------------------------------------------------------------
-    # Properties
-    # -----------------------------------------------------------------------
 
     @property
     def df(self) -> pl.DataFrame:
@@ -189,10 +174,6 @@ class TimeSeriesTable:
     def locations(self) -> list[GeoLocation | None]:
         """Per-column geographic locations."""
         return list(self._locations)
-
-    # -----------------------------------------------------------------------
-    # Constructors
-    # -----------------------------------------------------------------------
 
     @classmethod
     def from_polars(
@@ -399,7 +380,6 @@ class TimeSeriesTable:
                     f"from_timeseries only accepts SIMPLE-shape TimeSeries, got {shape_value} for '{ts.name}'"
                 )
 
-        # Validate all series share identical timestamps
         ref_times = series_list[0].to_polars()["valid_time"]
         for ts in series_list[1:]:
             if not ts.to_polars()["valid_time"].equals(ref_times):
@@ -409,7 +389,6 @@ class TimeSeriesTable:
                     f"'{series_list[0].name}'."
                 )
 
-        # Build merged DataFrame
         merged: pl.DataFrame | None = None
         for ts in series_list:
             col_name = ts.name or "value"
@@ -422,7 +401,6 @@ class TimeSeriesTable:
         assert merged is not None  # series_list is non-empty
         merged = merged.sort("valid_time")
 
-        # Derive per-column metadata from individual TimeSeries if not overridden
         if units is None:
             units = [ts.unit for ts in series_list]
         if descriptions is None:
@@ -448,10 +426,6 @@ class TimeSeriesTable:
             timeseries_types=timeseries_types,
             labels=labels,
         )
-
-    # -----------------------------------------------------------------------
-    # Column selection
-    # -----------------------------------------------------------------------
 
     def select_column(self, col: int | str) -> TimeSeries:
         """Extract one value column as a :class:`~timedatamodel.timeseries.TimeSeries`.
@@ -502,10 +476,6 @@ class TimeSeriesTable:
             labels=[self._labels[i] for i in indices] or None,
         )
 
-    # -----------------------------------------------------------------------
-    # Spatial filtering
-    # -----------------------------------------------------------------------
-
     def filter_columns_by_location(self, center: GeoLocation, radius_km: float) -> TimeSeriesTable:
         """Keep only columns whose location is within *radius_km* of *center*."""
         keep = [
@@ -527,10 +497,6 @@ class TimeSeriesTable:
         keep = [idx for _, idx in dists[:n]]
         return self._select_columns(keep)
 
-    # -----------------------------------------------------------------------
-    # Data access
-    # -----------------------------------------------------------------------
-
     def head(self, n: int = 5) -> TimeSeriesTable:
         """Return the first *n* rows as a new :class:`TimeSeriesTable`."""
         return self._clone_df(self._df.head(n))
@@ -551,10 +517,6 @@ class TimeSeriesTable:
             timeseries_types=list(self._timeseries_types),
             labels=list(self._labels),
         )
-
-    # -----------------------------------------------------------------------
-    # Conversion
-    # -----------------------------------------------------------------------
 
     def to_pandas(self) -> pd.DataFrame:
         """Convert to a ``pandas.DataFrame`` with ``valid_time`` as index."""
@@ -621,10 +583,6 @@ class TimeSeriesTable:
         """Return ``(pl.DataFrame, DataShape.SIMPLE)`` for database write paths."""
         return self._df, DataShape.SIMPLE
 
-    # -----------------------------------------------------------------------
-    # Metadata
-    # -----------------------------------------------------------------------
-
     def metadata_dict(self) -> dict:
         """Return all metadata as a plain dict, useful for serialisation."""
         names = self.column_names
@@ -649,10 +607,6 @@ class TimeSeriesTable:
                 for i, name in enumerate(names)
             },
         }
-
-    # -----------------------------------------------------------------------
-    # Dunder
-    # -----------------------------------------------------------------------
 
     def __len__(self) -> int:
         return self._df.height
